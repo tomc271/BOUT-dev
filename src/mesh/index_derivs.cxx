@@ -1016,17 +1016,21 @@ const Field3D Mesh::applyYdiff(const Field3D &var, Mesh::deriv_func func, CELL_L
         result[i] = func(s);
       }
     } else {
+
+      stencil s;
+      s.pp = nan("");
+      s.mm = nan("");
+      const auto vup = var.yup();
+      const auto vdn = var.ydown();
+      
       // Non-staggered
       for(const auto &i : result.region(region)) {
-        // Set stencils
-        stencil s;
-        s.c = var[i];
-        s.p = var.yup()[i.yp()];
-        s.m = var.ydown()[i.ym()];
-        s.pp = nan("");
-        s.mm = nan("");
-        
-        result[i] = func(s);
+	// Set stencils
+	s.m = vdn(i.x,i.y-1,i.z);
+        s.c = var(i.x,i.y,i.z);
+	s.p = vup(i.x,i.y+1,i.z);
+
+	result[i] = func(s);
       }
     }
   } else {
