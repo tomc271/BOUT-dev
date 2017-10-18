@@ -1,13 +1,13 @@
 /*!************************************************************************
 * MPI Communicator for BOUT++ representation
 *
-* 
+*
 *
 **************************************************************************
 * Copyright 2010 B.D.Dudson, S.Farley, M.V.Umansky, X.Q.Xu
 *
 * Contact: Ben Dudson, bd512@york.ac.uk
-* 
+*
 * This file is part of BOUT++.
 *
 * BOUT++ is free software: you can redistribute it and/or modify
@@ -37,14 +37,15 @@ class BoutComm {
 public:
   ~BoutComm();
   /// Get a pointer to the only instance
-  static BoutComm* getInstance();
+  static BoutComm &getInstance() {
+    static BoutComm instance;
+    return instance;
+  }
 
   /// Shortcut method
   static MPI_Comm get();
 
-  static void setArgs(int &c, char** &v);
-  
-  static void cleanup();
+  static void setArgs(int &c, char **&v);
 
   static int rank(); ///< Rank: my processor number
   static int size(); ///< Size: number of processors
@@ -56,15 +57,17 @@ public:
   MPI_Comm getComm();
   bool isSet();
 
- private:
-  BoutComm();
-  
-  int *pargc; char ***pargv; ///< Command-line arguments. These can be modified by MPI init, so pointers are used
+private:
+  BoutComm() : pargc(0), pargv(0), hasBeenSet(false), comm(MPI_COMM_NULL) {}
+
+  BoutComm(const BoutComm &) = delete;
+  BoutComm &operator=(const BoutComm &) = delete;
+
+  int *pargc;
+  char ***pargv; ///< Command-line arguments. These can be modified by MPI init, so
+                 /// pointers are used
   bool hasBeenSet;
   MPI_Comm comm;
-  
-  static BoutComm* instance; ///< The only instance of this class (Singleton)
-
 };
 
 #endif // __BOUTCOMM_H__

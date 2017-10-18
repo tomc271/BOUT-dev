@@ -424,7 +424,6 @@ int BoutInitialise(int &argc, char **&argv) {
     
   }catch(BoutException &e) {
     output_error.write("Error encountered during initialisation: %s\n", e.what());
-    BoutComm::cleanup();
     throw;
   }
   return 0;
@@ -499,9 +498,6 @@ int BoutFinalise() {
   // Logging output
   Output::cleanup();
 
-  // MPI communicator, including MPI_Finalize()
-  BoutComm::cleanup();
-  
   return 0;
 }
 
