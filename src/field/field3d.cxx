@@ -42,6 +42,7 @@
 #include <msg_stack.hxx>
 #include <bout/constants.hxx>
 #include <bout/assert.hxx>
+#include <bout/scorepwrapper.hxx>
 
 /// Constructor
 Field3D::Field3D(Mesh *msh)
@@ -388,7 +389,8 @@ Field3D & Field3D::operator=(const BoutReal val) {
 #define F3D_UPDATE_FIELD(op,bop,ftype)                       \
   Field3D & Field3D::operator op(const ftype &rhs) {         \
     TRACE("Field3D: %s %s", #op, #ftype);           \
-    checkData(rhs) ;                                         \
+    SCOREP0();\
+checkData(rhs) ;					     \
     checkData(*this);                                        \
     if(data.unique()) {                                      \
       /* This is the only reference to this data */          \
@@ -414,7 +416,8 @@ F3D_UPDATE_FIELD(/=, /, Field2D);    // operator/= Field2D
 #define F3D_UPDATE_REAL(op,bop)                              \
   Field3D & Field3D::operator op(BoutReal rhs) {      \
     TRACE("Field3D: %s Field3D", #op);              \
-    if(!finite(rhs))                                         \
+    SCOREP0();\
+if(!finite(rhs))							\
       throw BoutException("Field3D: %s operator passed non-finite BoutReal number", #op); \
     checkData(*this);                                        \
                                                              \
@@ -815,6 +818,7 @@ const Field3D operator-(const Field3D &f) {
 
 #define F3D_OP_FPERP(op)                     	                          \
   const FieldPerp operator op(const Field3D &lhs, const FieldPerp &rhs) { \
+      SCOREP0();\
     FieldPerp result;                                                     \
     result.allocate();                                                    \
     result.setIndex(rhs.getIndex());                                      \
@@ -830,6 +834,7 @@ F3D_OP_FPERP(*);
 
 #define F3D_OP_FIELD(op, ftype)                                     \
   const Field3D operator op(const Field3D &lhs, const ftype &rhs) { \
+        SCOREP0();\
     Field3D result;                                                 \
     result.allocate();                                              \
     for(const auto& i : lhs)                                               \
@@ -850,6 +855,7 @@ F3D_OP_FIELD(/, Field2D);   // Field3D / Field2D
 
 #define F3D_OP_REAL(op)                                         \
   const Field3D operator op(const Field3D &lhs, BoutReal rhs) { \
+      SCOREP0();\
     Field3D result;                                             \
     result.allocate();                                          \
     for(const auto& i : lhs)                                           \
@@ -865,6 +871,7 @@ F3D_OP_REAL(/); // Field3D / BoutReal
 
 #define REAL_OP_F3D(op)                                         \
   const Field3D operator op(BoutReal lhs, const Field3D &rhs) { \
+        SCOREP0();\
     Field3D result;                                             \
     result.allocate();                                          \
     for(const auto& i : rhs)                                           \
@@ -1018,6 +1025,7 @@ BoutReal max(const Field3D &f, bool allpe) {
 
 #define F3D_FUNC(name, func)                               \
   const Field3D name(const Field3D &f) {                   \
+      SCOREP0();\
     TRACE(#name "(Field3D)");                     \
     /* Check if the input is allocated */                  \
     ASSERT1(f.isAllocated());                              \

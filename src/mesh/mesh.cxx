@@ -5,7 +5,7 @@
 #include <utils.hxx>
 #include <derivs.hxx>
 #include <msg_stack.hxx>
-
+#include <bout/scorepwrapper.hxx>
 #include <cmath>
 
 #include "meshfactory.hxx"
@@ -164,6 +164,7 @@ bool Mesh::sourceHasVar(const string &name) {
 
 void Mesh::communicateXZ(FieldGroup &g) {
   TRACE("Mesh::communicate(FieldGroup&)");
+  SCOREP0();
 
   // Send data
   comm_handle h = send(g);
@@ -174,6 +175,7 @@ void Mesh::communicateXZ(FieldGroup &g) {
 
 void Mesh::communicate(FieldGroup &g) {
   TRACE("Mesh::communicate(FieldGroup&)");
+  SCOREP0();
 
   // Send data
   comm_handle h = send(g);
@@ -189,6 +191,8 @@ void Mesh::communicate(FieldGroup &g) {
 /// This is a bit of a hack for now to get FieldPerp communications
 /// The FieldData class needs to be changed to accomodate FieldPerp objects
 void Mesh::communicate(FieldPerp &f) {
+  SCOREP0();
+
   comm_handle recv[2];
   
   int nin = xstart; // Number of x points in inner guard cell

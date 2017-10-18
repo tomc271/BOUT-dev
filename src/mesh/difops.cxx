@@ -37,7 +37,7 @@
 
 #include <interpolation.hxx>
 #include <unused.hxx>
-
+#include <bout/scorepwrapper.hxx>
 #include <math.h>
 #include <stdlib.h>
 
@@ -47,18 +47,22 @@
 *******************************************************************************/
 
 const Field2D Grad_par(const Field2D &var, CELL_LOC outloc, DIFF_METHOD method) {
+  SCOREP0();
   return mesh->coordinates()->Grad_par(var, outloc, method);
 }
 
 const Field2D Grad_par(const Field2D &var, DIFF_METHOD method, CELL_LOC outloc) {
+  SCOREP0();
   return mesh->coordinates()->Grad_par(var, outloc, method);
 }
 
 const Field3D Grad_par(const Field3D &var, CELL_LOC outloc, DIFF_METHOD method) {
+  SCOREP0();
   return mesh->coordinates()->Grad_par(var, outloc, method);
 }
 
 const Field3D Grad_par(const Field3D &var, DIFF_METHOD method, CELL_LOC outloc) {
+  SCOREP0();
   return mesh->coordinates()->Grad_par(var, outloc, method);
 }
 
@@ -74,6 +78,7 @@ const Field3D Grad_par(const Field3D &var, DIFF_METHOD method, CELL_LOC outloc) 
 *******************************************************************************/
 
 const Field3D Grad_parP(const Field3D &apar, const Field3D &f) {
+  SCOREP0();
   Field3D result;
   result.allocate();
   
@@ -161,14 +166,17 @@ const Field3D Grad_parP(const Field3D &apar, const Field3D &f) {
 *******************************************************************************/
 
 const Field2D Vpar_Grad_par(const Field2D &v, const Field2D &f) {
+  SCOREP0();
   return mesh->coordinates()->Vpar_Grad_par(v, f);
 }
 
 const Field3D Vpar_Grad_par(const Field &v, const Field &f, CELL_LOC outloc, DIFF_METHOD method) {
+  SCOREP0();
   return mesh->coordinates()->Vpar_Grad_par(v, f, outloc, method);
 }
 
 const Field3D Vpar_Grad_par(const Field &v, const Field &f, DIFF_METHOD method, CELL_LOC outloc) {
+  SCOREP0();
   return mesh->coordinates()->Vpar_Grad_par(v, f, outloc, method);
 }
 
@@ -178,21 +186,24 @@ const Field3D Vpar_Grad_par(const Field &v, const Field &f, DIFF_METHOD method, 
 *******************************************************************************/
 
 const Field2D Div_par(const Field2D &f) {
+  SCOREP0();
   return mesh->coordinates()->Div_par(f);
 }
 
 const Field3D Div_par(const Field3D &f, CELL_LOC outloc, DIFF_METHOD method) {
+  SCOREP0();
   return mesh->coordinates()->Div_par(f, outloc, method);
 }
 
 const Field3D Div_par(const Field3D &f, DIFF_METHOD method, CELL_LOC outloc) {
+  SCOREP0();
   return mesh->coordinates()->Div_par(f, outloc, method);
 }
 
 const Field3D Div_par(const Field3D &f, const Field3D &v) {
   // Parallel divergence, using velocities at cell boundaries
   // Note: Not guaranteed to be flux conservative
-
+  SCOREP0();
   Field3D result;
   result.allocate();
 
@@ -224,11 +235,13 @@ const Field3D Div_par(const Field3D &f, const Field3D &v) {
 //////// Flux methods
 
 const Field3D Div_par_flux(const Field3D &v, const Field3D &f, CELL_LOC outloc, DIFF_METHOD method) {
+  SCOREP0();
   Coordinates *metric = mesh->coordinates();
   return -metric->Bxy*FDDY(v, f/metric->Bxy, outloc, method)/sqrt(metric->g_22);
 }
 
 const Field3D Div_par_flux(const Field3D &v, const Field3D &f, DIFF_METHOD method, CELL_LOC outloc) {
+    SCOREP0();
   return Div_par_flux(v,f, outloc, method);
 }
 
@@ -239,6 +252,7 @@ const Field3D Div_par_flux(const Field3D &v, const Field3D &f, DIFF_METHOD metho
 *******************************************************************************/
 
 const Field3D Grad_par_CtoL(const Field3D &var) {
+  SCOREP0();
   Field3D result;
   result.allocate();
   
@@ -272,6 +286,7 @@ const Field3D Grad_par_CtoL(const Field3D &var) {
 }
 
 const Field3D Vpar_Grad_par_LCtoC(const Field &v, const Field &f) {
+  SCOREP0();
   bindex bx;
   stencil fval, vval;
   Field3D result;
@@ -295,6 +310,7 @@ const Field3D Vpar_Grad_par_LCtoC(const Field &v, const Field &f) {
 }
 
 const Field3D Grad_par_LtoC(const Field3D &var) {
+  SCOREP0();
   Field3D result;
   result.allocate();
   
@@ -319,21 +335,25 @@ const Field3D Grad_par_LtoC(const Field3D &var) {
 }
 
 const Field3D Div_par_LtoC(const Field2D &var) {
+  SCOREP0();
   Coordinates *metric = mesh->coordinates();
   return metric->Bxy*Grad_par_LtoC(var/metric->Bxy);
 }
 
 const Field3D Div_par_LtoC(const Field3D &var) {
+  SCOREP0();
   Coordinates *metric = mesh->coordinates();
   return metric->Bxy*Grad_par_LtoC(var/metric->Bxy);
 }
 
 const Field3D Div_par_CtoL(const Field2D &var) {
+  SCOREP0();
   Coordinates *metric = mesh->coordinates();
   return metric->Bxy*Grad_par_CtoL(var/metric->Bxy);
 }
 
 const Field3D Div_par_CtoL(const Field3D &var) {
+  SCOREP0();
   Coordinates *metric = mesh->coordinates();
   return metric->Bxy*Grad_par_CtoL(var/metric->Bxy);
 }
@@ -348,10 +368,12 @@ const Field3D Div_par_CtoL(const Field3D &var) {
 *******************************************************************************/
 
 const Field2D Grad2_par2(const Field2D &f) {
+    SCOREP0();
   return mesh->coordinates()->Grad2_par2(f);
 }
 
 const Field3D Grad2_par2(const Field3D &f, CELL_LOC outloc) {
+    SCOREP0();
   return mesh->coordinates()->Grad2_par2(f, outloc);
 }
 
@@ -361,26 +383,32 @@ const Field3D Grad2_par2(const Field3D &f, CELL_LOC outloc) {
 *******************************************************************************/
 
 const Field2D Div_par_K_Grad_par(BoutReal kY, const Field2D &f) {
+    SCOREP0();
   return kY*Grad2_par2(f);
 }
 
 const Field3D Div_par_K_Grad_par(BoutReal kY, const Field3D &f) {
+    SCOREP0();
   return kY*Grad2_par2(f);
 }
 
 const Field2D Div_par_K_Grad_par(const Field2D &kY, const Field2D &f) {
+    SCOREP0();
   return kY*Grad2_par2(f) + Div_par(kY)*Grad_par(f);
 }
 
 const Field3D Div_par_K_Grad_par(const Field2D &kY, const Field3D &f) {
+    SCOREP0();
   return kY*Grad2_par2(f) + Div_par(kY)*Grad_par(f);
 }
 
 const Field3D Div_par_K_Grad_par(const Field3D &kY, const Field2D &f) {
+    SCOREP0();
   return kY*Grad2_par2(f) + Div_par(kY)*Grad_par(f);
 }
 
 const Field3D Div_par_K_Grad_par(const Field3D &kY, const Field3D &f) {
+    SCOREP0();
   return kY*Grad2_par2(f) + Div_par(kY)*Grad_par(f);
 }
 
@@ -390,14 +418,17 @@ const Field3D Div_par_K_Grad_par(const Field3D &kY, const Field3D &f) {
 *******************************************************************************/
 
 const Field2D Delp2(const Field2D &f) {
+    SCOREP0();
   return mesh->coordinates()->Delp2(f);
 }
 
 const Field3D Delp2(const Field3D &f, BoutReal UNUSED(zsmooth)) {
+    SCOREP0();
   return mesh->coordinates()->Delp2(f);
 }
 
 const FieldPerp Delp2(const FieldPerp &f, BoutReal UNUSED(zsmooth)) {
+    SCOREP0();
   return mesh->coordinates()->Delp2(f);
 }
 
@@ -409,10 +440,12 @@ const FieldPerp Delp2(const FieldPerp &f, BoutReal UNUSED(zsmooth)) {
 *******************************************************************************/
 
 const Field2D Laplace_perp(const Field2D &f) {
+    SCOREP0();
   return Laplace(f) - Laplace_par(f);
 }
 
 const Field3D Laplace_perp(const Field3D &f) {
+    SCOREP0();
   return Laplace(f) - Laplace_par(f);
 }
 
@@ -425,10 +458,12 @@ const Field3D Laplace_perp(const Field3D &f) {
 *******************************************************************************/
 
 const Field2D Laplace_par(const Field2D &f) {
+    SCOREP0();
   return mesh->coordinates()->Laplace_par(f);
 }
 
 const Field3D Laplace_par(const Field3D &f) {
+    SCOREP0();
   return mesh->coordinates()->Laplace_par(f);
 }
 
@@ -438,10 +473,12 @@ const Field3D Laplace_par(const Field3D &f) {
 *******************************************************************************/
 
 const Field2D Laplace(const Field2D &f) {
+    SCOREP0();
   return mesh->coordinates()->Laplace(f);
 }
 
 const Field3D Laplace(const Field3D &f) {
+  SCOREP0();
   return mesh->coordinates()->Laplace(f);
 }
 
@@ -452,7 +489,7 @@ const Field3D Laplace(const Field3D &f) {
 *******************************************************************************/
 
 const Field2D b0xGrad_dot_Grad(const Field2D &phi, const Field2D &A) {
-  
+    SCOREP0();
   TRACE("b0xGrad_dot_Grad( Field2D , Field2D )");
   
   Coordinates *metric = mesh->coordinates();
@@ -514,6 +551,7 @@ const Field3D b0xGrad_dot_Grad(const Field2D &phi, const Field3D &A) {
 }
 
 const Field3D b0xGrad_dot_Grad(const Field3D &p, const Field2D &A, CELL_LOC outloc) {
+  SCOREP0();
   Field3D dpdx, dpdy, dpdz;
   Field3D vx, vy;
   Field3D result;
@@ -546,6 +584,7 @@ const Field3D b0xGrad_dot_Grad(const Field3D &p, const Field2D &A, CELL_LOC outl
 }
 
 const Field3D b0xGrad_dot_Grad(const Field3D &phi, const Field3D &A, CELL_LOC outloc) {
+  SCOREP0();
   Field3D dpdx, dpdy, dpdz;
   Field3D vx, vy, vz;
   Field3D result;
@@ -611,6 +650,7 @@ CELL_LOC bracket_location(const CELL_LOC &f_loc, const CELL_LOC &g_loc, const CE
 }
 
 const Field2D bracket(const Field2D &f, const Field2D &g, BRACKET_METHOD method, CELL_LOC outloc, Solver *UNUSED(solver)) {
+  SCOREP0();
   TRACE("bracket(Field2D, Field2D)");
   Field2D result;
 
@@ -630,7 +670,7 @@ const Field2D bracket(const Field2D &f, const Field2D &g, BRACKET_METHOD method,
 
 const Field3D bracket(const Field3D &f, const Field2D &g, BRACKET_METHOD method, CELL_LOC outloc, Solver *solver) {
   TRACE("bracket(Field3D, Field2D)");
-  
+  SCOREP0();  
   Field3D result;
   
   Coordinates *metric = mesh->coordinates();
@@ -735,7 +775,7 @@ const Field3D bracket(const Field3D &f, const Field2D &g, BRACKET_METHOD method,
 
 const Field3D bracket(const Field2D &f, const Field3D &g, BRACKET_METHOD method, CELL_LOC outloc, Solver *solver) {
   TRACE("bracket(Field2D, Field3D)");
-  
+  SCOREP0();  
   Field3D result;
 
   CELL_LOC result_loc = bracket_location(f.getLocation(), g.getLocation(), outloc);
@@ -766,7 +806,7 @@ const Field3D bracket(const Field2D &f, const Field3D &g, BRACKET_METHOD method,
 
 const Field3D bracket(const Field3D &f, const Field3D &g, BRACKET_METHOD method, CELL_LOC outloc, Solver *solver) {
   TRACE("Field3D, Field3D");
-  
+  SCOREP0();  
   Coordinates *metric = mesh->coordinates();
 
   Field3D result;

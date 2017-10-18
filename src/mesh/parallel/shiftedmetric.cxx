@@ -10,6 +10,7 @@
 #include <bout/mesh.hxx>
 #include <fft.hxx>
 #include <bout/constants.hxx>
+#include <bout/scorepwrapper.hxx>
 
 #include <cmath>
 
@@ -95,6 +96,8 @@ ShiftedMetric::ShiftedMetric(Mesh &m) : mesh(m) {
  * Calculate the Y up and down fields
  */
 void ShiftedMetric::calcYUpDown(Field3D &f) {
+  SCOREP0();
+
   f.splitYupYdown();
   
   Field3D& yup = f.yup();

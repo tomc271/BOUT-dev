@@ -14,7 +14,7 @@
 #include <derivs.hxx>
 #include <interpolation.hxx>
 #include <fft.hxx>
-
+#include <bout/scorepwrapper.hxx>
 #include <globals.hxx>
 
 Coordinates::Coordinates(Mesh *mesh) {
@@ -525,11 +525,11 @@ int Coordinates::jacobian() {
  *
  *******************************************************************************/
 
-const Field2D Coordinates::DDX(const Field2D &f) { return mesh->indexDDX(f) / dx; }
+const Field2D Coordinates::DDX(const Field2D &f) {SCOREP0(); return mesh->indexDDX(f) / dx; }
 
-const Field2D Coordinates::DDY(const Field2D &f) { return mesh->indexDDY(f) / dy; }
+const Field2D Coordinates::DDY(const Field2D &f) {SCOREP0(); return mesh->indexDDY(f) / dy; }
 
-const Field2D Coordinates::DDZ(const Field2D &UNUSED(f)) { return Field2D(0.0); }
+const Field2D Coordinates::DDZ(const Field2D &UNUSED(f)) {SCOREP0(); return Field2D(0.0); }
 
 #include <derivs.hxx>
 
@@ -538,6 +538,7 @@ const Field2D Coordinates::DDZ(const Field2D &UNUSED(f)) { return Field2D(0.0); 
 
 const Field2D Coordinates::Grad_par(const Field2D &var, CELL_LOC UNUSED(outloc),
                                     DIFF_METHOD UNUSED(method)) {
+  SCOREP0();
   TRACE("Coordinates::Grad_par( Field2D )");
 
   return DDY(var) / sqrt(g_22);
@@ -546,7 +547,7 @@ const Field2D Coordinates::Grad_par(const Field2D &var, CELL_LOC UNUSED(outloc),
 const Field3D Coordinates::Grad_par(const Field3D &var, CELL_LOC outloc,
                                     DIFF_METHOD method) {
   TRACE("Coordinates::Grad_par( Field3D )");
-
+  SCOREP0();
   return ::DDY(var, outloc, method) / sqrt(g_22);
 }
 
@@ -557,11 +558,13 @@ const Field3D Coordinates::Grad_par(const Field3D &var, CELL_LOC outloc,
 const Field2D Coordinates::Vpar_Grad_par(const Field2D &v, const Field2D &f,
                                          CELL_LOC UNUSED(outloc),
                                          DIFF_METHOD UNUSED(method)) {
+  SCOREP0();
   return VDDY(v, f) / sqrt(g_22);
 }
 
 const Field3D Coordinates::Vpar_Grad_par(const Field &v, const Field &f, CELL_LOC outloc,
                                          DIFF_METHOD method) {
+  SCOREP0();
   return VDDY(v, f, outloc, method) / sqrt(g_22);
 }
 
@@ -571,13 +574,14 @@ const Field3D Coordinates::Vpar_Grad_par(const Field &v, const Field &f, CELL_LO
 const Field2D Coordinates::Div_par(const Field2D &f, CELL_LOC UNUSED(outloc),
                                    DIFF_METHOD UNUSED(method)) {
   TRACE("Coordinates::Div_par( Field2D )");
+  SCOREP0();
   return Bxy * Grad_par(f / Bxy);
 }
 
 const Field3D Coordinates::Div_par(const Field3D &f, CELL_LOC outloc,
                                    DIFF_METHOD method) {
   TRACE("Coordinates::Div_par( Field3D )");
-
+  SCOREP0();
   if (f.hasYupYdown()) {
     // Need to modify yup and ydown fields
     Field3D f_B = f / Bxy;
@@ -604,7 +608,7 @@ const Field3D Coordinates::Div_par(const Field3D &f, CELL_LOC outloc,
 
 const Field2D Coordinates::Grad2_par2(const Field2D &f) {
   TRACE("Coordinates::Grad2_par2( Field2D )");
-
+  SCOREP0();
   Field2D sg = sqrt(g_22);
   Field2D result = DDY(1. / sg) * DDY(f) / sg + D2DY2(f) / g_22;
 
@@ -613,7 +617,7 @@ const Field2D Coordinates::Grad2_par2(const Field2D &f) {
 
 const Field3D Coordinates::Grad2_par2(const Field3D &f, CELL_LOC outloc) {
   TRACE("Coordinates::Grad2_par2( Field3D )");
-
+  SCOREP0();
   Field2D sg;
   Field3D result, r2;
 
@@ -640,7 +644,7 @@ const Field3D Coordinates::Grad2_par2(const Field3D &f, CELL_LOC outloc) {
 
 const Field2D Coordinates::Delp2(const Field2D &f) {
   TRACE("Coordinates::Delp2( Field2D )");
-
+  SCOREP0();
   Field2D result = G1 * DDX(f) + g11 * D2DX2(f);
 
   return result;
@@ -648,7 +652,7 @@ const Field2D Coordinates::Delp2(const Field2D &f) {
 
 const Field3D Coordinates::Delp2(const Field3D &f) {
   TRACE("Coordinates::Delp2( Field3D )");
-  
+  SCOREP0();
   ASSERT2(mesh->xstart > 0); // Need at least one guard cell
 
   Field3D result;
@@ -710,7 +714,7 @@ const Field3D Coordinates::Delp2(const Field3D &f) {
 
 const FieldPerp Coordinates::Delp2(const FieldPerp &f) {
   TRACE("Coordinates::Delp2( FieldPerp )");
-
+  SCOREP0();
   FieldPerp result;
   result.allocate();
 
@@ -760,16 +764,19 @@ const FieldPerp Coordinates::Delp2(const FieldPerp &f) {
 }
 
 const Field2D Coordinates::Laplace_par(const Field2D &f) {
+  SCOREP0();
   return D2DY2(f) / g_22 + DDY(J / g_22) * DDY(f) / J;
 }
 
 const Field3D Coordinates::Laplace_par(const Field3D &f) {
+  SCOREP0();
   return D2DY2(f) / g_22 + DDY(J / g_22) * ::DDY(f) / J;
 }
 
 // Full Laplacian operator on scalar field
 
 const Field2D Coordinates::Laplace(const Field2D &f) {
+  SCOREP0();
   TRACE("Coordinates::Laplace( Field2D )");
 
   Field2D result =

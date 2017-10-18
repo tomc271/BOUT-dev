@@ -27,6 +27,7 @@
 
 #include <boutcomm.hxx>
 #include <bout/rvec.hxx>
+#include <bout/scorepwrapper.hxx>
 
 #include <globals.hxx> // for mesh
 
@@ -216,6 +217,7 @@ Field2D & Field2D::operator=(const BoutReal rhs) {
 
 #define F2D_UPDATE_FIELD(op,bop,ftype)                       \
   Field2D & Field2D::operator op(const ftype &rhs) {         \
+  SCOREP0();\
     TRACE("Field2D: %s %s", #op, #ftype);           \
     checkData(rhs) ;                                         \
     checkData(*this);                                        \
@@ -238,6 +240,7 @@ F2D_UPDATE_FIELD(/=, /, Field2D); // operator/=(const Field2D &rhs)
 #define F2D_UPDATE_REAL(op,bop)                              \
   Field2D & Field2D::operator op(const BoutReal rhs) {       \
     TRACE("Field2D: %s Field2D", #op);              \
+      SCOREP0();\
     if(!finite(rhs))                                         \
       throw BoutException("Field2D: %s operator passed non-finite BoutReal number", #op); \
     checkData(*this);                                        \
@@ -465,6 +468,7 @@ void Field2D::setBoundaryTo(const Field2D &f2d) {
 
 #define F2D_OP_F2D(op)                                     \
   const Field2D operator op(const Field2D &lhs, const Field2D &rhs) { \
+    SCOREP0();\
     Field2D result;                                                 \
     result.allocate();                                              \
     for(const auto& i : result)                                            \
@@ -479,6 +483,7 @@ F2D_OP_F2D(/);  // Field2D / Field2D
 
 #define F2D_OP_F3D(op)                                     \
   const Field3D operator op(const Field2D &lhs, const Field3D &rhs) { \
+      SCOREP0();\
     Field3D result;                                                 \
     result.allocate();                                              \
     for(const auto& i : result)                                            \
@@ -493,6 +498,7 @@ F2D_OP_F3D(/);  // Field2D / Field3D
 
 #define F2D_OP_REAL(op)                                     \
   const Field2D operator op(const Field2D &lhs, BoutReal rhs) {     \
+    SCOREP0();\
     Field2D result;                                                 \
     result.allocate();                                              \
     for(const auto& i : result)                                            \
@@ -507,6 +513,7 @@ F2D_OP_REAL(/);  // Field2D / BoutReal
 
 #define REAL_OP_F2D(op)                                     \
   const Field2D operator op(BoutReal lhs, const Field2D &rhs) {     \
+      SCOREP0();\
     Field2D result;                                                 \
     result.allocate();                                              \
     for(const auto& i : result)                                            \
@@ -602,6 +609,7 @@ bool finite(const Field2D &f) {
  */
 #define F2D_FUNC(name, func)                               \
   const Field2D name(const Field2D &f) {                   \
+    SCOREP0();\
     TRACE(#name "(Field2D)");                     \
     /* Check if the input is allocated */                  \
     ASSERT1(f.isAllocated());                              \

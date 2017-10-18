@@ -43,7 +43,7 @@
  * along with BOUT++.  If not, see <http://www.gnu.org/licenses/>.
  * 
  **************************************************************************/
-
+#include <bout/scorepwrapper.hxx>
 #include <globals.hxx>
 #include <derivs.hxx>
 #include <stencils.hxx>
@@ -705,6 +705,7 @@ void Mesh::derivs_init(Options* options) {
 // X derivative
 
 const Field2D Mesh::applyXdiff(const Field2D &var, Mesh::deriv_func func, CELL_LOC loc, REGION region) {
+    SCOREP0();
   if (var.getNx() == 1){
     return 0.;
   }
@@ -808,6 +809,7 @@ const Field2D Mesh::applyXdiff(const Field2D &var, Mesh::deriv_func func, CELL_L
 }
 
 const Field3D Mesh::applyXdiff(const Field3D &var, Mesh::deriv_func func, CELL_LOC loc, REGION region) {
+    SCOREP0();
   if (var.getNx() == 1) {
     return 0.;
   }
@@ -915,6 +917,7 @@ const Field3D Mesh::applyXdiff(const Field3D &var, Mesh::deriv_func func, CELL_L
 // Y derivative
 
 const Field2D Mesh::applyYdiff(const Field2D &var, Mesh::deriv_func func, CELL_LOC loc, REGION region) {
+  SCOREP0();
   if (var.getNy() == 1) {
     return 0.;
   }
@@ -966,6 +969,7 @@ const Field2D Mesh::applyYdiff(const Field2D &var, Mesh::deriv_func func, CELL_L
 }
 
 const Field3D Mesh::applyYdiff(const Field3D &var, Mesh::deriv_func func, CELL_LOC loc, REGION region) {
+  SCOREP0();
   if (var.getNy() == 1){
     return 0.;
   }
@@ -1133,6 +1137,7 @@ const Field3D Mesh::applyYdiff(const Field3D &var, Mesh::deriv_func func, CELL_L
 // Z derivative
 
 const Field3D Mesh::applyZdiff(const Field3D &var, Mesh::deriv_func func, CELL_LOC loc, REGION region) {
+    SCOREP0();
   if (var.getNz()==1){
     return 0.;
   }
@@ -1171,6 +1176,7 @@ const Field3D Mesh::applyZdiff(const Field3D &var, Mesh::deriv_func func, CELL_L
 ////////////// X DERIVATIVE /////////////////
 
 const Field3D Mesh::indexDDX(const Field3D &f, CELL_LOC outloc, DIFF_METHOD method) {
+  SCOREP0();
   Mesh::deriv_func func = fDDX; // Set to default function
   DiffLookup *table = FirstDerivTable;
   
@@ -1229,12 +1235,14 @@ const Field3D Mesh::indexDDX(const Field3D &f, CELL_LOC outloc, DIFF_METHOD meth
 }
 
 const Field2D Mesh::indexDDX(const Field2D &f) {
+    SCOREP0();
   return applyXdiff(f, fDDX);
 }
 
 ////////////// Y DERIVATIVE /////////////////
 
 const Field3D Mesh::indexDDY(const Field3D &f, CELL_LOC outloc, DIFF_METHOD method) {
+    SCOREP0();
   Mesh::deriv_func func = fDDY; // Set to default function
   DiffLookup *table = FirstDerivTable;
   
@@ -1291,12 +1299,14 @@ const Field3D Mesh::indexDDY(const Field3D &f, CELL_LOC outloc, DIFF_METHOD meth
 }
 
 const Field2D Mesh::indexDDY(const Field2D &f) {
+    SCOREP0();
   return applyYdiff(f, fDDY);
 }
 
 ////////////// Z DERIVATIVE /////////////////
 
 const Field3D Mesh::indexDDZ(const Field3D &f, CELL_LOC outloc, DIFF_METHOD method, bool inc_xbndry) {
+    SCOREP0();
   Mesh::deriv_func func = fDDZ; // Set to default function
   DiffLookup *table = FirstDerivTable;
  
@@ -1413,6 +1423,7 @@ const Field3D Mesh::indexDDZ(const Field3D &f, CELL_LOC outloc, DIFF_METHOD meth
 }
 
 const Field2D Mesh::indexDDZ(const Field2D &f) {
+  SCOREP0();
   ASSERT1(this == f.getMesh());
   Field2D result(this);
   result = 0.0;
@@ -1440,6 +1451,7 @@ const Field2D Mesh::indexDDZ(const Field2D &f) {
  *
  */
 const Field3D Mesh::indexD2DX2(const Field3D &f, CELL_LOC outloc, DIFF_METHOD method) {
+    SCOREP0();
   Mesh::deriv_func func = fD2DX2; // Set to default function
   DiffLookup *table = SecondDerivTable;
   
@@ -1508,6 +1520,7 @@ const Field3D Mesh::indexD2DX2(const Field3D &f, CELL_LOC outloc, DIFF_METHOD me
  *
  */
 const Field2D Mesh::indexD2DX2(const Field2D &f) {
+    SCOREP0();
   return applyXdiff(f, fD2DX2);
 }
 
@@ -1524,6 +1537,7 @@ const Field2D Mesh::indexD2DX2(const Field2D &f) {
  *
  */
 const Field3D Mesh::indexD2DY2(const Field3D &f, CELL_LOC outloc, DIFF_METHOD method) {
+    SCOREP0();
   Mesh::deriv_func func = fD2DY2; // Set to default function
   DiffLookup *table = SecondDerivTable;
   
@@ -1590,6 +1604,7 @@ const Field3D Mesh::indexD2DY2(const Field3D &f, CELL_LOC outloc, DIFF_METHOD me
  *
  */
 const Field2D Mesh::indexD2DY2(const Field2D &f) {
+    SCOREP0();
   return applyYdiff(f, fD2DY2);
 }
 
@@ -1606,6 +1621,7 @@ const Field2D Mesh::indexD2DY2(const Field2D &f) {
  *
  */
 const Field3D Mesh::indexD2DZ2(const Field3D &f, CELL_LOC outloc, DIFF_METHOD method, bool inc_xbndry) {
+    SCOREP0();
   Mesh::deriv_func func = fD2DZ2; // Set to default function
   DiffLookup *table = SecondDerivTable;
   
@@ -1728,22 +1744,27 @@ BoutReal D4DX4_C2(stencil &f) {
 }
 
 const Field3D Mesh::indexD4DX4(const Field3D &f) {
+    SCOREP0();
   return applyXdiff(f, D4DX4_C2);
 }
 
 const Field2D Mesh::indexD4DX4(const Field2D &f) {
+    SCOREP0();
   return applyXdiff(f, D4DX4_C2);
 }
 
 const Field3D Mesh::indexD4DY4(const Field3D &f) {
+    SCOREP0();
   return applyYdiff(f, D4DX4_C2);
 }
 
 const Field2D Mesh::indexD4DY4(const Field2D &f) {
+    SCOREP0();
   return applyYdiff(f, D4DX4_C2);
 }
 
 const Field3D Mesh::indexD4DZ4(const Field3D &f) {
+    SCOREP0();
   return applyZdiff(f, D4DX4_C2);
 }
 

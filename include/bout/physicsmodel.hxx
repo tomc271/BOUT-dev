@@ -38,6 +38,7 @@ class PhysicsModel;
 #define __PHYSICS_MODEL_H__
 
 #include <bout.hxx>
+#include <bout/scorepwrapper.hxx>
 #include <options.hxx>
 #include <msg_stack.hxx>
 #include "solver.hxx"
@@ -290,6 +291,7 @@ private:
  */
 #define BOUTMAIN(ModelClass)                          \
   int main(int argc, char **argv) {                   \
+    SCOREP0();\
     int init_err = BoutInitialise(argc, argv);        \
     if (init_err < 0)				      \
       return 0;                                       \

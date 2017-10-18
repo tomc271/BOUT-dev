@@ -47,6 +47,7 @@ const char DEFAULT_SET[] = "BOUT.settings";
 #include <bout.hxx>
 #include <datafile.hxx>
 #include <bout/solver.hxx>
+#include <bout/scorepwrapper.hxx>
 #include <boutexception.hxx>
 #include <optionsreader.hxx>
 #include <msg_stack.hxx>
@@ -110,7 +111,7 @@ char get_spin();                    // Produces a spinning bar
 
  */
 int BoutInitialise(int &argc, char **&argv) {
-
+  SCOREP0();
   string dump_ext; ///< Extensions for restart and dump files
 
   const char *data_dir; ///< Directory for data input/output
@@ -435,7 +436,7 @@ int BoutInitialise(int &argc, char **&argv) {
 }
 
 int bout_run(Solver *solver, rhsfunc physics_run) {
-  
+  SCOREP0();  
   /// Set the RHS function
   solver->setRHS(physics_run);
   
@@ -448,7 +449,7 @@ int bout_run(Solver *solver, rhsfunc physics_run) {
 }
 
 int BoutFinalise() {
-
+  SCOREP0();
   // Output the settings, showing which options were used
   // This overwrites the file written during initialisation
   try {
@@ -517,6 +518,7 @@ int BoutFinalise() {
  **************************************************************************/
 
 int BoutMonitor::call(Solver *solver, BoutReal t, int iter, int NOUT) {
+  SCOREP0();
   TRACE("BoutMonitor::call(%e, %d, %d)", t, iter, NOUT);
 
   // Data used for timing

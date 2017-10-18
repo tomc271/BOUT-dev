@@ -45,6 +45,7 @@
 #include <fft.hxx>
 #include <interpolation.hxx>
 #include <bout/constants.hxx>
+#include <bout/scorepwrapper.hxx>
 #include <msg_stack.hxx>
 
 #include <cmath>
@@ -60,6 +61,7 @@
 ////////////// X DERIVATIVE /////////////////
 
 const Field3D DDX(const Field3D &f, CELL_LOC outloc, DIFF_METHOD method) {
+  SCOREP0();
   Field3D result =  f.getMesh()->indexDDX(f,outloc, method) / f.getMesh()->coordinates()->dx;
 
   if(f.getMesh()->IncIntShear) {
@@ -71,58 +73,71 @@ const Field3D DDX(const Field3D &f, CELL_LOC outloc, DIFF_METHOD method) {
 }
 
 const Field3D DDX(const Field3D &f, DIFF_METHOD method, CELL_LOC outloc) {
+    SCOREP0();
   return DDX(f, outloc, method);
 }
 
 const Field3D DDX(const Field3D &f, DIFF_METHOD method) {
+    SCOREP0();
   return DDX(f, CELL_DEFAULT, method);
 }
 
 const Field2D DDX(const Field2D &f) {
+    SCOREP0();
   return f.getMesh()->coordinates()->DDX(f);
 }
 
 ////////////// Y DERIVATIVE /////////////////
 
 const Field3D DDY(const Field3D &f, CELL_LOC outloc, DIFF_METHOD method) {
+  SCOREP0();
   return f.getMesh()->indexDDY(f,outloc, method) / f.getMesh()->coordinates()->dy;
 }
 
 const Field3D DDY(const Field3D &f, DIFF_METHOD method, CELL_LOC outloc) {
+    SCOREP0();
   return DDY(f, outloc, method);
 }
 
 const Field3D DDY(const Field3D &f, DIFF_METHOD method) {
+    SCOREP0();
   return DDY(f, CELL_DEFAULT, method);
 }
 
 const Field2D DDY(const Field2D &f) {
+    SCOREP0();
   return f.getMesh()->coordinates()->DDY(f);
 }
 
 ////////////// Z DERIVATIVE /////////////////
 
 const Field3D DDZ(const Field3D &f, CELL_LOC outloc, DIFF_METHOD method, bool inc_xbndry) {
+  SCOREP0();
   return f.getMesh()->indexDDZ(f,outloc, method, inc_xbndry) / f.getMesh()->coordinates()->dz;
 }
 
 const Field3D DDZ(const Field3D &f, DIFF_METHOD method, CELL_LOC outloc, bool inc_xbndry) {
+    SCOREP0();
   return DDZ(f, outloc, method, inc_xbndry);
 }
 
 const Field3D DDZ(const Field3D &f, DIFF_METHOD method, bool inc_xbndry) {
+    SCOREP0();
   return DDZ(f, CELL_DEFAULT, method, inc_xbndry);
 }
 
 const Field3D DDZ(const Field3D &f, bool inc_xbndry) {
+    SCOREP0();
   return DDZ(f, CELL_DEFAULT, DIFF_DEFAULT, inc_xbndry);
 }
 
 const Field2D DDZ(const Field2D &UNUSED(f)) {
+    SCOREP0();
   return Field2D(0.0);
 }
 
 const Vector3D DDZ(const Vector3D &v, CELL_LOC outloc, DIFF_METHOD method) {
+    SCOREP0();
   Vector3D result;
 
   ASSERT2(v.x.getMesh()==v.y.getMesh());
@@ -148,10 +163,12 @@ const Vector3D DDZ(const Vector3D &v, CELL_LOC outloc, DIFF_METHOD method) {
 }
 
 const Vector3D DDZ(const Vector3D &v, DIFF_METHOD method, CELL_LOC outloc) {
+    SCOREP0();
   return DDZ(v, outloc, method);
 }
 
 const Vector2D DDZ(const Vector2D &v) {
+    SCOREP0();
   Vector2D result;
 
   result.covariant = v.covariant;
@@ -173,7 +190,7 @@ const Vector2D DDZ(const Vector2D &v) {
 ////////////// X DERIVATIVE /////////////////
 
 const Field3D D2DX2(const Field3D &f, CELL_LOC outloc, DIFF_METHOD method) {
-  
+  SCOREP0();  
   Field3D result = f.getMesh()->indexD2DX2(f, outloc, method) / SQ(f.getMesh()->coordinates()->dx);
   
   if(f.getMesh()->coordinates()->non_uniform) {
@@ -185,10 +202,12 @@ const Field3D D2DX2(const Field3D &f, CELL_LOC outloc, DIFF_METHOD method) {
 }
 
 const Field3D D2DX2(const Field3D &f, DIFF_METHOD method, CELL_LOC outloc) {
+    SCOREP0();
   return D2DX2(f, outloc, method);
 }
 
 const Field2D D2DX2(const Field2D &f) {
+    SCOREP0();
   Field2D result = f.getMesh()->indexD2DX2(f) / SQ(f.getMesh()->coordinates()->dx);
   
   if(f.getMesh()->coordinates()->non_uniform) {
@@ -202,7 +221,7 @@ const Field2D D2DX2(const Field2D &f) {
 ////////////// Y DERIVATIVE /////////////////
 
 const Field3D D2DY2(const Field3D &f, CELL_LOC outloc, DIFF_METHOD method) {
-  
+    SCOREP0();
   Field3D result = f.getMesh()->indexD2DY2(f, outloc, method) / SQ(f.getMesh()->coordinates()->dy);
 
   if(f.getMesh()->coordinates()->non_uniform) {
@@ -214,10 +233,12 @@ const Field3D D2DY2(const Field3D &f, CELL_LOC outloc, DIFF_METHOD method) {
 }
 
 const Field3D D2DY2(const Field3D &f, DIFF_METHOD method, CELL_LOC outloc) {
+    SCOREP0();
   return D2DY2(f, outloc, method);
 }
 
 const Field2D D2DY2(const Field2D &f) {
+  SCOREP0();
   Field2D result = f.getMesh()->indexD2DY2(f) / SQ(f.getMesh()->coordinates()->dy);
   if(f.getMesh()->coordinates()->non_uniform) {
     // Correction for non-uniform f.getMesh()
@@ -230,18 +251,22 @@ const Field2D D2DY2(const Field2D &f) {
 ////////////// Z DERIVATIVE /////////////////
 
 const Field3D D2DZ2(const Field3D &f, CELL_LOC outloc, DIFF_METHOD method, bool inc_xbndry) {
+    SCOREP0();
   return f.getMesh()->indexD2DZ2(f, outloc, method, inc_xbndry) / SQ(f.getMesh()->coordinates()->dz);
 }
 
 const Field3D D2DZ2(const Field3D &f, DIFF_METHOD method, CELL_LOC outloc, bool inc_xbndry) {
+    SCOREP0();
   return D2DZ2(f, outloc, method, inc_xbndry);
 }
 
 const Field3D D2DZ2(const Field3D &f, bool inc_xbndry) {
+    SCOREP0();
   return D2DZ2(f, CELL_DEFAULT, DIFF_DEFAULT, inc_xbndry);
 }
 
 const Field2D D2DZ2(const Field2D &UNUSED(f)) {
+    SCOREP0();
   return Field2D(0.0);
 }
 
