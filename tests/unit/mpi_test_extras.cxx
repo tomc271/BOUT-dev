@@ -33,7 +33,7 @@
  * the research papers on the package. Check out http://www.gromacs.org.
  */
 
-#include "mpi_test_printer.hxx"
+#include "mpi_test_extras.hxx"
 
 #include <memory>
 #include <sstream>

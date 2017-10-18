@@ -32,14 +32,8 @@
  * To help us fund GROMACS development, we humbly ask that you cite
  * the research papers on the package. Check out http://www.gromacs.org.
  */
-/*! \internal \file
- * \brief
- * Declares gmx::test::initMPIOutput().
- *
- * \ingroup module_testutils
- */
-#ifndef GMX_TESTUTILS_MPI_PRINTER_H
-#define GMX_TESTUTILS_MPI_PRINTER_H
+#ifndef MPI_TEST_EXTRAS_H
+#define MPI_TEST_EXTRAS_H
 
 #include <mpi.h>
 

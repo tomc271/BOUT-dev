@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "mpi_test_printer.hxx"
+#include "mpi_test_extras.hxx"
 
 #include "gtest/gtest.h"
 #include "boutcomm.hxx"
