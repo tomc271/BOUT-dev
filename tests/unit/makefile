@@ -95,12 +95,31 @@ mpi_tests: makefile $(BOUT_TOP)/make.config $(OBJ) $(LIB) $(SUB_LIBS) $(MPI_TEST
 	@echo "  Linking tests"
 	@$(LD) -o $@ $(MPI_TEST_OBJECTS) bout_mpi_test_main.a $(LDFLAGS) $(BOUT_LIBS) $(SUB_LIBS)
 
+# The following just tests the MPI test printing
+
+MPI_SELF_TEST_SOURCES = mpi_self_test.cxx mpi_test_extras.cxx
+MPI_SELF_TEST_OBJECTS = $(MPI_SELF_TEST_SOURCES:%.cxx=%.o)
+
+mpi_self_test: makefile $(BOUT_TOP)/make.config $(MPI_SELF_TEST_OBJECTS) bout_mpi_test_main.a
+	@echo "  Linking tests"
+	@$(LD) -o $@ $(MPI_SELF_TEST_OBJECTS) bout_mpi_test_main.a $(LDFLAGS) $(BOUT_LIBS) $(SUB_LIBS)
+
 # Note: This depends on GTEST_SENTINEL, which checks out Google Test if not present
 #       The correct behaviour relies on the dependencies being checked in left-to-right order
 #       The GTEST_SENTINEL dependency cannot be added to the %.o target, since this results in the %.o
 #       target in make.config being used instead.
-check: $(GTEST_SENTINEL) serial_tests
+check: $(GTEST_SENTINEL) check-serial check-mpi check-mpi-self
+
+check-serial: serial_tests
 	./serial_tests
+
+check-mpi: mpi_tests
+	mpirun -n 1 ./mpi_tests
+	mpirun -n 2 ./mpi_tests
+	mpirun -n 4 ./mpi_tests
+
+check-mpi-self: mpi_self_test
+	mpirun -n 2 ./mpi_self_test
 
 # This is the same target as a make rule in make.config. Adding unmet dependencies here
 # results in makefile reverting to the make.config version.
