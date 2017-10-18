@@ -43,27 +43,40 @@
 
 #include <mpi.h>
 
-namespace gmx
-{
-namespace test
-{
+#include "gtest/gtest.h"
 
-//! \cond internal
-/*! \brief
+/*!
  * Customizes test output and test failure handling for MPI runs.
  *
  * Only one rank should report the test result. Errors detected on a
  * subset of ranks need to be reported individually, and as an overall
  * failure.
  *
- * On non-MPI builds, does nothing.
- *
- * \ingroup module_testutils
  */
 void initMPIOutput();
-//! \endcond
 
-} // namespace test
-} // namespace gmx
+class MPIEnvironment : public ::testing::Environment {
+public:
+  MPIEnvironment(int *argc, char ***argv) : argc(argc), argv(argv) {}
+
+protected:
+
+  virtual void SetUp() {
+    int mpiError = MPI_Init(argc, argv);
+    ASSERT_FALSE(mpiError);
+    initMPIOutput();
+  }
+
+  virtual void TearDown() {
+    int mpiError = MPI_Finalize();
+    ASSERT_FALSE(mpiError);
+  }
+
+  virtual ~MPIEnvironment() {};
+
+private:
+  int *argc;
+  char ***argv;
+};
 
 #endif

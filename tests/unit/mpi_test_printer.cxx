@@ -33,7 +33,7 @@
  * the research papers on the package. Check out http://www.gromacs.org.
  */
 
-#include "mpi-printer.h"
+#include "mpi_test_printer.hxx"
 
 #include <memory>
 #include <sstream>
@@ -67,7 +67,7 @@ public:
   FORWARD_TO_DEFAULT_PRINTER1(OnEnvironmentsSetUpEnd, ::testing::UnitTest);
   FORWARD_TO_DEFAULT_PRINTER1(OnTestCaseStart, ::testing::TestCase);
   FORWARD_TO_DEFAULT_PRINTER1(OnTestStart, ::testing::TestInfo);
-  virtual void OnTestPartResult(const ::testing::TestPartResult & /*result*/) {
+  virtual void OnTestPartResult(const ::testing::TestPartResult &) {
     // Do nothing; all printing is done in OnTestEnd().
   }
   virtual void OnTestEnd(const ::testing::TestInfo &test_info);
@@ -82,8 +82,8 @@ private:
   int rank_;
   int size_;
 
-  MPIEventForward &operator=(const MPIEventForward &) = delete;
   MPIEventForward(const MPIEventForward &) = delete;
+  MPIEventForward &operator=(const MPIEventForward &) = delete;
 };
 
 void MPIEventForward::OnTestEnd(const ::testing::TestInfo &test_info) {
@@ -103,12 +103,11 @@ void MPIEventForward::OnTestEnd(const ::testing::TestInfo &test_info) {
     // unsure why
     printf("Test failures from rank %d:\n", rank_);
     for (int i = 0; i < result->total_part_count(); ++i) {
-      /* TODO: A future implementation might forward the
-         contents / output of OnTestPartResult to the master
-         rank to handle all the output there. Currently, the
-         output of the expected and actual behaviour only occurs
-         if the failing ranks include rank 0, and is only
-         indicative of rank 0. */
+      // TODO: A future implementation might forward the contents /
+      // output of OnTestPartResult to the master rank to handle
+      // all the output there. Currently, the output of the
+      // expected and actual behaviour only occurs if the failing
+      // ranks include rank 0, and is only indicative of rank 0.
       defaultPrinter_->OnTestPartResult(result->GetTestPartResult(i));
     }
     localPassed = false;
@@ -155,8 +154,7 @@ void MPIEventForward::OnTestEnd(const ::testing::TestInfo &test_info) {
 
 } // namespace
 
-//! \cond internal
-void gmx::test::initMPIOutput() {
+void initMPIOutput() {
   int size, rank;
 
   MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -169,13 +167,12 @@ void gmx::test::initMPIOutput() {
   ::testing::TestEventListener *defprinter =
       listeners.Release(listeners.default_result_printer());
   listeners.Append(new MPIEventForward(defprinter, rank, size));
-  if (0 != rank) {
-    /* Permit only rank 0 to write to the single GTest XML file,
-       by removing the generator on the other ranks. This
-       suppresses races when writing that file. */
+  if (rank != 0) {
+     // Permit only rank 0 to write to the single GTest XML file, by
+     // removing the generator on the other ranks. This suppresses
+     // races when writing that file.
     ::testing::TestEventListener *oldlistener =
         listeners.Release(listeners.default_xml_generator());
     delete oldlistener;
   }
 }
-//! \endcond

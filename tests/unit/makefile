@@ -65,7 +65,7 @@ gtest.a : gtest-all.o
 	@echo "  Linking" $@
 	@$(AR) $(ARFLAGS) $@ $^
 
-bout_test_main.a : gtest-all.o bout_test_main.o
+%_test_main.a : gtest-all.o %_test_main.o
 	@echo "  Linking" $@
 	@$(AR) $(ARFLAGS) $@ $^
 
@@ -82,6 +82,18 @@ $(TEST_OBJECTS): $(LIB)
 serial_tests: makefile $(BOUT_TOP)/make.config $(OBJ) $(LIB) $(SUB_LIBS) $(TEST_OBJECTS) bout_test_main.a
 	@echo "  Linking tests"
 	@$(LD) $(LDFLAGS) -o $@ $(TEST_OBJECTS) bout_test_main.a $(BOUT_LIBS) $(SUB_LIBS)
+
+# MPI specific unit tests
+
+MPI_TEST_SOURCES = $(shell find $(BOUT_TEST_DIR) -type f -name "mpi_test_*.cxx" 2> /dev/null)
+MPI_TEST_OBJECTS = $(MPI_TEST_SOURCES:%.cxx=%.o)
+
+$(MPI_TEST_SOURCES): checklib
+$(MPI_TEST_OBJECTS): $(LIB)
+
+mpi_tests: makefile $(BOUT_TOP)/make.config $(OBJ) $(LIB) $(SUB_LIBS) $(MPI_TEST_OBJECTS) bout_mpi_test_main.a
+	@echo "  Linking tests"
+	@$(LD) -o $@ $(MPI_TEST_OBJECTS) bout_mpi_test_main.a $(LDFLAGS) $(BOUT_LIBS) $(SUB_LIBS)
 
 # Note: This depends on GTEST_SENTINEL, which checks out Google Test if not present
 #       The correct behaviour relies on the dependencies being checked in left-to-right order
