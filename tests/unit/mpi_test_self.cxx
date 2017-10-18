@@ -40,7 +40,7 @@
  * \ingroup module_testutils
  */
 
-#include "mpitest.h"
+#include <mpi.h>
 
 #include <gtest/gtest.h>
 
@@ -54,11 +54,19 @@ public:
 };
 
 TEST_F(MpiSelfTest, Runs) {
-  GMX_MPI_TEST(2);
+  int expectedRankCount = 2;
+
+  int size;
+  MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+  ASSERT_EQ(expectedRankCount, size);
   int value = 1;
   MPI_Gather(&value, 1, MPI_INT, reached, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-  if (gmx::test::getTestMpiRank() == 0) {
+  int rank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
+  if (rank == 0) {
     EXPECT_EQ(1, reached[0]);
     EXPECT_EQ(1, reached[1]);
   }
