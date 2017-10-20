@@ -32,6 +32,7 @@ class Mesh;  // #include "bout/mesh.hxx"
 #include "fieldperp.hxx"
 #include "stencils.hxx"
 #include "bout_types.hxx"
+#include "dcomplex.hxx"
 
 #include "bout/dataiterator.hxx"
 
@@ -722,17 +723,9 @@ const Field3D lowPass(const Field3D &var, int zmax, int zmin);
  * @param[inout] var  The variable to be modified in-place
  * @param[in] jx   X index
  * @param[in] jy   Y index
- * @param[in] zangle   The Z angle to apply
+ * @param[in] phase  A vector (length nz/2+1) of the complex phases to apply
  */
-void shiftZ(Field3D &var, int jx, int jy, double zangle);
-
-/*!
- * Apply a phase shift by a given angle in Z to all points
- * 
- * @param[inout] var  The variable to modify in-place
- * @param[in] zangle  The angle to shift by in Z
- */
-void shiftZ(Field3D &var, double zangle);
+void shiftZ(Field3D &var, int jx, int jy, const std::vector<dcomplex> &phase);
 
 /*!
  * Average in the Z direction

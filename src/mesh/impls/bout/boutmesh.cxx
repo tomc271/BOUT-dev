@@ -406,6 +406,19 @@ int BoutMesh::load() {
     if (!source->get(this, ShiftAngle, "ShiftAngle", LocalNx, XGLOBAL(0))) {
       throw BoutException("ERROR: Twist-shift angle 'ShiftAngle' not found.");
     }
+    ShiftAnglePhase.resize(LocalNx);
+    ShiftAnglePhaseRev.resize(LocalNx);
+    const int nmodes = LocalNz/2 + 1;
+    const BoutReal factor = 2.0*PI/coordinates()->zlength();
+    for (int jx=0; jx<LocalNx; jx++){
+      ShiftAnglePhase[jx].resize(nmodes);
+      ShiftAnglePhaseRev[jx].resize(nmodes);
+      const BoutReal localFac = ShiftAngle[jx]*factor;
+      for (int jz=0; jz<nmodes; jz++){
+	ShiftAnglePhase[jx][jz] = dcomplex(cos(jz*localFac),-sin(jz*localFac));
+	ShiftAnglePhaseRev[jx][jz] = dcomplex(cos(jz*localFac),sin(jz*localFac));
+      }
+    }
   }
 
   //////////////////////////////////////////////////////
@@ -1038,35 +1051,7 @@ int BoutMesh::wait(comm_handle handle) {
 
   // TWIST-SHIFT CONDITION
   if (TwistShift) {
-    int jx, jy;
-
-    // Perform Twist-shift using shifting method
-    // Loop over 3D fields
-    for (const auto &var : ch->var_list.field3d()) {
-      // Lower boundary
-      if (TS_down_in && (DDATA_INDEST != -1)) {
-        for (jx = 0; jx < DDATA_XSPLIT; jx++)
-          for (jy = 0; jy != MYG; jy++)
-            shiftZ(*var, jx, jy, ShiftAngle[jx]);
-      }
-      if (TS_down_out && (DDATA_OUTDEST != -1)) {
-        for (jx = DDATA_XSPLIT; jx < LocalNx; jx++)
-          for (jy = 0; jy != MYG; jy++)
-            shiftZ(*var, jx, jy, ShiftAngle[jx]);
-      }
-
-      // Upper boundary
-      if (TS_up_in && (UDATA_INDEST != -1)) {
-        for (jx = 0; jx < UDATA_XSPLIT; jx++)
-          for (jy = LocalNy - MYG; jy != LocalNy; jy++)
-            shiftZ(*var, jx, jy, -ShiftAngle[jx]);
-      }
-      if (TS_up_out && (UDATA_OUTDEST != -1)) {
-        for (jx = UDATA_XSPLIT; jx < LocalNx; jx++)
-          for (jy = LocalNy - MYG; jy != LocalNy; jy++)
-            shiftZ(*var, jx, jy, -ShiftAngle[jx]);
-      }
-    }
+    applyTwistShift(handle);
   }
 
 #if CHECK > 0
@@ -1079,6 +1064,40 @@ int BoutMesh::wait(comm_handle handle) {
 
   return 0;
 }
+
+void BoutMesh::applyTwistShift(comm_handle handle){
+  CommHandle *ch = static_cast<CommHandle*>(handle);
+  
+  int jx, jy;
+
+  // Perform Twist-shift using shifting method
+  // Loop over 3D fields
+  for (const auto &var : ch->var_list.field3d()) {
+    // Lower boundary
+    if (TS_down_in && (DDATA_INDEST != -1)) {
+      for (jx = 0; jx < DDATA_XSPLIT; jx++)
+	for (jy = 0; jy != MYG; jy++)
+	  shiftZ(*var, jx, jy, ShiftAnglePhase[jx]);
+    }
+    if (TS_down_out && (DDATA_OUTDEST != -1)) {
+      for (jx = DDATA_XSPLIT; jx < LocalNx; jx++)
+	for (jy = 0; jy != MYG; jy++)
+	  shiftZ(*var, jx, jy, ShiftAnglePhase[jx]);
+    }
+
+    // Upper boundary
+    if (TS_up_in && (UDATA_INDEST != -1)) {
+      for (jx = 0; jx < UDATA_XSPLIT; jx++)
+	for (jy = LocalNy - MYG; jy != LocalNy; jy++)
+	  shiftZ(*var, jx, jy, ShiftAnglePhaseRev[jx]);
+    }
+    if (TS_up_out && (UDATA_OUTDEST != -1)) {
+      for (jx = UDATA_XSPLIT; jx < LocalNx; jx++)
+	for (jy = LocalNy - MYG; jy != LocalNy; jy++)
+	  shiftZ(*var, jx, jy, ShiftAnglePhaseRev[jx]);
+    }
+  }
+};
 
 /***************************************************************
  *             Non-Local Communications

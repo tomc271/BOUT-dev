@@ -1172,33 +1172,26 @@ const Field3D lowPass(const Field3D &var, int zmax, int zmin) {
 /* 
  * Use FFT to shift by an angle in the Z direction
  */
-void shiftZ(Field3D &var, int jx, int jy, double zangle) {
+void shiftZ(Field3D &var, int jx, int jy, const std::vector<dcomplex> &phase) {
   TRACE("shiftZ");
   ASSERT1(var.isAllocated()); // Check that var has some data
   var.allocate(); // Ensure that var is unique
   
-  int ncz = mesh->LocalNz;
-  if(ncz == 1)
+  const int nz = mesh->LocalNz;
+  if(nz == 1)
     return; // Shifting doesn't do anything
+  const int nmodes = nz/2 + 1;
   
-  Array<dcomplex> v(ncz/2 + 1);
+  Array<dcomplex> v(nmodes);
   
-  rfft(&(var(jx,jy,0)), ncz, v.begin()); // Forward FFT
+  rfft(var(jx,jy), nz, v.begin()); // Forward FFT
 
-  BoutReal zlength = mesh->coordinates()->zlength();
   // Apply phase shift
-  for(int jz=1;jz<=ncz/2;jz++) {
-    BoutReal kwave=jz*2.0*PI/zlength; // wave number is 1/[rad]
-    v[jz] *= dcomplex(cos(kwave*zangle) , -sin(kwave*zangle));
+  for(int jz=1;jz<nmodes;jz++) {
+    v[jz] *= phase[jz];
   }
 
-  irfft(v.begin(), ncz, &(var(jx,jy,0))); // Reverse FFT
-}
-
-void shiftZ(Field3D &var, double zangle) {
-  for(int x=0;x<mesh->LocalNx;x++) 
-    for(int y=0;y<mesh->LocalNy;y++)
-      shiftZ(var, x, y, zangle);
+  irfft(v.begin(), nz, var(jx,jy)); // Reverse FFT
 }
 
 bool finite(const Field3D &f) {

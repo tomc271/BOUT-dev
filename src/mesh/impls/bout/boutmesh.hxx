@@ -49,6 +49,9 @@ class BoutMesh : public Mesh {
   /// @param[in] handle  The handle returned by send()
   int wait(comm_handle handle);
 
+  void applyTwistShift(comm_handle handle);
+  std::vector<std::vector<dcomplex>> ShiftAnglePhase;
+  std::vector<std::vector<dcomplex>> ShiftAnglePhaseRev;
   /////////////////////////////////////////////
   // non-local communications
 
