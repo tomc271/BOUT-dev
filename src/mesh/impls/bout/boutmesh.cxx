@@ -46,6 +46,7 @@
 #include <bout/sys/timer.hxx>
 #include <msg_stack.hxx>
 #include <bout/constants.hxx>
+#include <bout/scorepwrapper.hxx>
 
 /// MPI type of BoutReal for communications
 #define PVEC_REAL_MPI_TYPE MPI_DOUBLE
@@ -855,6 +856,7 @@ void BoutMesh::post_receive(CommHandle &ch) {
 }
 
 comm_handle BoutMesh::send(FieldGroup &g) {
+  SCOREP0();
   /// Start timer
   Timer timer("comms");
 
@@ -966,6 +968,7 @@ comm_handle BoutMesh::send(FieldGroup &g) {
 }
 
 int BoutMesh::wait(comm_handle handle) {
+  SCOREP0();
   TRACE("BoutMesh::wait(comm_handle)");
 
   if (handle == NULL)
@@ -1066,6 +1069,7 @@ int BoutMesh::wait(comm_handle handle) {
 }
 
 void BoutMesh::applyTwistShift(comm_handle handle){
+  SCOREP0();
   CommHandle *ch = static_cast<CommHandle*>(handle);
   
   int jx, jy;
@@ -1105,6 +1109,7 @@ void BoutMesh::applyTwistShift(comm_handle handle){
 
 MPI_Request BoutMesh::sendToProc(int xproc, int yproc, BoutReal *buffer, int size,
                                  int tag) {
+  SCOREP0();
   Timer timer("comms");
 
   MPI_Request request;
@@ -1149,6 +1154,7 @@ bool BoutMesh::firstX() { return PE_XIND == 0; }
 bool BoutMesh::lastX() { return PE_XIND == NXPE - 1; }
 
 int BoutMesh::sendXOut(BoutReal *buffer, int size, int tag) {
+    SCOREP0();
   if (PE_XIND == NXPE - 1)
     return 1;
 
@@ -1161,6 +1167,7 @@ int BoutMesh::sendXOut(BoutReal *buffer, int size, int tag) {
 }
 
 int BoutMesh::sendXIn(BoutReal *buffer, int size, int tag) {
+    SCOREP0();
   if (PE_XIND == 0)
     return 1;
 
@@ -1253,6 +1260,7 @@ int BoutMesh::UpXSplitIndex() { return UDATA_XSPLIT; }
 int BoutMesh::DownXSplitIndex() { return DDATA_XSPLIT; }
 
 int BoutMesh::sendYOutIndest(BoutReal *buffer, int size, int tag) {
+    SCOREP0();
   if (PE_YIND == NYPE - 1)
     return 1;
 
@@ -1266,6 +1274,7 @@ int BoutMesh::sendYOutIndest(BoutReal *buffer, int size, int tag) {
 }
 
 int BoutMesh::sendYOutOutdest(BoutReal *buffer, int size, int tag) {
+    SCOREP0();
   if (PE_YIND == NYPE - 1)
     return 1;
 
@@ -1280,6 +1289,7 @@ int BoutMesh::sendYOutOutdest(BoutReal *buffer, int size, int tag) {
 }
 
 int BoutMesh::sendYInIndest(BoutReal *buffer, int size, int tag) {
+    SCOREP0();
   if (PE_YIND == 0)
     return 1;
 
@@ -1294,6 +1304,7 @@ int BoutMesh::sendYInIndest(BoutReal *buffer, int size, int tag) {
 }
 
 int BoutMesh::sendYInOutdest(BoutReal *buffer, int size, int tag) {
+    SCOREP0();
   if (PE_YIND == 0)
     return 1;
 
@@ -1902,7 +1913,7 @@ void BoutMesh::clear_handles() {
 
 int BoutMesh::pack_data(const vector<FieldData *> &var_list, int xge, int xlt, int yge,
                         int ylt, BoutReal *buffer) {
-
+  SCOREP0();
   int len = 0;
 
   /// Loop over variables
@@ -1933,7 +1944,7 @@ int BoutMesh::pack_data(const vector<FieldData *> &var_list, int xge, int xlt, i
 
 int BoutMesh::unpack_data(const vector<FieldData *> &var_list, int xge, int xlt, int yge,
                           int ylt, BoutReal *buffer) {
-
+  SCOREP0();
   int len = 0;
 
   /// Loop over variables

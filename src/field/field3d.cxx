@@ -1173,6 +1173,7 @@ const Field3D lowPass(const Field3D &var, int zmax, int zmin) {
  * Use FFT to shift by an angle in the Z direction
  */
 void shiftZ(Field3D &var, int jx, int jy, const std::vector<dcomplex> &phase) {
+  SCOREP0();
   TRACE("shiftZ");
   ASSERT1(var.isAllocated()); // Check that var has some data
   var.allocate(); // Ensure that var is unique
