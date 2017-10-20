@@ -84,13 +84,14 @@ ShiftedMetric::ShiftedMetric(Mesh &m) : mesh(m) {
       for(int jz=0;jz<nmodes;jz++) {
   	BoutReal kwave=jz*2.0*PI/zlength; // wave number is 1/[rad]
 
-  	yupPhs[jx][jy][jz] = dcomplex(cos(kwave*yupShift) , -sin(kwave*yupShift));
-  	ydownPhs[jx][jy][jz] = dcomplex(cos(kwave*ydownShift) , -sin(kwave*ydownShift));
+  	yupPhs[jx][jy+1][jz] = dcomplex(cos(kwave*yupShift) , -sin(kwave*yupShift));
+  	ydownPhs[jx][jy-1][jz] = dcomplex(cos(kwave*ydownShift) , -sin(kwave*ydownShift));
       }
     }
   }
 
 }
+
 
 /*!
  * Calculate the Y up and down fields
@@ -98,24 +99,69 @@ ShiftedMetric::ShiftedMetric(Mesh &m) : mesh(m) {
 void ShiftedMetric::calcYUpDown(Field3D &f) {
   SCOREP0();
 
+  ///////////////
+  /// Original opt method
+  /////////////////
+
   f.splitYupYdown();
   
   Field3D& yup = f.yup();
   yup.allocate();
 
-  for(int jx=0;jx<mesh.LocalNx;jx++) {
-    for(int jy=mesh.ystart;jy<=mesh.yend;jy++) {
-      shiftZ(&(f(jx,jy+1,0)), yupPhs[jx][jy], &(yup(jx,jy+1,0)));
-    }
-  }
-
   Field3D& ydown = f.ydown();
   ydown.allocate();
 
+  const int nz = mesh.LocalNz;
+  const int nmodes = nz/2 + 1;
+  std::vector<dcomplex> cmplxRes, cmplxUp, cmplxDown;
+  cmplxRes.resize(nmodes);
+  cmplxUp.resize(nmodes);
+  cmplxDown.resize(nmodes);
+  cmplxUp[0]   = 0.;
+  cmplxDown[0] = 0.;
+  
   for(int jx=0;jx<mesh.LocalNx;jx++) {
-    for(int jy=mesh.ystart;jy<=mesh.yend;jy++) {
-      shiftZ(&(f(jx,jy-1,0)), ydownPhs[jx][jy], &(ydown(jx,jy-1,0)));
+    //Part just for ydown
+    for(int jy=mesh.ystart-1;jy<=mesh.ystart;jy++) {
+      
+      // Take forward FFT
+      rfft(f(jx,jy), nz, cmplxRes.data());
+      
+      for(int jz=1;jz<nmodes;jz++) {
+	cmplxDown[jz] = cmplxRes[jz]*ydownPhs[jx][jy][jz];
+      }
+
+      irfft(cmplxDown.data(), nz, ydown(jx,jy));
     }
+
+    //Central part shared by both directions
+    for(int jy=mesh.ystart+1;jy<=mesh.yend-1;jy++) {
+      
+      // Take forward FFT
+      rfft(f(jx,jy), nz, cmplxRes.data());
+      
+      for(int jz=1;jz<nmodes;jz++) {
+	cmplxUp[jz]   = cmplxRes[jz]*yupPhs[jx][jy][jz];
+	cmplxDown[jz] = cmplxRes[jz]*ydownPhs[jx][jy][jz];
+      }
+
+      irfft(cmplxUp.data(),   nz, yup(jx,jy));
+      irfft(cmplxDown.data(), nz, ydown(jx,jy));
+    }
+
+    //Part just for yup
+    for(int jy=mesh.yend;jy<=mesh.yend+1;jy++) {
+      
+      // Take forward FFT
+      rfft(f(jx,jy), nz, cmplxRes.data());
+      
+      for(int jz=1;jz<nmodes;jz++) {
+	cmplxUp[jz]   = cmplxRes[jz]*yupPhs[jx][jy][jz];
+      }
+
+      irfft(cmplxUp.data(), nz, yup(jx,jy));
+    }
+
   }
 }
   
