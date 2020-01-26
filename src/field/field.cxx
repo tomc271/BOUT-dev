@@ -33,10 +33,8 @@
 #include <bout/mesh.hxx>
 #include <bout/coordinates.hxx>
 
-Field::Field(Mesh *localmesh) : fieldmesh(localmesh) {
-  if (fieldmesh == nullptr) {
-    fieldmesh = mesh;
-  }
+Field::Field(Mesh *localmesh)
+  : fieldmesh(localmesh==nullptr ? bout::globals::mesh : localmesh) {
 
 // Note we would like to do `fieldCoordinates = getCoordinates();` here but can't
 // currently as this would lead to circular/recursive behaviour (getCoordinates would
