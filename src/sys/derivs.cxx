@@ -409,15 +409,15 @@ const Field3D VDDY(const Field3D &v, const Field3D &f, CELL_LOC outloc, const st
 ////////////// Z DERIVATIVE /////////////////
 
 // special case where both are 2D
-const Coordinates::metric_field_type VDDZ(const Field2D& v, const Field2D& f,
-                                          CELL_LOC outloc, const std::string& method,
-                                          REGION region) {
+const Coordinates::metric_field_type VDDZ(const Field2D &v, const Field2D &f,
+                                          CELL_LOC outloc, const std::string &method,
+                                          REGION UNUSED(region)) {
   return bout::derivatives::index::VDDZ(v, f, outloc, method, region)
          / f.getCoordinates(outloc)->dz;
 }
 
 // Note that this is zero because no compression is included
-const Coordinates::metric_field_type VDDZ(const Field3D& v, const Field2D& f,
+const Coordinates::metric_field_type VDDZ(const Field3D &v, const Field2D& f,
                                           CELL_LOC outloc, const std::string& method,
                                           REGION region) {
   // Should we take location from v or f?
@@ -469,8 +469,8 @@ const Field3D FDDY(const Field3D &v, const Field3D &f, CELL_LOC outloc, const st
 
 /////////////////////////////////////////////////////////////////////////
 
-const Coordinates::metric_field_type FDDZ(const Field2D& v, const Field2D& f,
-                                          CELL_LOC outloc, const std::string& method,
+const Coordinates::metric_field_type FDDZ(const Field2D &v, const Field2D &f,
+                                          CELL_LOC outloc, const std::string &method,
                                           REGION region) {
   // Should we take location from v or f?
   return bout::derivatives::index::FDDZ(v, f, outloc, method, region)
