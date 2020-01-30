@@ -411,7 +411,7 @@ const Field3D VDDY(const Field3D &v, const Field3D &f, CELL_LOC outloc, const st
 // special case where both are 2D
 const Coordinates::metric_field_type VDDZ(const Field2D &v, const Field2D &f,
                                           CELL_LOC outloc, const std::string &method,
-                                          REGION UNUSED(region)) {
+                                          REGION region) {
   return bout::derivatives::index::VDDZ(v, f, outloc, method, region)
          / f.getCoordinates(outloc)->dz;
 }
