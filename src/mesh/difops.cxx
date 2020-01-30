@@ -363,8 +363,8 @@ const Field3D Vpar_Grad_par_LCtoC(const Field3D &v, const Field3D &f, REGION reg
 
   result.allocate();
 
-  bool vUseUpDown = (v.hasYupYdown() && ((&v.yup() != &v) || (&v.ydown() != &v)));
-  bool fUseUpDown = (f.hasYupYdown() && ((&f.yup() != &f) || (&f.ydown() != &f)));
+  bool vUseUpDown = v.hasYupYdown();
+  bool fUseUpDown = f.hasYupYdown();
 
   if (vUseUpDown && fUseUpDown) {
     // Both v and f have up/down fields
@@ -809,8 +809,8 @@ const Field3D Div_Perp_Lap_FV(const Field3D &a, const Field3D &f, CELL_LOC outlo
   //     o --- gD --- o
   //
   Coordinates *coords = a.getCoordinates(outloc);
+  Mesh *mesh = f.getMesh();
 
-  
   Field3D fs = f;
   Field3D as = a;
 
