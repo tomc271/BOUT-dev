@@ -81,8 +81,8 @@ const Coordinates::metric_field_type Div(const Vector2D &v, CELL_LOC outloc = CE
 const Field3D Div(const Vector3D &v, CELL_LOC outloc = CELL_DEFAULT,
                   const std::string& method = "DEFAULT");                  
 
-const Coordinates::metric_field_type Div(const Vector2D &v, const Field2D &f);
-const Field3D Div(const Vector3D &v, const Field3D &f);
+const Coordinates::metric_field_type Div(const Vector2D &v, const Field2D &f,
+		  CELL_LOC outloc = CELL_DEFAULT, const std::string& method = "DEFAULT");
 
 const Field3D Div(const Vector3D& v, const Field3D& f, CELL_LOC outloc = CELL_DEFAULT,
                   const std::string& method = "DEFAULT");
