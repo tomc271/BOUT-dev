@@ -728,9 +728,10 @@ const Coordinates::metric_field_type Coordinates::DDZ(MAYBE_UNUSED(const Field2D
                                                       REGION UNUSED(region)) {
   ASSERT1(location == loc || loc == CELL_DEFAULT);
   ASSERT1(f.getMesh() == localmesh);
-  auto result = Coordinates::metric_field_type(0.0, localmesh);
-  result.setLocation(location);
-  return result;
+  if (loc == CELL_DEFAULT) {
+    loc = f.getLocation();
+  }
+  return zeroFrom(f).setLocation(loc);
 }
 const Field3D Coordinates::DDZ(const Field3D& f, CELL_LOC outloc,
                                const std::string& method, REGION region) {
@@ -845,14 +846,13 @@ const Field3D Coordinates::Grad2_par2(const Field3D &f, CELL_LOC outloc, const s
 
   auto sg = sqrt(g_22);
   auto invSg = 1.0 / sg;
+  // Why do we need to communicate?
   localmesh->communicate(invSg);
   sg = DDY(invSg, outloc, method) * invSg;
 
-  Field3D result(localmesh), r2(localmesh);
+  Field3D result = ::DDY(f, outloc, method);
 
-  result = ::DDY(f, outloc, method);
-
-  r2 = D2DY2(f, outloc, method) / g_22;
+  Field3D r2 = D2DY2(f, outloc, method) / g_22;
 
   result = sg * result + r2;
 
@@ -892,9 +892,7 @@ const Field3D Coordinates::Delp2(const Field3D& f, CELL_LOC outloc, bool useFFT)
   }
   ASSERT2(localmesh->xstart > 0); // Need at least one guard cell
 
-  Field3D result(localmesh);
-  result.allocate();
-  result.setLocation(outloc);
+  Field3D result{emptyFrom(f).setLocation(outloc)};
 
   if (useFFT) {
 #ifndef COORDINATES_USE_3D
@@ -961,9 +959,7 @@ const FieldPerp Coordinates::Delp2(const FieldPerp& f, CELL_LOC outloc, bool use
   }
   ASSERT2(localmesh->xstart > 0); // Need at least one guard cell
 
-  FieldPerp result(localmesh);
-  result.allocate();
-  result.setLocation(outloc);
+  FieldPerp result{emptyFrom(f).setLocation(outloc)};
 
   int jy = f.getIndex();
   result.setIndex(jy);
