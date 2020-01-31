@@ -44,13 +44,15 @@ public:
     integrateParallelSlices(f);
   }
   
-  /// Convert a 3D field into field-aligned coordinates
+  /// Convert a field into field-aligned coordinates
   /// so that the y index is along the magnetic field
   virtual const Field3D toFieldAligned(const Field3D &f, const REGION region = RGN_ALL) = 0;
+  virtual const FieldPerp toFieldAligned(const FieldPerp &f, const REGION region = RGN_ALL) = 0;
   
   /// Convert back from field-aligned coordinates
   /// into standard form
   virtual const Field3D fromFieldAligned(const Field3D &f, const REGION region = RGN_ALL) = 0;
+  virtual const FieldPerp fromFieldAligned(const FieldPerp &f, const REGION region = RGN_ALL) = 0;
 
   virtual bool canToFromFieldAligned() = 0;
 
@@ -85,7 +87,12 @@ public:
    * does nothing
    */
   const Field3D toFieldAligned(const Field3D& f, const REGION UNUSED(region)) override {
-    return f;
+    Field3D result = f;
+    return result.setDirectionY(YDirectionType::Aligned);
+  }
+  const FieldPerp toFieldAligned(const FieldPerp& f, const REGION UNUSED(region)) override {
+    FieldPerp result = f;
+    return result.setDirectionY(YDirectionType::Aligned);
   }
 
   /*!
@@ -93,7 +100,12 @@ public:
    * does nothing
    */
   const Field3D fromFieldAligned(const Field3D& f, const REGION UNUSED(region)) override {
-    return f;
+    Field3D result = f;
+    return result.setDirectionY(YDirectionType::Standard);
+  }
+  const FieldPerp fromFieldAligned(const FieldPerp& f, const REGION UNUSED(region)) override {
+    FieldPerp result = f;
+    return result.setDirectionY(YDirectionType::Standard);
   }
 
   bool canToFromFieldAligned() override { return true; }
@@ -130,6 +142,8 @@ public:
    * if X derivatives are used.
    */
   const Field3D toFieldAligned(const Field3D& f, const REGION region = RGN_ALL) override;
+  const FieldPerp toFieldAligned(const FieldPerp& f,
+                                 const REGION region = RGN_ALL) override;
 
   /*!
    * Converts a field back to X-Z orthogonal coordinates
@@ -137,6 +151,8 @@ public:
    */
   const Field3D fromFieldAligned(const Field3D& f,
                                  const REGION region = RGN_ALL) override;
+  const FieldPerp fromFieldAligned(const FieldPerp& f,
+                                   const REGION region = RGN_ALL) override;
 
   bool canToFromFieldAligned() override { return true; }
 
@@ -195,7 +211,7 @@ private:
                        const REGION region = RGN_NOX) const;
 
   /*!
-   * Shift a 3D field \p f by the given phase \p phs in Z
+   * Shift a 3D field or FieldPerp \p f by the given phase \p phs in Z
    *
    * Calculates FFT in Z, multiplies by the complex phase
    * and inverse FFTS.
@@ -207,6 +223,9 @@ private:
   const Field3D shiftZ(const Field3D& f, const Tensor<dcomplex>& phs,
                        const YDirectionType y_direction_out,
                        const REGION region = RGN_NOX) const;
+  const FieldPerp shiftZ(const FieldPerp& f, const Tensor<dcomplex>& phs,
+                         const YDirectionType y_direction_out,
+                         const REGION region = RGN_NOX) const;
 
   /*!
    * Shift a given 1D array, assumed to be in Z, by the given \p zangle

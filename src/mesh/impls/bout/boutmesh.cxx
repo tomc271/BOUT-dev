@@ -236,6 +236,14 @@ int BoutMesh::load() {
   // For now don't parallelise z
   NZPE = 1;
 
+  if (jyseps1_1 < 0 and jyseps2_2 >= ny - 1) {
+    numberOfXPoints = 0;
+  } else if (jyseps2_1 == jyseps1_2) {
+    numberOfXPoints = 1;
+  } else {
+    numberOfXPoints = 2;
+  }
+
   if (options.isSet("NXPE")) {    // Specified NXPE
     NXPE = options["NXPE"]
                .doc("Decomposition in the radial direction. If not given then calculated "
@@ -2228,9 +2236,9 @@ void BoutMesh::addBoundaryRegions() {
     xe = -2;
   }
   
-  addRegion3D("RGN_UPPER_INNER_Y", Region<Ind3D>(xs, xe, 0, ystart-1, 0, LocalNz-1,
+  addRegion3D("RGN_UPPER_INNER_Y", Region<Ind3D>(xs, xe, yend+1, LocalNy-1, 0, LocalNz-1,
                                                  LocalNy, LocalNz, maxregionblocksize));
-  addRegion2D("RGN_UPPER_INNER_Y", Region<Ind2D>(xs, xe, 0, ystart-1, 0, 0,
+  addRegion2D("RGN_UPPER_INNER_Y", Region<Ind2D>(xs, xe, yend+1, LocalNy-1, 0, 0,
                                                  LocalNy, 1, maxregionblocksize));
   all_boundaries.emplace_back("RGN_UPPER_INNER_Y");
 
@@ -2254,9 +2262,9 @@ void BoutMesh::addBoundaryRegions() {
       xe = xend;
   }
 
-  addRegion3D("RGN_UPPER_OUTER_Y", Region<Ind3D>(xs, xe, 0, ystart-1, 0, LocalNz-1,
+  addRegion3D("RGN_UPPER_OUTER_Y", Region<Ind3D>(xs, xe, yend+1, LocalNy-1, 0, LocalNz-1,
                                                  LocalNy, LocalNz, maxregionblocksize));
-  addRegion2D("RGN_UPPER_OUTER_Y", Region<Ind2D>(xs, xe, 0, ystart-1, 0, 0,
+  addRegion2D("RGN_UPPER_OUTER_Y", Region<Ind2D>(xs, xe, yend+1, LocalNy-1, 0, 0,
                                                  LocalNy, 1, maxregionblocksize));
   all_boundaries.emplace_back("RGN_UPPER_OUTER_Y");
 
@@ -2274,9 +2282,9 @@ void BoutMesh::addBoundaryRegions() {
   if (xe > xend)
     xe = xend;
 
-  addRegion3D("RGN_UPPER_Y", Region<Ind3D>(xs, xe, 0, ystart-1, 0, LocalNz-1,
+  addRegion3D("RGN_UPPER_Y", Region<Ind3D>(xs, xe, yend+1, LocalNy-1, 0, LocalNz-1,
                                            LocalNy, LocalNz, maxregionblocksize));
-  addRegion2D("RGN_UPPER_Y", Region<Ind2D>(xs, xe, 0, ystart-1, 0, 0,
+  addRegion2D("RGN_UPPER_Y", Region<Ind2D>(xs, xe, yend+1, LocalNy-1, 0, 0,
                                            LocalNy, 1, maxregionblocksize));
   all_boundaries.emplace_back("RGN_UPPER_Y");
   
@@ -2627,6 +2635,7 @@ void BoutMesh::outputVars(Datafile &file) {
   file.add(jyseps1_2, "jyseps1_2", false);
   file.add(jyseps2_1, "jyseps2_1", false);
   file.add(jyseps2_2, "jyseps2_2", false);
+  file.add(ny_inner, "ny_inner", false);
 
   getCoordinates()->outputVars(file);
 }
