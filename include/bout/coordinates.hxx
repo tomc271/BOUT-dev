@@ -33,6 +33,8 @@
 #ifndef __COORDINATES_H__
 #define __COORDINATES_H__
 
+#include "bout/paralleltransform.hxx"
+#include "datafile.hxx"
 #include "utils.hxx"
 #include <bout_types.hxx>
 #include "field2d.hxx"
@@ -55,7 +57,7 @@ public:
 #endif
 
   /// Standard constructor from input
-  Coordinates(Mesh *mesh);
+  Coordinates(Mesh *mesh, Options* options = nullptr);
 
   /// Constructor interpolating from another Coordinates object
   /// By default attempts to read staggered Coordinates from grid data source,
@@ -63,7 +65,7 @@ public:
   /// force_interpolate_from_centre argument to true to always interpolate
   /// (useful if CELL_CENTRE Coordinates have been changed, so reading from file
   /// would not be correct).
-  Coordinates(Mesh *mesh, const CELL_LOC loc, const Coordinates* coords_in,
+  Coordinates(Mesh *mesh, Options* options, const CELL_LOC loc, const Coordinates* coords_in,
       bool force_interpolate_from_centre=false);
 
   /// A constructor useful for testing purposes. To use it, inherit
@@ -74,6 +76,8 @@ public:
               Field2D g23, Field2D g_11, Field2D g_22, Field2D g_33, Field2D g_12,
               Field2D g_13, Field2D g_23, Field2D ShiftTorsion, Field2D IntShiftTorsion,
               bool calculate_geometry = true);
+
+  Coordinates& operator=(Coordinates&&) = default;
 
   ~Coordinates() = default;
 
@@ -125,7 +129,25 @@ public:
   /// Return if the metrics are 3D
   bool is3D(); 
 
+  ///////////////////////////////////////////////////////////
+  // Parallel transforms
+  ///////////////////////////////////////////////////////////
+
+  /// Set the parallel (y) transform for this mesh.
+  /// Mostly useful for tests.
+  void setParallelTransform(std::unique_ptr<ParallelTransform> pt) {
+    transform = std::move(pt);
+  }
+
+  /// Return the parallel transform
+  ParallelTransform& getParallelTransform() {
+    ASSERT1(transform != nullptr);
+    return *transform;
+  }
+
+  ///////////////////////////////////////////////////////////
   // Operators
+  ///////////////////////////////////////////////////////////
 
   const metric_field_type DDX(const Field2D& f, CELL_LOC outloc = CELL_DEFAULT,
                               const std::string& method = "DEFAULT",
@@ -235,6 +257,13 @@ private:
   int nz; // Size of mesh in Z. This is mesh->ngz-1
   Mesh * localmesh;
   CELL_LOC location;
+
+  /// Handles calculation of yup and ydown
+  std::unique_ptr<ParallelTransform> transform{nullptr};
+
+  /// Set the parallel (y) transform from the options file.
+  /// Used in the constructor to create the transform object.
+  void setParallelTransform(Options* options);
 };
 
 /*
