@@ -295,9 +295,10 @@ const Coordinates::metric_field_type D2DXDZ(const Field2D& f, CELL_LOC outloc,
   Field3D tmp{f};
   return D2DXDZ(tmp, outloc, method, region);
 #else
-  Field2D tmp{0., f.getMesh()};
-  tmp.setLocation(f.getLocation());
-  return tmp;
+  if (outloc == CELL_DEFAULT) {
+    outloc = f.getLocation();
+  }
+  return zeroFrom(f).setLocation(outloc);
 #endif
 }
 
@@ -331,9 +332,10 @@ const Coordinates::metric_field_type D2DYDZ(const Field2D& f, CELL_LOC outloc,
   Field3D tmp{f};
   return D2DYDZ(tmp, outloc, method, region);
 #else
-  Field2D tmp{0, f.getMesh()};
-  tmp.setLocation(f.getLocation());
-  return tmp;
+  if (outloc == CELL_DEFAULT) {
+    outloc = f.getLocation();
+  }
+  return zeroFrom(f).setLocation(outloc);
 #endif
 }
 
@@ -341,7 +343,7 @@ const Field3D D2DYDZ(const Field3D &f, CELL_LOC outloc, MAYBE_UNUSED(const std::
 #ifndef COORDINATES_USE_3D
   Coordinates *coords = f.getCoordinates(outloc);
 
-  Field3D result(f.getMesh());
+  Field3D result{emptyFrom(f)};
   ASSERT1(outloc == CELL_DEFAULT || outloc == f.getLocation());
   result.allocate();
   result.setLocation(f.getLocation());
@@ -426,9 +428,10 @@ const Coordinates::metric_field_type VDDZ(const Field3D &v, const Field2D& f,
   return bout::derivatives::index::VDDZ(v, tmp, outloc, method, region)
          / f.getCoordinates(outloc)->dz;
 #else
-  Field2D tmp{0., f.getMesh()};
-  tmp.setLocation(f.getLocation());
-  return tmp;
+  if (outloc == CELL_DEFAULT) {
+    outloc = f.getLocation();
+  }
+  return zeroFrom(f).setLocation(outloc);
 #endif
 }
 
