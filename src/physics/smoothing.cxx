@@ -46,7 +46,7 @@
 const Field3D smooth_x(const Field3D &f) {
   TRACE("smooth_x");
   Mesh *mesh = f.getMesh();
-  Field3D result(mesh);
+  Field3D result{emptyFrom(f)};
   result.allocate();
   
   // Copy boundary region
@@ -74,7 +74,7 @@ const Field3D smooth_x(const Field3D &f) {
 const Field3D smooth_y(const Field3D &f) {
   TRACE("smooth_y");
   Mesh *mesh = f.getMesh();
-  Field3D result(mesh);
+  Field3D result{emptyFrom(f)};
   result.allocate();
   
   // Copy boundary region
@@ -127,8 +127,7 @@ const Field2D averageX(const Field2D &f) {
     input[y] /= (mesh->xend - mesh->xstart + 1);
   }
 
-  Field2D r(mesh);
-  r.allocate();
+  Field2D r{emptyFrom(f)};
 
   MPI_Comm comm_x = mesh->getXcomm();
 
@@ -187,8 +186,7 @@ const Field3D averageX(const Field3D &f) {
       input(y, z) /= (mesh->xend - mesh->xstart + 1);
     }
 
-  Field3D r(mesh);
-  r.allocate();
+  Field3D r{emptyFrom(f)};
   
   MPI_Comm comm_x = mesh->getXcomm();
  
@@ -232,8 +230,7 @@ const Field2D averageY(const Field2D &f) {
     input[x] /= (mesh->yend - mesh->ystart + 1);
   }
 
-  Field2D r(mesh);
-  r.allocate();
+  Field2D r{emptyFrom(f)};
 
   /// NOTE: This only works if there are no branch-cuts
   MPI_Comm comm_inner = mesh->getYcomm(0);
@@ -278,8 +275,7 @@ const Field3D averageY(const Field3D &f) {
       input(x, z) /= (mesh->yend - mesh->ystart + 1);
     }
 
-  Field3D r(mesh);
-  r.allocate();
+  Field3D r{emptyFrom(f)};
 
   /// NOTE: This only works if there are no branch-cuts
   MPI_Comm comm_inner = mesh->getYcomm(0);
@@ -346,8 +342,7 @@ BoutReal Vol_Integral(const Field2D &var) {
 
 const Field3D smoothXY(const Field3D &f) {
   Mesh *mesh = f.getMesh();
-  Field3D result(mesh);
-  result.allocate();
+  Field3D result{emptyFrom(f)};
 
   for(int x=2;x<mesh->LocalNx-2;x++)
     for(int y=2;y<mesh->LocalNy-2;y++)
@@ -393,8 +388,7 @@ const Field3D nl_filter_x(const Field3D &f, BoutReal w) {
   TRACE("nl_filter_x( Field3D )");
   Mesh *mesh = f.getMesh();
 
-  Field3D result(mesh);
-  result.allocate();
+  Field3D result{emptyFrom(f)};
   rvec v(mesh->LocalNx);
   
   for (int jy=0;jy<mesh->LocalNy;jy++) {
@@ -416,8 +410,7 @@ const Field3D nl_filter_y(const Field3D &f, BoutReal w) {
   TRACE("nl_filter_x( Field3D )");
 
   Mesh *mesh = f.getMesh();
-  Field3D result(mesh);
-  result.allocate();
+  Field3D result{emptyFrom(f)};
 
   rvec v(mesh->LocalNy); // Temporary array
   
@@ -444,8 +437,7 @@ const Field3D nl_filter_z(const Field3D &fs, BoutReal w) {
   TRACE("nl_filter_z( Field3D )");
 
   Mesh *mesh = fs.getMesh();
-  Field3D result(mesh);
-  result.allocate();
+  Field3D result{emptyFrom(fs)};
   
   rvec v(mesh->LocalNz);
   
