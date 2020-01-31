@@ -32,6 +32,8 @@ public:
         bout::utils::make_unique<ParallelTransformIdentity>(*mesh_staggered));
   }
 
+  WithQuietOutput quiet{output_info};
+
   FieldFactory factory;
 
   // We can't just decide which FieldFactory::create?D function to
@@ -61,8 +63,6 @@ public:
   T create(Args&&... args) {
     return createDispatch(std::is_base_of<Field3D, T>{}, std::forward<Args>(args)...);
   }
-
-  WithQuietOutput quiet{output_info};
 };
 
 using Fields = ::testing::Types<Field2D, Field3D>;
@@ -554,6 +554,7 @@ TYPED_TEST(FieldFactoryCreationTest, CreateOnMesh) {
   constexpr auto nz = int{1};
 
   FakeMesh localmesh{nx, ny, nz};
+  localmesh.setCoordinates(nullptr);
   localmesh.createDefaultRegions();
   localmesh.setParallelTransform(
       bout::utils::make_unique<ParallelTransformIdentity>(localmesh));
@@ -579,9 +580,9 @@ public:
   FieldFactoryTest() : FakeMeshFixture{}, factory{mesh} {}
   virtual ~FieldFactoryTest() {}
 
-  FieldFactory factory;
-
   WithQuietOutput quiet_info{output_info}, quiet{output}, quiet_error{output_error};
+
+  FieldFactory factory;
 };
 
 TEST_F(FieldFactoryTest, RequireMesh) {
