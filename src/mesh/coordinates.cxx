@@ -907,7 +907,7 @@ int Coordinates::geometry(bool recalculate_staggered,
 
   // Read correction for non-uniform meshes
   std::string suffix = getLocationSuffix(location);
-  if (CELL_CENTRE or (!force_interpolate_from_centre
+  if (location == CELL_CENTRE or (!force_interpolate_from_centre
                       and localmesh->sourceHasVar("dx"+suffix))) {
     bool extrapolate_x = not localmesh->sourceHasXBoundaryGuards();
     bool extrapolate_y = not localmesh->sourceHasYBoundaryGuards();
@@ -1565,8 +1565,6 @@ Coordinates::metric_field_type Coordinates::Laplace(const Field2D& f,
   auto result = G1 * DDX(f, outloc) + G2 * DDY(f, outloc) + g11 * D2DX2(f, outloc)
                 + g22 * D2DY2(f, outloc) + 2.0 * g12 * D2DXDY(f, outloc);
 
-  ASSERT2(result.getLocation() == outloc);
-
   return result;
 }
 
@@ -1579,8 +1577,6 @@ Field3D Coordinates::Laplace(const Field3D& f, CELL_LOC outloc) {
                    + g33 * D2DZ2(f, outloc)
                    + 2.0 * (g12 * D2DXDY(f, outloc) + g13 * D2DXDZ(f, outloc)
                             + g23 * D2DYDZ(f, outloc));
-
-  ASSERT2(result.getLocation() == f.getLocation());
 
   return result;
 }
