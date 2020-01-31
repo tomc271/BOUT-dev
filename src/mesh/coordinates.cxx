@@ -907,7 +907,7 @@ int Coordinates::geometry(bool recalculate_staggered,
 
   // Read correction for non-uniform meshes
   std::string suffix = getLocationSuffix(location);
-  if (CELL_CENTRE or (!force_interpolate_from_centre
+  if (location == CELL_CENTRE or (!force_interpolate_from_centre
                       and localmesh->sourceHasVar("dx"+suffix))) {
     bool extrapolate_x = not localmesh->sourceHasXBoundaryGuards();
     bool extrapolate_y = not localmesh->sourceHasYBoundaryGuards();
