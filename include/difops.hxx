@@ -61,12 +61,12 @@ DEPRECATED(const Coordinates::metric_field_type Grad_par(const Field2D& var,
                                                          CELL_LOC outloc = CELL_DEFAULT));
 inline const Coordinates::metric_field_type Grad_par(const Field2D& var, CELL_LOC outloc,
                                                      DIFF_METHOD method) {
-  return Grad_par(var, outloc, DIFF_METHOD_STRING(method));
+  return Grad_par(var, outloc, toString(method));
 };
 DEPRECATED(inline const Coordinates::metric_field_type Grad_par(const Field2D& var,
                                                                 DIFF_METHOD method,
                                                                 CELL_LOC outloc)) {
-  return Grad_par(var, outloc, DIFF_METHOD_STRING(method));
+  return Grad_par(var, outloc, toString(method));
 };
 
 const Field3D Grad_par(const Field3D& var, CELL_LOC outloc = CELL_DEFAULT,
@@ -75,11 +75,11 @@ DEPRECATED(const Field3D Grad_par(const Field3D& var, const std::string& method,
                                   CELL_LOC outloc = CELL_DEFAULT));
 inline const DEPRECATED(Field3D Grad_par(const Field3D& var, CELL_LOC outloc,
                                          DIFF_METHOD method)) {
-  return Grad_par(var, outloc, DIFF_METHOD_STRING(method));
+  return Grad_par(var, outloc, toString(method));
 };
 DEPRECATED(inline const DEPRECATED(
     Field3D Grad_par(const Field3D& var, DIFF_METHOD method, CELL_LOC outloc))) {
-  return Grad_par(var, outloc, DIFF_METHOD_STRING(method));
+  return Grad_par(var, outloc, toString(method));
 };
 
 /*!
@@ -108,7 +108,7 @@ const Field3D Grad_parP(const Field3D& apar, const Field3D& f);
  * @param[in] method  The numerical method to use. The default is set in the options
  *
  */
-const Coordinates::metric_field_type Vpar_Grad_par(const Field2D& v, const Field2D& f,
+ Coordinates::metric_field_type Vpar_Grad_par(const Field2D& v, const Field2D& f,
                                                    CELL_LOC outloc = CELL_DEFAULT,
                                                    const std::string& method = "DEFAULT");
 DEPRECATED(const Coordinates::metric_field_type Vpar_Grad_par(
@@ -116,11 +116,11 @@ DEPRECATED(const Coordinates::metric_field_type Vpar_Grad_par(
     CELL_LOC outloc = CELL_DEFAULT));
 inline const Coordinates::metric_field_type
 Vpar_Grad_par(const Field2D& v, const Field2D& f, CELL_LOC outloc, DIFF_METHOD method) {
-  return Vpar_Grad_par(v, f, outloc, DIFF_METHOD_STRING(method));
+  return Vpar_Grad_par(v, f, outloc, toString(method));
 };
 DEPRECATED(inline const Coordinates::metric_field_type Vpar_Grad_par(
     const Field2D& v, const Field2D& f, DIFF_METHOD method, CELL_LOC outloc)) {
-  return Vpar_Grad_par(v, f, outloc, DIFF_METHOD_STRING(method));
+  return Vpar_Grad_par(v, f, outloc, toString(method));
 };
 
 const Field3D Vpar_Grad_par(const Field3D& v, const Field3D& f,
@@ -131,11 +131,11 @@ DEPRECATED(const Field3D Vpar_Grad_par(const Field3D& v, const Field3D& f,
                                        CELL_LOC outloc = CELL_DEFAULT));
 inline const Field3D Vpar_Grad_par(const Field3D& v, const Field3D& f, CELL_LOC outloc,
                                    DIFF_METHOD method) {
-  return Vpar_Grad_par(v, f, outloc, DIFF_METHOD_STRING(method));
+  return Vpar_Grad_par(v, f, outloc, toString(method));
 };
 DEPRECATED(inline const Field3D Vpar_Grad_par(const Field3D& v, const Field3D& f,
                                               DIFF_METHOD method, CELL_LOC outloc)) {
-  return Vpar_Grad_par(v, f, outloc, DIFF_METHOD_STRING(method));
+  return Vpar_Grad_par(v, f, outloc, toString(method));
 };
 
 /*!
@@ -158,12 +158,12 @@ DEPRECATED(const Coordinates::metric_field_type Div_par(const Field2D& f,
                                                         CELL_LOC outloc = CELL_DEFAULT));
 inline const Coordinates::metric_field_type Div_par(const Field2D& f, CELL_LOC outloc,
                                                     DIFF_METHOD method) {
-  return Div_par(f, outloc, DIFF_METHOD_STRING(method));
+  return Div_par(f, outloc, toString(method));
 };
 DEPRECATED(inline const Coordinates::metric_field_type Div_par(const Field2D& f,
                                                                DIFF_METHOD method,
                                                                CELL_LOC outloc)) {
-  return Div_par(f, outloc, DIFF_METHOD_STRING(method));
+  return Div_par(f, outloc, toString(method));
 };
 
 const Field3D Div_par(const Field3D& f, CELL_LOC outloc = CELL_DEFAULT,
@@ -171,11 +171,11 @@ const Field3D Div_par(const Field3D& f, CELL_LOC outloc = CELL_DEFAULT,
 DEPRECATED(const Field3D Div_par(const Field3D& f, const std::string& method,
                                  CELL_LOC outloc = CELL_DEFAULT));
 inline const Field3D Div_par(const Field3D& f, CELL_LOC outloc, DIFF_METHOD method) {
-  return Div_par(f, outloc, DIFF_METHOD_STRING(method));
+  return Div_par(f, outloc, toString(method));
 };
 DEPRECATED(inline const Field3D Div_par(const Field3D& f, DIFF_METHOD method,
                                         CELL_LOC outloc)) {
-  return Div_par(f, outloc, DIFF_METHOD_STRING(method));
+  return Div_par(f, outloc, toString(method));
 };
 
 // Divergence of a parallel flow: Div(f*v)
@@ -194,12 +194,12 @@ DEPRECATED(const Field3D Div_par_flux(const Field3D& v, const Field3D& f,
                                       CELL_LOC outloc = CELL_DEFAULT));
 inline const Field3D Div_par_flux(const Field3D& v, const Field3D& f, CELL_LOC outloc,
                                   DIFF_METHOD method) {
-  return Div_par_flux(v, f, outloc, DIFF_METHOD_STRING(method));
+  return Div_par_flux(v, f, outloc, toString(method));
 };
 DEPRECATED(inline const Field3D Div_par_flux(const Field3D& v, const Field3D& f,
                                              DIFF_METHOD method,
                                              CELL_LOC outloc = CELL_DEFAULT)) {
-  return Div_par_flux(v, f, outloc, DIFF_METHOD_STRING(method));
+  return Div_par_flux(v, f, outloc, toString(method));
 };
 
 /*!
@@ -218,13 +218,13 @@ const Coordinates::metric_field_type Grad2_par2(const Field2D& f,
                                                 const std::string& method = "DEFAULT");
 inline const Coordinates::metric_field_type Grad2_par2(const Field2D& f, CELL_LOC outloc,
                                                        DIFF_METHOD method) {
-  return Grad2_par2(f, outloc, DIFF_METHOD_STRING(method));
+  return Grad2_par2(f, outloc, toString(method));
 };
 
 const Field3D Grad2_par2(const Field3D& f, CELL_LOC outloc = CELL_DEFAULT,
                          const std::string& method = "DEFAULT");
 inline const Field3D Grad2_par2(const Field3D& f, CELL_LOC outloc, DIFF_METHOD method) {
-  return Grad2_par2(f, outloc, DIFF_METHOD_STRING(method));
+  return Grad2_par2(f, outloc, toString(method));
 };
 
 /*!
