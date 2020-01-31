@@ -58,9 +58,6 @@ InvertParCR::InvertParCR(Options *opt, Mesh *mesh_in)
   nsys = 1 + (localmesh->LocalNz)/2; 
 }
 
-InvertParCR::~InvertParCR() {
-}
-
 const Field3D InvertParCR::solve(const Field3D &f) {
 #ifndef COORDINATES_USE_3D
   TRACE("InvertParCR::solve(Field3D)");
@@ -73,8 +70,7 @@ const Field3D InvertParCR::solve(const Field3D &f) {
   Field3D alignedField = toFieldAligned(f, RGN_NOX);
 
   // Create cyclic reduction object
-  CyclicReduce<dcomplex> *cr = 
-    new CyclicReduce<dcomplex>();
+  auto cr = bout::utils::make_unique<CyclicReduce<dcomplex>>();
 
   // Find out if we are on a boundary
   int size = localmesh->LocalNy - 2 * localmesh->ystart;
@@ -215,9 +211,6 @@ const Field3D InvertParCR::solve(const Field3D &f) {
     for(int y=0;y<size;y++)
       irfft(&rhs(y, 0), localmesh->LocalNz, result(x, y + localmesh->ystart - y0));
   }
-  
-  // Delete cyclic reduction object
-  delete cr;
 
   return fromFieldAligned(result, RGN_NOBNDRY);
 #else
