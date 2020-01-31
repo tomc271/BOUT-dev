@@ -126,7 +126,7 @@ public:
                               REGION region = RGN_NOBNDRY);
   const metric_field_type DDX(const Field2D& f, CELL_LOC outloc, DIFF_METHOD method,
                               REGION region = RGN_NOBNDRY) {
-    return DDX(f, outloc, DIFF_METHOD_STRING(method), region);
+    return DDX(f, outloc, toString(method), region);
   };
   const Field3D DDX(const Field3D& f, CELL_LOC outloc = CELL_DEFAULT,
                     const std::string& method = "DEFAULT", REGION region = RGN_NOBNDRY);
@@ -136,7 +136,7 @@ public:
                               REGION region = RGN_NOBNDRY);
   const metric_field_type DDY(const Field2D& f, CELL_LOC outloc, DIFF_METHOD method,
                               REGION region = RGN_NOBNDRY) {
-    return DDY(f, outloc, DIFF_METHOD_STRING(method), region);
+    return DDY(f, outloc, toString(method), region);
   };
   const Field3D DDY(const Field3D& f, CELL_LOC outloc = CELL_DEFAULT,
                     const std::string& method = "DEFAULT", REGION region = RGN_NOBNDRY);
@@ -146,7 +146,7 @@ public:
                               REGION region = RGN_NOBNDRY);
   const metric_field_type DDZ(const Field2D& f, CELL_LOC outloc, DIFF_METHOD method,
                               REGION region = RGN_NOBNDRY) {
-    return DDZ(f, outloc, DIFF_METHOD_STRING(method), region);
+    return DDZ(f, outloc, toString(method), region);
   };
   const Field3D DDZ(const Field3D& f, CELL_LOC outloc = CELL_DEFAULT,
                     const std::string& method = "DEFAULT", REGION region = RGN_NOBNDRY);
@@ -156,13 +156,13 @@ public:
                                    const std::string& method = "DEFAULT");
   const metric_field_type Grad_par(const Field2D& var, CELL_LOC outloc,
                                    DIFF_METHOD method) {
-    return Grad_par(var, outloc, DIFF_METHOD_STRING(method));
+    return Grad_par(var, outloc, toString(method));
   };
 
   const Field3D Grad_par(const Field3D& var, CELL_LOC outloc = CELL_DEFAULT,
                          const std::string& method = "DEFAULT");
   const Field3D Grad_par(const Field3D& var, CELL_LOC outloc, DIFF_METHOD method) {
-    return Grad_par(var, outloc, DIFF_METHOD_STRING(method));
+    return Grad_par(var, outloc, toString(method));
   };
 
   /// Advection along magnetic field V*b.Grad(f)
@@ -171,7 +171,7 @@ public:
                                         const std::string& method = "DEFAULT");
   const metric_field_type Vpar_Grad_par(const Field2D& v, const Field2D& f,
                                         CELL_LOC outloc, DIFF_METHOD method) {
-    return Vpar_Grad_par(v, f, outloc, DIFF_METHOD_STRING(method));
+    return Vpar_Grad_par(v, f, outloc, toString(method));
   };
 
   const Field3D Vpar_Grad_par(const Field3D& v, const Field3D& f,
@@ -179,20 +179,20 @@ public:
                               const std::string& method = "DEFAULT");
   const Field3D Vpar_Grad_par(const Field3D& v, const Field3D& f, CELL_LOC outloc,
                               DIFF_METHOD method) {
-    return Vpar_Grad_par(v, f, outloc, DIFF_METHOD_STRING(method));
+    return Vpar_Grad_par(v, f, outloc, toString(method));
   };
 
   /// Divergence along magnetic field  Div(b*f) = B.Grad(f/B)
   const metric_field_type Div_par(const Field2D& f, CELL_LOC outloc = CELL_DEFAULT,
                                   const std::string& method = "DEFAULT");
   const metric_field_type Div_par(const Field2D& f, CELL_LOC outloc, DIFF_METHOD method) {
-    return Div_par(f, outloc, DIFF_METHOD_STRING(method));
+    return Div_par(f, outloc, toString(method));
   };
 
   const Field3D Div_par(const Field3D& f, CELL_LOC outloc = CELL_DEFAULT,
                         const std::string& method = "DEFAULT");
   const Field3D Div_par(const Field3D& f, CELL_LOC outloc, DIFF_METHOD method) {
-    return Div_par(f, outloc, DIFF_METHOD_STRING(method));
+    return Div_par(f, outloc, toString(method));
   };
 
   // Second derivative along magnetic field
@@ -200,13 +200,13 @@ public:
                                      const std::string& method = "DEFAULT");
   const metric_field_type Grad2_par2(const Field2D& f, CELL_LOC outloc,
                                      DIFF_METHOD method) {
-    return Grad2_par2(f, outloc, DIFF_METHOD_STRING(method));
+    return Grad2_par2(f, outloc, toString(method));
   };
 
   const Field3D Grad2_par2(const Field3D& f, CELL_LOC outloc = CELL_DEFAULT,
                            const std::string& method = "DEFAULT");
   const Field3D Grad2_par2(const Field3D& f, CELL_LOC outloc, DIFF_METHOD method) {
-    return Grad2_par2(f, outloc, DIFF_METHOD_STRING(method));
+    return Grad2_par2(f, outloc, toString(method));
   };
 
   // Perpendicular Laplacian operator, using only X-Z derivatives
