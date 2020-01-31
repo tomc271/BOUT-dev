@@ -45,13 +45,14 @@
 #include "cyclic_laplace.hxx"
 
 LaplaceCyclic::LaplaceCyclic(Options *opt, const CELL_LOC loc, Mesh *mesh_in)
-    : Laplacian(opt, loc, mesh_in), Acoef(0.0), Ccoef(1.0), Dcoef(1.0) {
+    : Laplacian(opt, loc, mesh_in), Acoef(0.0), C1coef(1.0), C2coef(1.0), Dcoef(1.0) {
 #ifdef COORDINATES_USE_3D
   throw BoutException("Laplacian cyclic solver does not support 3D metric yet.");
 #endif
 
   Acoef.setLocation(location);
-  Ccoef.setLocation(location);
+  C1coef.setLocation(location);
+  C2coef.setLocation(location);
   Dcoef.setLocation(location);
 
   // Get options
@@ -154,7 +155,7 @@ const FieldPerp LaplaceCyclic::solve(const FieldPerp &rhs, const FieldPerp &x0) 
                      kz,    // wave number index
                      kwave, // kwave (inverse wave length)
                      global_flags, inner_boundary_flags, outer_boundary_flags, &Acoef,
-                     &Ccoef, &Dcoef,
+                     &C1coef, &C2coef, &Dcoef,
                      false); // Don't include guard cells in arrays
       }
     }
@@ -219,7 +220,7 @@ const FieldPerp LaplaceCyclic::solve(const FieldPerp &rhs, const FieldPerp &x0) 
                      kz,    // True for the component constant (DC) in Z
                      kwave, // Z wave number
                      global_flags, inner_boundary_flags, outer_boundary_flags, &Acoef,
-                     &Ccoef, &Dcoef,
+                     &C1coef, &C2coef, &Dcoef,
                      false); // Don't include guard cells in arrays
       }
     }
@@ -350,7 +351,7 @@ const Field3D LaplaceCyclic::solve(const Field3D &rhs, const Field3D &x0) {
                      kz,    // wave number index
                      kwave, // kwave (inverse wave length)
                      global_flags, inner_boundary_flags, outer_boundary_flags, &Acoef,
-                     &Ccoef, &Dcoef,
+                     &C1coef, &C2coef, &Dcoef,
                      false); // Don't include guard cells in arrays
       }
     }
@@ -428,7 +429,7 @@ const Field3D LaplaceCyclic::solve(const Field3D &rhs, const Field3D &x0) {
                      kz,    // True for the component constant (DC) in Z
                      kwave, // Z wave number
                      global_flags, inner_boundary_flags, outer_boundary_flags, &Acoef,
-                     &Ccoef, &Dcoef,
+                     &C1coef, &C2coef, &Dcoef,
                      false); // Don't include guard cells in arrays
       }
     }
