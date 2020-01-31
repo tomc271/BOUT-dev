@@ -108,7 +108,7 @@ const Field3D Grad_parP(const Field3D& apar, const Field3D& f);
  * @param[in] method  The numerical method to use. The default is set in the options
  *
  */
- Coordinates::metric_field_type Vpar_Grad_par(const Field2D& v, const Field2D& f,
+const Coordinates::metric_field_type Vpar_Grad_par(const Field2D& v, const Field2D& f,
                                                    CELL_LOC outloc = CELL_DEFAULT,
                                                    const std::string& method = "DEFAULT");
 DEPRECATED(const Coordinates::metric_field_type Vpar_Grad_par(
