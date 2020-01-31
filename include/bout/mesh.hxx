@@ -222,6 +222,9 @@ class Mesh {
   int get(Vector3D& var, const std::string& name, BoutReal def = 0.0,
           bool communicate = true);
 
+  /// Test if input source was a grid file
+  bool isDataSourceGridFile() const;
+
   /// Wrapper for GridDataSource::hasVar
   bool sourceHasVar(const std::string &name);
 
