@@ -508,18 +508,14 @@ Coordinates::Coordinates(Mesh *mesh, Options* options, const CELL_LOC loc,
             "cells\n"));
     }
 
-    checkStaggeredGet(mesh, "dx", suffix);
-    mesh->get(dx, "dx"+suffix, 1.0);
-    dx.setLocation(location);
+    getAtLoc(mesh, dx, "dx", suffix, location, 1.0);
     dx = interpolateAndExtrapolate(dx, location, extrapolate_x, extrapolate_y);
 
     if (mesh->periodicX) {
       mesh->communicate(dx);
     }
 
-    checkStaggeredGet(mesh, "dy", suffix);
-    mesh->get(dy, "dy"+suffix, 1.0);
-    dy.setLocation(location);
+    getAtLoc(mesh, dy, "dy", suffix, location, 1.0);
     dy = interpolateAndExtrapolate(dy, location, extrapolate_x, extrapolate_y);
 
     // grid data source has staggered fields, so read instead of interpolating
@@ -924,6 +920,7 @@ int Coordinates::geometry(bool recalculate_staggered,
       localmesh->communicate(d1_dx);
       d1_dx = interpolateAndExtrapolate(d1_dx, location, true, true, true);
     } else {
+      d2x.setLocation(location);
       // set boundary cells if necessary
       d2x = interpolateAndExtrapolate(d2x, location, extrapolate_x, extrapolate_y);
 
@@ -938,7 +935,8 @@ int Coordinates::geometry(bool recalculate_staggered,
       localmesh->communicate(d1_dy);
       d1_dy = interpolateAndExtrapolate(d1_dy, location, true, true, true);
     } else {
-      // Shift d2y to our location
+      d2y.setLocation(location);
+      // set boundary cells if necessary
       d2y = interpolateAndExtrapolate(d2y, location, extrapolate_x, extrapolate_y);
 
       d1_dy = -d2y / (dy * dy);
@@ -1194,6 +1192,7 @@ void Coordinates::setParallelTransform(Options* options) {
           throw BoutException("Could not read zShift"+suffix+" from grid file");
         }
       }
+      zShift.setLocation(location);
     } else {
       Field2D zShift_centre;
       if (localmesh->get(zShift_centre, "zShift")) {
