@@ -1270,7 +1270,7 @@ bool Datafile::read_f3d(const std::string &name, Field3D *f, bool save_repeat) {
   
   if (shiftInput) {
     // Input file is in field-aligned coordinates e.g. BOUT++ 3.x restart file
-    *f = fromFieldAligned(*f, RGN_ALL);
+    *f = fromFieldAligned(*f, "RGN_ALL");
   }
   
   return true;
@@ -1317,7 +1317,7 @@ bool Datafile::read_fperp(const std::string &name, FieldPerp *f, bool save_repea
 
     if (shiftInput) {
       // Input file is in field-aligned coordinates e.g. BOUT++ 3.x restart file
-      *f = fromFieldAligned(*f, RGN_ALL);
+      *f = fromFieldAligned(*f, "RGN_ALL");
     }
   }
 
