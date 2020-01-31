@@ -656,7 +656,7 @@ Coordinates::Coordinates(Mesh *mesh, Options* options, const CELL_LOC loc,
     g_23 = interpolateAndExtrapolate(coords_in->g_23, location);
 
     J = interpolateAndExtrapolate(coords_in->J, location);
-    Bxy = interpolateAndExtrapolate(coords_in->J, location);
+    Bxy = interpolateAndExtrapolate(coords_in->Bxy, location);
 
     bout::checkFinite(J, "The Jacobian", "RGN_NOCORNERS");
     bout::checkPositive(J, "The Jacobian", "RGN_NOCORNERS");
@@ -1152,7 +1152,7 @@ int Coordinates::jacobian() {
            - g33 * g12 * g12;
 
   // Check that g is positive
-  bout::checkPositive(g, "The determinant of g^ij", "RGN_NOCORNERS");
+  bout::checkPositive(g, "The determinant of g^ij", "RGN_NOBNDRY");
 
   J = 1. / sqrt(g);
   // More robust to extrapolate derived quantities directly, rather than
@@ -1175,6 +1175,37 @@ int Coordinates::jacobian() {
   bout::checkPositive(Bxy, "Bxy", "RGN_NOCORNERS");
 
   return 0;
+}
+
+namespace {
+// Utility function for fixing up guard cells of zShift
+void fixZShiftGuards(Field2D& zShift) {
+  auto localmesh = zShift.getMesh();
+
+  // extrapolate into boundary guard cells if necessary
+  zShift = interpolateAndExtrapolate(zShift, zShift.getLocation(),
+      not localmesh->sourceHasXBoundaryGuards(),
+      not localmesh->sourceHasYBoundaryGuards());
+
+  // make sure zShift has been communicated
+  localmesh->communicate(zShift);
+
+  // Correct guard cells for discontinuity of zShift at poloidal branch cut
+  for (int x = 0; x < localmesh->LocalNx; x++) {
+    const auto lower = localmesh->hasBranchCutLower(x);
+    if (lower.first) {
+      for (int y = 0; y < localmesh->ystart; y++) {
+        zShift(x, y) -= lower.second;
+      }
+    }
+    const auto upper = localmesh->hasBranchCutUpper(x);
+    if (upper.first) {
+      for (int y = localmesh->yend + 1; y < localmesh->LocalNy; y++) {
+        zShift(x, y) += upper.second;
+      }
+    }
+  }
+}
 }
 
 void Coordinates::setParallelTransform(Options* options) {
@@ -1206,41 +1237,22 @@ void Coordinates::setParallelTransform(Options* options) {
           throw BoutException("Could not read zShift"+suffix+" from grid file");
         }
       }
-
-      // extrapolate into boundary guard cells if necessary
-      interpolateAndExtrapolate(zShift, location,
-          not localmesh->sourceHasXBoundaryGuards(),
-          not localmesh->sourceHasYBoundaryGuards());
     } else {
-      if (localmesh->get(zShift, "zShift")) {
+      Field2D zShift_centre;
+      if (localmesh->get(zShift_centre, "zShift")) {
         // No zShift variable. Try qinty in BOUT grid files
-        if (localmesh->get(zShift, "qinty")) {
+        if (localmesh->get(zShift_centre, "qinty")) {
           // Failed to find either variable, cannot use ShiftedMetric
           throw BoutException("Could not read zShift"+suffix+" from grid file");
         }
       }
 
-      zShift = interpolateAndExtrapolate(zShift, location);
+      fixZShiftGuards(zShift_centre);
+
+      zShift = interpolateAndExtrapolate(zShift_centre, location);
     }
 
-    // make sure zShift has been communicated
-    localmesh->communicate(zShift);
-
-    // Correct guard cells for discontinuity of zShift at poloidal branch cut
-    for (int x = 0; x < localmesh->LocalNx; x++) {
-      const auto lower = localmesh->hasBranchCutLower(x);
-      if (lower.first) {
-        for (int y = 0; y < localmesh->ystart; y++) {
-          zShift(x, y) -= lower.second;
-        }
-      }
-      const auto upper = localmesh->hasBranchCutUpper(x);
-      if (upper.first) {
-        for (int y = localmesh->yend + 1; y < localmesh->LocalNy; y++) {
-          zShift(x, y) += upper.second;
-        }
-      }
-    }
+    fixZShiftGuards(zShift);
 
     transform = bout::utils::make_unique<ShiftedMetric>(*localmesh, location, zShift,
         zlength());
