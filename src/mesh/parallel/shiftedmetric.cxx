@@ -40,9 +40,9 @@ void ShiftedMetric::checkInputGrid() {
   std::string coordinates_type = "";
   if (!mesh.get(coordinates_type, "coordinates_type")) {
     if (coordinates_type != "orthogonal") {
-      throw BoutException("Incorrect coordinate system type " + coordinates_type
-                          + " used to generate metric components for ShiftedMetric. "
-                            "Should be 'orthogonal.");
+      throw BoutException("Incorrect coordinate system type '" + coordinates_type
+                          + "' used to generate metric components for ShiftedMetric. "
+                            "Should be 'orthogonal'.");
     }
   } // else: coordinate_system variable not found in grid input, indicates older input
     //       file so must rely on the user having ensured the type is correct
@@ -138,6 +138,20 @@ const Field3D ShiftedMetric::toFieldAligned(const Field3D& f, const REGION regio
     return f;
   }
 }
+const FieldPerp ShiftedMetric::toFieldAligned(const FieldPerp& f, const REGION region) {
+  switch (f.getDirectionY()) {
+  case (YDirectionType::Standard):
+    return shiftZ(f, toAlignedPhs, YDirectionType::Aligned, region);
+  case (YDirectionType::Aligned):
+    // f is already in field-aligned coordinates
+    return f;
+  default:
+    throw BoutException("Unrecognized y-direction type for FieldPerp passed to "
+                        "ShiftedMetric::toFieldAligned");
+    // This should never happen, but use 'return f' to avoid compiler warnings
+    return f;
+  }
+}
 
 /*!
  * Shift back, so that X-Z is orthogonal,
@@ -152,6 +166,20 @@ const Field3D ShiftedMetric::fromFieldAligned(const Field3D& f, const REGION reg
     return f;
   default:
     throw BoutException("Unrecognized y-direction type for Field3D passed to "
+                        "ShiftedMetric::toFieldAligned");
+    // This should never happen, but use 'return f' to avoid compiler warnings
+    return f;
+  }
+}
+const FieldPerp ShiftedMetric::fromFieldAligned(const FieldPerp& f, const REGION region) {
+  switch (f.getDirectionY()) {
+  case (YDirectionType::Aligned):
+    return shiftZ(f, fromAlignedPhs, YDirectionType::Standard, region);
+  case (YDirectionType::Standard):
+    // f is already in orthogonal coordinates
+    return f;
+  default:
+    throw BoutException("Unrecognized y-direction type for FieldPerp passed to "
                         "ShiftedMetric::toFieldAligned");
     // This should never happen, but use 'return f' to avoid compiler warnings
     return f;
@@ -176,6 +204,25 @@ const Field3D ShiftedMetric::shiftZ(const Field3D& f, const Tensor<dcomplex>& ph
   return result;
 }
 
+const FieldPerp ShiftedMetric::shiftZ(const FieldPerp& f, const Tensor<dcomplex>& phs,
+                                      const YDirectionType y_direction_out,
+                                      const REGION UNUSED(region)) const {
+  ASSERT1(f.getMesh() == &mesh);
+  ASSERT1(f.getLocation() == location);
+
+  if (mesh.LocalNz == 1)
+    return f; // Shifting makes no difference
+
+  FieldPerp result{emptyFrom(f).setDirectionY(y_direction_out)};
+
+  int y = f.getIndex();
+  for (int i=mesh.xstart; i<=mesh.xend; ++i) {
+    shiftZ(&f(i, 0), &phs(i, y, 0), &result(i, 0));
+  }
+
+  return result;
+}
+
 void ShiftedMetric::shiftZ(const BoutReal* in, const dcomplex* phs, BoutReal* out) const {
   Array<dcomplex> cmplx(nmodes);
 
@@ -195,6 +242,11 @@ void ShiftedMetric::shiftZ(const BoutReal* in, const dcomplex* phs, BoutReal* ou
 }
 
 void ShiftedMetric::calcParallelSlices(Field3D& f) {
+  if (f.getDirectionY() == YDirectionType::Aligned) {
+    // Cannot calculate parallel slices for field-aligned fields, so return without
+    // setting yup or ydown
+    return;
+  }
 
   auto results = shiftZ(f, parallel_slice_phases);
 
