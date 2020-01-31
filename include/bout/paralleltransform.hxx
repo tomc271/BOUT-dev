@@ -56,6 +56,9 @@ public:
 
   virtual bool canToFromFieldAligned() = 0;
 
+  /// Output variables used by a ParallelTransform instance to the dump files
+  virtual void outputVars(Datafile& UNUSED(file)) {}
+
   /// If \p twist_shift_enabled is true, does a `Field3D` with Y direction \p ytype
   /// require a twist-shift at branch cuts on closed field lines?
   virtual bool requiresTwistShift(bool twist_shift_enabled, YDirectionType ytype) = 0;
@@ -166,6 +169,9 @@ public:
 
   bool canToFromFieldAligned() override { return true; }
 
+  /// Save zShift to the output
+  void outputVars(Datafile& file) override;
+
   bool requiresTwistShift(bool twist_shift_enabled, YDirectionType ytype) override {
     // Twist-shift only if field-aligned
     if (ytype == YDirectionType::Aligned and not twist_shift_enabled) {
@@ -183,7 +189,7 @@ private:
 
   /// This is the shift in toroidal angle (z) which takes a point from
   /// X-Z orthogonal to field-aligned along Y.
-  const Field2D zShift;
+  Field2D zShift;
 
   /// Length of the z-domain in radians
   BoutReal zlength{0.};
