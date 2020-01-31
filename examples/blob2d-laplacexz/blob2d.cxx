@@ -37,7 +37,7 @@ private:
   int boussinesq_used;  // How many times has it been reused
 
 protected:
-  int init(bool restarting) {
+  int init(bool UNUSED(restarting)) {
 
     /******************Reading options *****************/
 
@@ -109,8 +109,8 @@ protected:
     return 0;
   }
 
-  int rhs(BoutReal t) {
-    Coordinates *coord = mesh->getCoordinates();
+  int rhs(BoutReal UNUSED(t)) {
+    //Coordinates *coord = mesh->getCoordinates();
 
     // Run communications
     ////////////////////////////////////////////////////////////////////////////
