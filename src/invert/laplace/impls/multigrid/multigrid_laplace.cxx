@@ -204,8 +204,9 @@ BOUT_OMP(master)
   }  
 }
 
-const FieldPerp LaplaceMultigrid::solve(const FieldPerp &b_in, const FieldPerp &x0) {
+FieldPerp LaplaceMultigrid::solve(const FieldPerp& b_in, const FieldPerp& x0) {
 #ifndef COORDINATES_USE_3D
+
   TRACE("LaplaceMultigrid::solve(const FieldPerp, const FieldPerp)");
 
   ASSERT1(localmesh == b_in.getMesh() && localmesh == x0.getMesh());
