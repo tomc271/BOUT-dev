@@ -14,6 +14,7 @@ except:
 
 from boututils.run_wrapper import shell, shell_safe, launch_safe
 from boutdata.collect import collect
+import boututils.bout_config as conf
 import numpy as np
 from sys import stdout, exit
 
@@ -44,9 +45,14 @@ def check_output():
 
         # Compare benchmark and output
         if np.shape(bmk[v]) != np.shape(result):
-            print("Fail, wrong shape")
-            success = False
-            continue
+            if (conf.isMetric3D() and v.startswith('v2d')
+                and bmk[v].shape == result.shape[:-1]):
+                result = result[...,0]
+            else:
+                print("Fail, wrong shape")
+                print(v,bmk[v].shape, result.shape)
+                success = False
+                continue
 
         diff =  np.max(np.abs(bmk[v] - result))
         if diff > tol:
