@@ -92,7 +92,7 @@ AC_ARG_WITH(openmp_schedule,[AS_HELP_STRING([--with-openmp-schedule=static/dynam
 AC_ARG_ENABLE(pvode_openmp, [AS_HELP_STRING([--enable-pvode-openmp],
         [Enable building PVODE with OpenMP support])],,[enable_pvode_openmp=no])
 AC_ARG_ENABLE(metric_3d, [AS_HELP_STRING([--enable-metric-3d],
-        [If yes use Field3D to store coordinates metric data])],,[enable_metric_3d=no])
+        [Use Field3D to store coordinates metric data])],,[enable_metric_3d=no])
 
 AC_ARG_VAR(EXTRA_INCS,[Extra compile flags])
 AC_ARG_VAR(EXTRA_LIBS,[Extra linking flags])
@@ -693,17 +693,24 @@ AS_IF([test "x$with_petsc" != "x" && test "$with_petsc" != "no"], [
 
 # PETSc changed the location of the conf directory in 3.5, so we
 # need to check both locations
+# If we find nether, try to fall back to pkg-conf
+  PETSC_PKGCONF=no
   AC_CHECK_FILE($PETSC_DIR/$PETSC_ARCH/conf, [
     PETSC_CONFDIR=${PETSC_DIR}/conf
   ], [
     AC_CHECK_FILE($PETSC_DIR/$PETSC_ARCH/lib/petsc/conf, [
       PETSC_CONFDIR=${PETSC_DIR}/lib/petsc/conf
     ], [
-      AC_MSG_ERROR([--with-petsc was specified but could not find PETSc distribution.
+      PKG_CHECK_MODULES(PETSC, petsc >= 3.4.0 ,
+        PETSC_PKGCONF=yes, [
+	AC_MSG_ERROR([--with-petsc was specified but could not find PETSc distribution.
 PETSC_ERROR_MESSAGE])
+      ])
     ])
   ])
 
+  AS_IF([test $PETSC_PKGCONF = no] ,
+    [
 # We've found an installation, need to check we can use it. First we
 # need to be able to check the version number, for which we need
 # petscverion.h
@@ -782,7 +789,33 @@ PETSC_ERROR_MESSAGE])
   CXXFLAGS="$CXXFLAGS -DBOUT_HAS_PETSC"
   EXTRA_INCS="$EXTRA_INCS \$(PETSC_CC_INCLUDES)"
   EXTRA_LIBS="$EXTRA_LIBS \$(PETSC_LIB)"
+  ], [ dnl pkg-config version
 
+  # Check if PETSc was compiled with SUNDIALS
+  save_CPPFLAGS="$CPPFLAGS"
+  CPPFLAGS="$CPPFLAGS $PETSC_CFLAGS"
+  AC_MSG_CHECKING([PETSc has SUNDIALS support])
+  AC_EGREP_CPP([yes], [
+    #include <petscconf.h>
+    #ifdef PETSC_HAVE_SUNDIALS
+      yes
+    #endif
+  ], [PETSC_HAS_SUNDIALS="yes"],
+     [PETSC_HAS_SUNDIALS="no"])
+  AC_MSG_RESULT([$PETSC_HAS_SUNDIALS])
+  CPPFLAGS="$save_CPPFLAGS"
+
+  AS_IF([test "$PETSC_HAS_SUNDIALS" = "yes"], [
+    CXXFLAGS="$CXXFLAGS -DPETSC_HAS_SUNDIALS "
+  ])
+  PETSC_MAKE_INCLUDE=
+  HAS_PETSC="yes"
+
+  CXXFLAGS="$CXXFLAGS -DBOUT_HAS_PETSC"
+
+  EXTRA_INCS="$EXTRA_INCS $PETSC_CFLAGS"
+  EXTRA_LIBS="$EXTRA_LIBS $PETSC_LIBS"
+ ])
 ], [
   PETSC_MAKE_INCLUDE=
   HAS_PETSC="no"
@@ -1315,6 +1348,7 @@ AC_SUBST(METRIC_TYPE)
 AC_SUBST(HAS_FFTW)
 
 AC_CONFIG_FILES([bin/bout-config])
+AC_CONFIG_FILES([tools/pylib/boututils/bout_config.py])
 AC_OUTPUT
 chmod a+x bin/bout-config
 

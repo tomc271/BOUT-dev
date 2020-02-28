@@ -133,20 +133,35 @@ Field2D _interpolateAndExtrapolate(const Field2D& f, CELL_LOC location,
 
   Field3D _interpolateAndExtrapolate(const Field3D& f_, CELL_LOC location,
 				     bool extrapolate_x, bool extrapolate_y,
-				    bool no_extra_interpolate, ParallelTransform* pt) {
+				    bool no_extra_interpolate, ParallelTransform* pt_) {
 
     Mesh* localmesh = f_.getMesh();
     Field3D result;
+    Field3D f = f_;
+    ParallelTransform * pt_f;
+    if (f.getCoordinates() == nullptr) {
+      pt_f = pt_;
+    } else {
+      pt_f = & f.getCoordinates()->getParallelTransform();
+    }
     // Cannot use normal ifs, so that f is const
-    const Field3D f = (f_.getDirectionY() == YDirectionType::Standard ? f_ :
-		       (f_.getCoordinates() == nullptr ? pt->fromFieldAligned(f_) : fromFieldAligned(f_)));
-
+    if (f.getDirectionY() != YDirectionType::Standard) {
+      if (pt_f->canToFromFieldAligned()) {
+	f = pt_f->fromFieldAligned(f);
+      } else {
+	f.setDirectionY(YDirectionType::Standard);
+      }
+    }
     if (location == CELL_YLOW){
-      auto f_aligned = f.getCoordinates() == nullptr ?
-	pt->toFieldAligned(f, "RGN_NOX") : toFieldAligned(f, "RGN_NOX");
+      auto f_aligned = pt_f->toFieldAligned(f, "RGN_NOX");
       result = interp_to(f_aligned, location, "RGN_NOBNDRY");
-      result = result.getCoordinates() == nullptr ?
-	pt->fromFieldAligned(result,  "RGN_NOBNDRY") : fromFieldAligned(result,  "RGN_NOBNDRY");
+      ParallelTransform * pt_result;
+      if (result.getCoordinates() == nullptr){
+	pt_result = pt_;
+      } else {
+	pt_result = & result.getCoordinates()->getParallelTransform();
+      }
+      result = pt_result->fromFieldAligned(result,  "RGN_NOBNDRY");
     } else {
       result = interp_to(f, location, "RGN_NOBNDRY");
     }
@@ -1565,7 +1580,7 @@ Coordinates::metric_field_type Coordinates::Delp2(const Field2D& f,
   return result;
 }
 
-Field3D Coordinates::Delp2(const Field3D& f, CELL_LOC outloc, bool useFFT) {
+Field3D Coordinates::Delp2(const Field3D& f, CELL_LOC outloc, MAYBE_UNUSED(bool useFFT)) {
   TRACE("Coordinates::Delp2( Field3D )");
 
   if (outloc == CELL_DEFAULT) {
@@ -1583,8 +1598,8 @@ Field3D Coordinates::Delp2(const Field3D& f, CELL_LOC outloc, bool useFFT) {
 
   Field3D result{emptyFrom(f).setLocation(outloc)};
 
-  if (useFFT) {
 #ifndef COORDINATES_USE_3D
+  if (useFFT) {
     int ncz = localmesh->LocalNz;
 
     // Allocate memory
@@ -1619,10 +1634,9 @@ Field3D Coordinates::Delp2(const Field3D& f, CELL_LOC outloc, bool useFFT) {
         irfft(&delft(jx, 0), ncz, &result(jx, jy, 0));
       }
     }
-#else
-  throw BoutException("Delp2(Field3D) currently only works when passed useFFT=False.");
+  } else
 #endif
-  } else {
+    {
     result = G1 * ::DDX(f, outloc) + G3 * ::DDZ(f, outloc) + g11 * ::D2DX2(f, outloc)
              + g33 * ::D2DZ2(f, outloc) + 2 * g13 * ::D2DXDZ(f, outloc);
   };
@@ -1749,7 +1763,13 @@ Field3D Coordinates::indexDDY(const Field3D& f, CELL_LOC outloc,
 #ifdef COORDINATES_USE_3D
   if (!f.hasParallelSlices()){
     const bool is_unaligned = (f.getDirectionY() == YDirectionType::Standard);
-    const Field3D f_aligned = is_unaligned ? transform->toFieldAligned(f, "RGN_NOX") : f;
+    Field3D f_aligned;
+    if (transform->canToFromFieldAligned()){
+      f_aligned = is_unaligned ? transform->toFieldAligned(f, "RGN_NOX") : f;
+    } else {
+      f.calcParallelSlices();
+      return bout::derivatives::index::DDY(f, outloc, method, region);
+    }
     Field3D result = bout::derivatives::index::DDY(f_aligned, outloc, method, region);
     return (is_unaligned ? maybeFromFieldAligned(result, region) : result );
   }
