@@ -65,28 +65,34 @@ matrix:
           - g++-7
           - *standard_packages
     env:
+      - CASE="debug run"
       - *default_env
       - CONFIGURE_OPTIONS="--enable-sigfpe --enable-debug --with-petsc --with-slepc --with-sundials=$HOME/local"
       - CC=gcc-7 CXX=g++-7
       - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
   - env:
+      - CASE="boutcore run"
       - *default_env
       - CONFIGURE_OPTIONS="--enable-shared --with-petsc --with-slepc --with-sundials=$HOME/local"
       - SCRIPT_FLAGS="-uim -t python -t shared"
   - env:
+      - CASE="boutcore version 5 run"
       - *default_env
       - CONFIGURE_OPTIONS="--enable-shared --with-petsc --with-slepc --with-sundials=$HOME/local"
       - SCRIPT_FLAGS="-uim5t python"
   - env:
+      - CASE="openmp run"
       - *default_env
       - CONFIGURE_OPTIONS="--enable-openmp --with-petsc --with-slepc --with-sundials=$HOME/local"
       - OMP_NUM_THREADS=2
   - env:
+      - CASE="3d metric run"
       - *default_env
-      - CONFIGURE_OPTIONS="--enable-metric-3d --enable-shared"
+      - CONFIGURE_OPTIONS="--enable-metric-3d --enable-shared --enable-openmp"
       - SCRIPT_FLAGS="-uim -t python -t shared"
 #CMAKE
   - env:
+      - CASE="cmake"
       - *default_env
       - OMP_NUM_THREADS=2
       - PYTHONPATH="${TRAVIS_BUILD_DIR}/tools/pylib:$PYTHONPATH"
@@ -98,6 +104,7 @@ matrix:
       - ctest --output-on-failure
 #CLANG
   - env:
+      - CASE="clang"
       - *default_env
       - CONFIGURE_OPTIONS="--enable-debug --with-petsc --with-slepc --with-sundials=$HOME/local"
       - MPICH_CC=clang MPICH_CXX=clang++
@@ -111,6 +118,7 @@ matrix:
           - *standard_packages
           - jq
     env:
+      - CASE="code coverage with checks"
       - CONFIGURE_OPTIONS="--enable-code-coverage --enable-debug --enable-track --enable-checks=3 --with-petsc --with-lapack --with-slepc --enable-openmp --with-sundials=$HOME/local"
       - OMP_NUM_THREADS=2
       - LD_LIBRARY_PATH=$HOME/local/lib:$LD_LIBRARY_PATH
@@ -124,6 +132,7 @@ matrix:
           - *standard_packages
           - jq
     env:
+      - CASE="code coverage without checks"
       - CONFIGURE_OPTIONS="--enable-code-coverage --disable-debug --disable-checks"
       - *coverage_vars
       - *codecov_secure
