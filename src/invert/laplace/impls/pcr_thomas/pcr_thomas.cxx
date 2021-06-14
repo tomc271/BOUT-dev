@@ -853,12 +853,12 @@ void LaplacePCR_THOMAS ::pcr_forward_single_row(Matrix<dcomplex>& a, Matrix<dcom
       comm_count++;
     }
 
-    int p;
+    int p = MPI_UNDEFINED;
     do {
       MPI_Status stat;
-      MPI_Waitany(comm_count, rreq, &p, &stat);
+      MPI_Waitany(2, rreq, &p, &stat);
         if (p != MPI_UNDEFINED) {
-// p is the index of rreq
+          // p is the index of rreq
           if (p == 0) {
             for (int kz = 0; kz < nsys; kz++) {
               a(kz, 0) = rbuf0[0 + 4 * kz];
@@ -866,6 +866,7 @@ void LaplacePCR_THOMAS ::pcr_forward_single_row(Matrix<dcomplex>& a, Matrix<dcom
               c(kz, 0) = rbuf0[2 + 4 * kz];
               r(kz, 0) = rbuf0[3 + 4 * kz];
             }
+	    comm_count--;
 	  } else if (p == 1){ 
             for (int kz = 0; kz < nsys; kz++) {
               a(kz, n_mpi + 1) = rbuf1[0 + 4 * kz];
@@ -873,10 +874,11 @@ void LaplacePCR_THOMAS ::pcr_forward_single_row(Matrix<dcomplex>& a, Matrix<dcom
               c(kz, n_mpi + 1) = rbuf1[2 + 4 * kz];
               r(kz, n_mpi + 1) = rbuf1[3 + 4 * kz];
             }
+	    comm_count--;
 	  }
           rreq[p] = MPI_REQUEST_NULL;
         }
-      } while (p != MPI_UNDEFINED);
+      } while (comm_count>0);
 
     if (xproc - dist_rank >= 0) {
       MPI_Wait(&sreq[0], &status);
