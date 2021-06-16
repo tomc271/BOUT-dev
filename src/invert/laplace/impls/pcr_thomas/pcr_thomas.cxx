@@ -67,6 +67,7 @@ LaplacePCR_THOMAS::LaplacePCR_THOMAS(Options* opt, CELL_LOC loc, Mesh* mesh_in)
       ncx(localmesh->LocalNx), ny(localmesh->LocalNy), avec(ny, nmode, ncx),
       bvec(ny, nmode, ncx), cvec(ny, nmode, ncx) {
 
+  SCOREP0();
   Acoef.setLocation(location);
   C1coef.setLocation(location);
   C2coef.setLocation(location);
@@ -307,6 +308,7 @@ FieldPerp LaplacePCR_THOMAS::solve(const FieldPerp& rhs, const FieldPerp& x0) {
 Field3D LaplacePCR_THOMAS::solve(const Field3D& rhs, const Field3D& x0) {
   TRACE("LaplacePCR_THOMAS::solve(Field3D, Field3D)");
 
+  SCOREP0();
   ASSERT1(rhs.getLocation() == location);
   ASSERT1(x0.getLocation() == location);
   ASSERT1(localmesh == rhs.getMesh() && localmesh == x0.getMesh());
@@ -545,6 +547,7 @@ void LaplacePCR_THOMAS ::pcr_thomas_solver(Matrix<dcomplex>& a_mpi, Matrix<dcomp
                                 Matrix<dcomplex>& c_mpi, Matrix<dcomplex>& r_mpi,
                                 Matrix<dcomplex>& x_mpi) {
 
+  SCOREP0();
   const int xstart = localmesh->xstart;
   const int xend = localmesh->xend;
   const int nx = xend - xstart + 1; // number of interior points
@@ -613,6 +616,7 @@ void LaplacePCR_THOMAS ::pcr_thomas_solver(Matrix<dcomplex>& a_mpi, Matrix<dcomp
 void LaplacePCR_THOMAS ::eliminate_boundary_rows(const Matrix<dcomplex>& a, Matrix<dcomplex>& b,
                                           const Matrix<dcomplex>& c,
                                           Matrix<dcomplex>& r) {
+  SCOREP0();
 
   if (localmesh->firstX()) {
     // x index is first interior row
@@ -673,6 +677,7 @@ void LaplacePCR_THOMAS ::apply_boundary_conditions(const Matrix<dcomplex>& a,
 void LaplacePCR_THOMAS ::cr_forward_multiple_row(Matrix<dcomplex>& a, Matrix<dcomplex>& b,
                                           Matrix<dcomplex>& c,
                                           Matrix<dcomplex>& r) const {
+  SCOREP0();
   MPI_Comm comm = BoutComm::get();
   Array<dcomplex> alpha(nsys);
   Array<dcomplex> gamma(nsys);
@@ -746,6 +751,7 @@ void LaplacePCR_THOMAS ::cr_forward_multiple_row(Matrix<dcomplex>& a, Matrix<dco
 void LaplacePCR_THOMAS ::cr_backward_multiple_row(Matrix<dcomplex>& a, Matrix<dcomplex>& b,
                                            Matrix<dcomplex>& c, Matrix<dcomplex>& r,
                                            Matrix<dcomplex>& x) const {
+  SCOREP0();
   MPI_Comm comm = BoutComm::get();
 
   MPI_Status status;
@@ -797,6 +803,7 @@ void LaplacePCR_THOMAS ::pcr_forward_single_row(Matrix<dcomplex>& a, Matrix<dcom
                                          Matrix<dcomplex>& c, Matrix<dcomplex>& r,
                                          Matrix<dcomplex>& x) const {
 
+  SCOREP0();
   Array<dcomplex> alpha(nsys);
   Array<dcomplex> gamma(nsys);
   Array<dcomplex> sbuf(4 * nsys);
@@ -836,6 +843,7 @@ void LaplacePCR_THOMAS ::pcr_forward_single_row(Matrix<dcomplex>& a, Matrix<dcom
     const int tag_recv_out = 201;
     const int tag_send_in = 201;
     const int tag_send_out = 200;
+    int tag_recv;
     rreq[0] = MPI_REQUEST_NULL;
     rreq[1] = MPI_REQUEST_NULL;
     sreq[0] = MPI_REQUEST_NULL;
@@ -853,32 +861,22 @@ void LaplacePCR_THOMAS ::pcr_forward_single_row(Matrix<dcomplex>& a, Matrix<dcom
       comm_count++;
     }
 
-    int p = MPI_UNDEFINED;
+    int write_index;
     do {
-      MPI_Status stat;
-      MPI_Waitany(2, rreq, &p, &stat);
-        if (p != MPI_UNDEFINED) {
-          // p is the index of rreq
-          if (p == 0) {
-            for (int kz = 0; kz < nsys; kz++) {
-              a(kz, 0) = rbuf0[0 + 4 * kz];
-              b(kz, 0) = rbuf0[1 + 4 * kz];
-              c(kz, 0) = rbuf0[2 + 4 * kz];
-              r(kz, 0) = rbuf0[3 + 4 * kz];
-            }
-	    comm_count--;
-	  } else if (p == 1){ 
-            for (int kz = 0; kz < nsys; kz++) {
-              a(kz, n_mpi + 1) = rbuf1[0 + 4 * kz];
-              b(kz, n_mpi + 1) = rbuf1[1 + 4 * kz];
-              c(kz, n_mpi + 1) = rbuf1[2 + 4 * kz];
-              r(kz, n_mpi + 1) = rbuf1[3 + 4 * kz];
-            }
-	    comm_count--;
-	  }
-          rreq[p] = MPI_REQUEST_NULL;
-        }
-      } while (comm_count>0);
+      MPI_Recv(&rbuf1[0], 4 * nsys, MPI_DOUBLE_COMPLEX, MPI_ANY_SOURCE, tag_recv, comm, MPI_STATUS_IGNORE);
+      if (tag_recv == tag_recv_in) {
+	write_index = 0;
+      } else {
+	write_index = n_mpi + 1;
+      }
+      for (int kz = 0; kz < nsys; kz++) {
+        a(kz, write_index) = rbuf1[0 + 4 * kz];
+        b(kz, write_index) = rbuf1[1 + 4 * kz];
+        c(kz, write_index) = rbuf1[2 + 4 * kz];
+        r(kz, write_index) = rbuf1[3 + 4 * kz];
+      }
+      comm_count--;
+    } while (comm_count>0);
 
     if (xproc - dist_rank >= 0) {
       MPI_Wait(&sreq[0], &status);
@@ -992,6 +990,7 @@ void LaplacePCR_THOMAS ::pcr_forward_single_row(Matrix<dcomplex>& a, Matrix<dcom
 */
 void LaplacePCR_THOMAS :: pThomas_forward_multiple_row(Matrix<dcomplex> &a, Matrix<dcomplex> &b, Matrix<dcomplex> &c, Matrix<dcomplex> &r)
 {
+  SCOREP0();
     int i;
     dcomplex alpha, beta;
 
@@ -1025,6 +1024,7 @@ void LaplacePCR_THOMAS :: pThomas_forward_multiple_row(Matrix<dcomplex> &a, Matr
 */
 void LaplacePCR_THOMAS :: pcr_double_row_substitution(Matrix<dcomplex> &a, Matrix<dcomplex> &b, Matrix<dcomplex> &c, Matrix<dcomplex> &r, Matrix<dcomplex> &x)
 {
+  SCOREP0();
     int i, ip, in;
     Array<dcomplex> alpha(nsys);
     Array<dcomplex> gamma(nsys);
