@@ -851,23 +851,26 @@ void LaplacePCR_THOMAS ::pcr_forward_single_row(Matrix<dcomplex>& a, Matrix<dcom
     int comm_count = 0;
     
     if (xproc + dist_rank < nprocs) {
-      MPI_Irecv(&rbuf1[0], 4 * nsys, MPI_DOUBLE_COMPLEX, myrank + dist_rank, tag_recv_out, comm, &rreq[1]);
       MPI_Isend(&sbuf[0], 4 * nsys, MPI_DOUBLE_COMPLEX, myrank + dist_rank, tag_send_out, comm, &sreq[1]);
       comm_count++;
     }
     if (xproc - dist_rank >= 0) {
-      MPI_Irecv(&rbuf0[0], 4 * nsys, MPI_DOUBLE_COMPLEX, myrank - dist_rank, tag_recv_in, comm, &rreq[0]);
       MPI_Isend(&sbuf[0], 4 * nsys, MPI_DOUBLE_COMPLEX, myrank - dist_rank, tag_send_in, comm, &sreq[0]);
       comm_count++;
     }
 
     int write_index;
-    do {
-      MPI_Recv(&rbuf1[0], 4 * nsys, MPI_DOUBLE_COMPLEX, MPI_ANY_SOURCE, tag_recv, comm, MPI_STATUS_IGNORE);
-      if (tag_recv == tag_recv_in) {
-	write_index = 0;
-      } else {
+    MPI_Status status;
+    output.write("{}\n",comm_count);
+    if(comm_count==1){
+      if (xproc + dist_rank < nprocs) {
+        output.write("tag {}\n",tag_recv_out);
+        MPI_Recv(&rbuf1[0], 4 * nsys, MPI_DOUBLE_COMPLEX, myrank + dist_rank, tag_recv_out, comm, &status);
 	write_index = n_mpi + 1;
+      } else if (xproc - dist_rank >= 0) {
+        output.write("tag {}\n",tag_recv_in);
+        MPI_Recv(&rbuf1[0], 4 * nsys, MPI_DOUBLE_COMPLEX, myrank - dist_rank, tag_recv_in, comm, &status);
+	write_index = 0;
       }
       for (int kz = 0; kz < nsys; kz++) {
         a(kz, write_index) = rbuf1[0 + 4 * kz];
@@ -875,15 +878,50 @@ void LaplacePCR_THOMAS ::pcr_forward_single_row(Matrix<dcomplex>& a, Matrix<dcom
         c(kz, write_index) = rbuf1[2 + 4 * kz];
         r(kz, write_index) = rbuf1[3 + 4 * kz];
       }
-      comm_count--;
-    } while (comm_count>0);
+    } else if (comm_count==2){
+      // This branch ensures we do the work with whichever message arrives
+      // first. As non-blocking sends are used elsewhere in the routine, the
+      // second recv MUST come from the other direction. If we don't check
+      // this, when this proc's neighbours get out of sync, this proc might
+      // receive two messages from the same neighbour, causing the routine to
+      // stall.
+      int recv_tag;
+      int recv_source;
+      output.write("before receive\n");
+      MPI_Recv(&rbuf1[0], 4 * nsys, MPI_DOUBLE_COMPLEX, MPI_ANY_SOURCE, MPI_ANY_TAG, comm, &status);
+      output.write("tag {}\n",status.MPI_TAG);
+      if (status.MPI_TAG == tag_recv_in) {
+	write_index = 0;
+	// Have received from in, next time must receive from out
+	recv_tag = tag_recv_out;
+	recv_source = myrank + dist_rank;
+      } else {
+	write_index = n_mpi + 1;
+	// Have received from out, next time must receive from in
+	recv_tag = tag_recv_in;
+	recv_source = myrank - dist_rank;
+      }
+      output.write("before write\n");
+      for (int kz = 0; kz < nsys; kz++) {
+        a(kz, write_index) = rbuf1[0 + 4 * kz];
+        b(kz, write_index) = rbuf1[1 + 4 * kz];
+        c(kz, write_index) = rbuf1[2 + 4 * kz];
+        r(kz, write_index) = rbuf1[3 + 4 * kz];
+      }
 
-    if (xproc - dist_rank >= 0) {
-      MPI_Wait(&sreq[0], &status);
+      output.write("tag {}\n",recv_tag);
+      // Swap the write index compared to last time
+      write_index = n_mpi + 1 - write_index;
+      // Receive from the other direction
+      MPI_Recv(&rbuf1[0], 4 * nsys, MPI_DOUBLE_COMPLEX, recv_source, recv_tag, comm, &status);
+      for (int kz = 0; kz < nsys; kz++) {
+        a(kz, write_index) = rbuf1[0 + 4 * kz];
+        b(kz, write_index) = rbuf1[1 + 4 * kz];
+        c(kz, write_index) = rbuf1[2 + 4 * kz];
+        r(kz, write_index) = rbuf1[3 + 4 * kz];
+      }
     }
-    if (xproc + dist_rank < nprocs) {
-      MPI_Wait(&sreq[1], &status);
-    }
+    output.write("After loop\n");
 
     const int i = n_mpi;
     const int ip = 0;
@@ -914,8 +952,16 @@ void LaplacePCR_THOMAS ::pcr_forward_single_row(Matrix<dcomplex>& a, Matrix<dcom
       r(kz, i) += (alpha[kz] * r(kz, ip) + gamma[kz] * r(kz, in));
     }
 
+    if (xproc - dist_rank >= 0) {
+      MPI_Wait(&sreq[0], &status);
+    }
+    if (xproc + dist_rank < nprocs) {
+      MPI_Wait(&sreq[1], &status);
+    }
+    output.write("After send wait\n");
+
+
     dist_rank *= 2;
-    dist2_rank *= 2;
   }
 
   /// Solving 2x2 matrix. All pair of ranks, myrank and myrank+nhprocs, solves it
