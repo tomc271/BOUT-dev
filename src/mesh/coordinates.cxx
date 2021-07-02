@@ -1307,8 +1307,10 @@ Field3D Coordinates::Div_par(const Field3D& f, CELL_LOC outloc,
   // Need to modify yup and ydown fields
   Field3D f_B = f / Bxy_floc;
   f_B.splitParallelSlices();
-  f_B.yup() = f.yup() / Bxy_floc;
-  f_B.ydown() = f.ydown() / Bxy_floc;
+  for (int i = 0; i < f.getMesh()->ystart; ++i) {
+    f_B.yup(i) = f.yup(i) / Bxy_floc;
+    f_B.ydown(i) = f.ydown(i) / Bxy_floc;
+  }
   return Bxy * Grad_par(f_B, outloc, method);
 }
 
@@ -1389,8 +1391,10 @@ Field3D Coordinates::Delp2(const Field3D& f, CELL_LOC outloc, bool useFFT) {
     auto ft = Matrix<dcomplex>(localmesh->LocalNx, ncz / 2 + 1);
     auto delft = Matrix<dcomplex>(localmesh->LocalNx, ncz / 2 + 1);
 
-    // Loop over all y indices
-    for (int jy = 0; jy < localmesh->LocalNy; jy++) {
+    // Loop over y indices
+    // Note: should not include y-guard or y-boundary points here as that would
+    // use values from corner cells in dx, which may not be initialised.
+    for (int jy = localmesh->ystart; jy <= localmesh->yend; jy++) {
 
       // Take forward FFT
 
