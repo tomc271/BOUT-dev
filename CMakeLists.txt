@@ -578,28 +578,13 @@ message(STATUS "PVODE support: ${BOUT_USE_PVODE}")
 set(BOUT_HAS_PVODE ${BOUT_USE_PVODE})
 
 option(BOUT_USE_NETCDF "Enable support for NetCDF output" ON)
-option(BOUT_DOWNLOAD_NETCDF_CXX4 "Download and build netCDF-cxx4" OFF)
 if (BOUT_USE_NETCDF)
-  if (BOUT_DOWNLOAD_NETCDF_CXX4)
-    include(FetchContent)
-    FetchContent_Declare(
-      netcdf-cxx4
-      GIT_REPOSITORY https://github.com/ZedThree/netcdf-cxx4
-      GIT_TAG        "ad3e50953190615cb69dcc8a4652f9a88a8499cf"
-      )
-    # Don't build the netcdf tests, they have lots of warnings
-    set(NCXX_ENABLE_TESTS OFF CACHE BOOL "" FORCE)
-    # Use our own FindnetCDF module which uses nc-config
-    find_package(netCDF REQUIRED)
-    FetchContent_MakeAvailable(netcdf-cxx4)
-  else()
-    find_package(netCDFCxx REQUIRED)
-    set(CONFIG_LDFLAGS "${CONFIG_LDFLAGS} ${netCDF_CXX_LIBRARY} ${netCDF_LIBRARIES}")
-  endif()
-  target_link_libraries(bout++ PUBLIC netCDF::netcdf-cxx4)
+  find_package(NetCDF REQUIRED)
+  target_link_libraries(bout++ PUBLIC NetCDF::NetCDF_CXX)
 endif()
 message(STATUS "NetCDF support: ${BOUT_USE_NETCDF}")
 set(BOUT_HAS_NETCDF ${BOUT_USE_NETCDF})
+
 
 option(BOUT_USE_FFTW "Enable support for FFTW" ON)
 if (BOUT_USE_FFTW)
@@ -623,7 +608,7 @@ endif()
 message(STATUS "LAPACK support: ${BOUT_USE_LAPACK}")
 set(BOUT_HAS_LAPACK ${BOUT_USE_LAPACK})
 
-option(BOUT_USE_PETSC "Enable support for PETSc time solvers and inversions" OFF)
+option(BOUT_USE_PETSC "Enable support for PETSc time solvers and inversions" On)
 if (BOUT_USE_PETSC)
   if (NOT CMAKE_SYSTEM_NAME STREQUAL "CrayLinuxEnvironment")
     # Cray wrappers sort this out for us
@@ -827,6 +812,8 @@ option(BOUT_BUILD_EXAMPLES "Build the examples" OFF)
 if(BOUT_BUILD_EXAMPLES)
   add_subdirectory(examples)
 endif()
+
+add_subdirectory(examples/elm-pb)
 
 ##################################################
 # Documentation
