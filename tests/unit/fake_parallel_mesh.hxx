@@ -8,6 +8,8 @@
 #include <memory>
 
 #include "../../src/mesh/impls/bout/boutmesh.hxx"
+#include "boundary_op.hxx"
+#include "boundary_region.hxx"
 #include "boutcomm.hxx"
 #include "field2d.hxx"
 #include "field3d.hxx"
@@ -17,9 +19,6 @@
 #include "bout/fieldgroup.hxx"
 #include "bout/mesh.hxx"
 #include "bout/mpi_wrapper.hxx"
-#include "boundary_region.hxx"
-#include "boundary_op.hxx"
-
 
 class Options;
 
