@@ -6,6 +6,7 @@ import copy
 import textwrap
 import os
 import re
+from patch_functions import *
 
 
 def get_full_filepath(filepath):
@@ -32,20 +33,13 @@ def update_version_number_in_file(relative_filepath, pattern, new_version_number
                 print("No changes to make to {}".format(full_filepath))
             return
 
-        if not args.quiet:
-            print("\n******************************************")
-            print("Changes to {}\n".format(full_filepath))
-            print(patch)
-            print("\n******************************************")
-
-        if args.force:
-            make_change = True
-        else:
-            make_change = yes_or_no("Make changes to {}?".format(full_filepath))
+        make_change = possibly_apply_patch(
+            patch, full_filepath, quiet=args.quiet, force=args.force
+        )
 
         if make_change:
-            with open(full_filepath, "w", encoding="UTF-8") as file:
-                file.write(modified)
+            with open(full_filepath, "w", encoding="UTF-8") as the_file:
+                the_file.write(modified)
 
 
 def bump_version_numbers(new_version_number):
@@ -143,16 +137,6 @@ def apply_fixes(pattern, new_version_number, source):
     modified = re.sub(pattern, get_replacement, source, flags=re.MULTILINE)
 
     return modified
-
-
-def yes_or_no(question):
-    """Convert user input from yes/no variations to True/False"""
-    while True:
-        reply = input(question + " [y/N] ").lower().strip()
-        if not reply or reply[0] == "n":
-            return False
-        if reply[0] == "y":
-            return True
 
 
 def create_patch(filename, original, modified):

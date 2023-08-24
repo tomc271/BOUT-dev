@@ -6,7 +6,7 @@ import difflib
 import itertools
 import textwrap
 import warnings
-
+from patch_functions import *
 from boutdata.data import BoutOptionsFile, BoutOptions
 from boututils.boutwarnings import AlwaysWarning
 
@@ -221,16 +221,6 @@ def apply_fixes(replacements, deleted, options_file):
     return modified
 
 
-def yes_or_no(question):
-    """Convert user input from yes/no variations to True/False"""
-    while True:
-        reply = input(question + " [y/N] ").lower().strip()
-        if not reply or reply[0] == "n":
-            return False
-        if reply[0] == "y":
-            return True
-
-
 def create_patch(filename, original, modified):
     """Create a unified diff between original and modified"""
 
@@ -245,27 +235,6 @@ def create_patch(filename, original, modified):
     )
 
     return patch
-
-
-def possibly_apply_patch(patch, options_file, quiet=False, force=False):
-    """Possibly apply patch to options_file. If force is True, applies the
-    patch without asking, overwriting any existing file. Otherwise,
-    ask for confirmation from stdin
-
-    """
-    if not quiet:
-        print("\n******************************************")
-        print("Changes to {}\n".format(options_file.filename))
-        print(patch)
-        print("\n******************************************")
-
-    if force:
-        make_change = True
-    else:
-        make_change = yes_or_no("Make changes to {}?".format(options_file.filename))
-    if make_change:
-        options_file.write(overwrite=True)
-    return make_change
 
 
 if __name__ == "__main__":
@@ -350,14 +319,15 @@ if __name__ == "__main__":
                     filename
                 )
             )
-            applied_patch = possibly_apply_patch(
+            make_change = possibly_apply_patch(
                 canonicalised_patch,
-                original,
+                original.filename,
                 args.quiet,
                 args.force or args.accept_canonical,
             )
             # Re-read input file
-            if applied_patch:
+            if make_change:
+                original.write(overwrite=True)
                 original_source = str(original)
 
         if args.canonical_only:
@@ -379,4 +349,8 @@ if __name__ == "__main__":
                 print("No changes to make to {}".format(filename))
             continue
 
-        possibly_apply_patch(patch, modified, args.quiet, args.force)
+        make_change = possibly_apply_patch(
+            patch, modified.filename, args.quiet, args.force
+        )
+        if make_change:
+            modified.write(overwrite=True)
