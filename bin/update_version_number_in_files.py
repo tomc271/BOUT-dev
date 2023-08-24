@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
 import argparse
-import difflib
 import copy
 import textwrap
 import os
@@ -137,22 +136,6 @@ def apply_fixes(pattern, new_version_number, source):
     modified = re.sub(pattern, get_replacement, source, flags=re.MULTILINE)
 
     return modified
-
-
-def create_patch(filename, original, modified):
-    """Create a unified diff between original and modified"""
-
-    patch = "\n".join(
-        difflib.unified_diff(
-            original.splitlines(),
-            modified.splitlines(),
-            fromfile=filename,
-            tofile=filename,
-            lineterm="",
-        )
-    )
-
-    return patch
 
 
 if __name__ == "__main__":

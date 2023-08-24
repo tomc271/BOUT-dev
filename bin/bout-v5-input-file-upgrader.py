@@ -2,7 +2,6 @@
 
 import argparse
 import copy
-import difflib
 import itertools
 import textwrap
 import warnings
@@ -219,22 +218,6 @@ def apply_fixes(replacements, deleted, options_file):
     remove_deleted(deleted, modified)
 
     return modified
-
-
-def create_patch(filename, original, modified):
-    """Create a unified diff between original and modified"""
-
-    patch = "\n".join(
-        difflib.unified_diff(
-            original.splitlines(),
-            modified.splitlines(),
-            fromfile=filename,
-            tofile=filename,
-            lineterm="",
-        )
-    )
-
-    return patch
 
 
 if __name__ == "__main__":

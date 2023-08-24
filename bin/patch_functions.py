@@ -1,3 +1,20 @@
+import difflib
+
+
+def create_patch(filename, original, modified):
+    """Create a unified diff between original and modified"""
+
+    patch = "\n".join(
+        difflib.unified_diff(
+            original.splitlines(),
+            modified.splitlines(),
+            fromfile=filename,
+            tofile=filename,
+            lineterm="",
+        )
+    )
+
+    return patch
 
 
 def yes_or_no(question):
