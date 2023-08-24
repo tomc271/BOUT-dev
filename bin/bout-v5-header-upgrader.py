@@ -2,12 +2,12 @@
 
 import argparse
 import copy
-import difflib
 import re
 import textwrap
 from pathlib import Path
 from typing import List
 from subprocess import run
+from patch_functions import *
 
 
 header_shim_sentinel = "// BOUT++ header shim"
@@ -91,32 +91,6 @@ def apply_fixes(header_regex, source):
     modified = copy.deepcopy(source)
 
     return header_regex.sub(r"\1bout/\2\3", modified)
-
-
-def yes_or_no(question):
-    """Convert user input from yes/no variations to True/False"""
-    while True:
-        reply = input(question + " [y/N] ").lower().strip()
-        if not reply or reply[0] == "n":
-            return False
-        if reply[0] == "y":
-            return True
-
-
-def create_patch(filename, original, modified):
-    """Create a unified diff between original and modified"""
-
-    patch = "\n".join(
-        difflib.unified_diff(
-            original.splitlines(),
-            modified.splitlines(),
-            fromfile=filename,
-            tofile=filename,
-            lineterm="",
-        )
-    )
-
-    return patch
 
 
 if __name__ == "__main__":

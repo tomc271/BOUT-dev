@@ -3,8 +3,8 @@
 
 import argparse
 import copy
-import difflib
 import re
+from patch_functions import *
 
 try:
     import clang.cindex
@@ -127,32 +127,6 @@ def fix_factories(old_factory, new_factory, source):
         source,
         flags=re.VERBOSE,
     )
-
-
-def create_patch(filename, original, modified):
-    """Create a unified diff between original and modified"""
-
-    patch = "\n".join(
-        difflib.unified_diff(
-            original.splitlines(),
-            modified.splitlines(),
-            fromfile=filename,
-            tofile=filename,
-            lineterm="",
-        )
-    )
-
-    return patch
-
-
-def yes_or_no(question):
-    """Convert user input from yes/no variations to True/False"""
-    while True:
-        reply = input(question + " [y/N] ").lower().strip()
-        if not reply or reply[0] == "n":
-            return False
-        if reply[0] == "y":
-            return True
 
 
 def apply_fixes(headers, interpolations, factories, source):

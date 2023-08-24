@@ -2,12 +2,11 @@
 
 import argparse
 import copy
-import difflib
 import pathlib
 import re
 import textwrap
 import warnings
-
+from patch_functions import *
 
 PHYSICS_MODEL_INCLUDE = '#include "bout/physicsmodel.hxx"'
 
@@ -358,32 +357,6 @@ def convert_legacy_model(source, name, error_on_warning):
     source_lines.append(BOUTMAIN.format(name))
 
     return "\n".join(source_lines)
-
-
-def yes_or_no(question):
-    """Convert user input from yes/no variations to True/False"""
-    while True:
-        reply = input(question + " [y/N] ").lower().strip()
-        if not reply or reply[0] == "n":
-            return False
-        if reply[0] == "y":
-            return True
-
-
-def create_patch(filename, original, modified):
-    """Create a unified diff between original and modified"""
-
-    patch = "\n".join(
-        difflib.unified_diff(
-            original.splitlines(),
-            modified.splitlines(),
-            fromfile=filename,
-            tofile=filename,
-            lineterm="",
-        )
-    )
-
-    return patch
 
 
 if __name__ == "__main__":

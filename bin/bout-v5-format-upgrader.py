@@ -2,8 +2,8 @@
 
 import argparse
 import copy
-import difflib
 import re
+from patch_functions import *
 
 
 format_replacements = {
@@ -116,32 +116,6 @@ def apply_fixes(format_replacements, source):
     modified = fix_trace(modified)
 
     return modified
-
-
-def yes_or_no(question):
-    """Convert user input from yes/no variations to True/False"""
-    while True:
-        reply = input(question + " [y/N] ").lower().strip()
-        if not reply or reply[0] == "n":
-            return False
-        if reply[0] == "y":
-            return True
-
-
-def create_patch(filename, original, modified):
-    """Create a unified diff between original and modified"""
-
-    patch = "\n".join(
-        difflib.unified_diff(
-            original.splitlines(),
-            modified.splitlines(),
-            fromfile=filename,
-            tofile=filename,
-            lineterm="",
-        )
-    )
-
-    return patch
 
 
 if __name__ == "__main__":

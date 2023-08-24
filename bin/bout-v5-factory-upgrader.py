@@ -196,16 +196,6 @@ def fix_create_method(factory, source):
     )
 
 
-def yes_or_no(question):
-    """Convert user input from yes/no variations to True/False"""
-    while True:
-        reply = input(question + " [y/N] ").lower().strip()
-        if not reply or reply[0] == "n":
-            return False
-        if reply[0] == "y":
-            return True
-
-
 def apply_fixes(factories, source, all_declarations=False):
     """Apply the various fixes for each factory to source. Returns
     modified source
@@ -229,22 +219,6 @@ def apply_fixes(factories, source, all_declarations=False):
         modified = fix_deletions(variables, modified)
 
     return modified
-
-
-def create_patch(filename, original, modified):
-    """Create a unified diff between original and modified"""
-
-    patch = "\n".join(
-        difflib.unified_diff(
-            original.splitlines(),
-            modified.splitlines(),
-            fromfile=filename,
-            tofile=filename,
-            lineterm="",
-        )
-    )
-
-    return patch
 
 
 if __name__ == "__main__":

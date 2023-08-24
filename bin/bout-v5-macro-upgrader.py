@@ -2,9 +2,9 @@
 
 import argparse
 import copy
-import difflib
 import re
 import textwrap
+from patch_functions import *
 
 # List of macros, their replacements and what header to find them
 # in. Each element should be a dict with "old", "new" and "headers"
@@ -311,32 +311,6 @@ def apply_fixes(replacements, source):
         modified = fix_replacement(replacement["old"], replacement["new"], modified)
 
     return modified
-
-
-def yes_or_no(question):
-    """Convert user input from yes/no variations to True/False"""
-    while True:
-        reply = input(question + " [y/N] ").lower().strip()
-        if not reply or reply[0] == "n":
-            return False
-        if reply[0] == "y":
-            return True
-
-
-def create_patch(filename, original, modified):
-    """Create a unified diff between original and modified"""
-
-    patch = "\n".join(
-        difflib.unified_diff(
-            original.splitlines(),
-            modified.splitlines(),
-            fromfile=filename,
-            tofile=filename,
-            lineterm="",
-        )
-    )
-
-    return patch
 
 
 if __name__ == "__main__":
