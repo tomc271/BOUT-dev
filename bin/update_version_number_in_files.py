@@ -23,20 +23,7 @@ def update_version_number_in_file(relative_filepath, pattern, new_version_number
         modified = apply_fixes(pattern, new_version_number, file_contents)
         patch = create_patch(str(full_filepath), original, modified)
 
-        if args.patch_only:
-            print(patch)
-            return
-
-        if not patch:
-            if not args.quiet:
-                print(f"No changes to make to {full_filepath}")
-            return
-
-        make_change = possibly_apply_patch(
-            patch, full_filepath, quiet=args.quiet, force=args.force
-        )
-
-        if make_change:
+        if make_change(args.quiet, args.force, args.patch_only, patch, full_filepath):
             with open(full_filepath, "w", encoding="UTF-8") as the_file:
                 the_file.write(modified)
 

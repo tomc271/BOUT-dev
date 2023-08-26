@@ -218,19 +218,6 @@ if __name__ == "__main__":
             modified = apply_fixes(headers, interpolations, factories, contents)
         patch = create_patch(filename, original, modified)
 
-        if args.patch_only:
-            print(patch)
-            continue
-
-        if not patch:
-            if not args.quiet:
-                print(f"No changes to make to {filename}")
-            continue
-
-        make_change = possibly_apply_patch(
-            patch, filename, quiet=args.quiet, force=args.force
-        )
-
-        if make_change:
+        if make_change(args.quiet, args.force, args.patch_only, patch, filename):
             with open(filename, "w") as f:
                 f.write(modified)

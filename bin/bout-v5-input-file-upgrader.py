@@ -302,14 +302,14 @@ if __name__ == "__main__":
                     filename
                 )
             )
-            make_change = possibly_apply_patch(
+            apply_patch = possibly_apply_patch(
                 canonicalised_patch,
                 original.filename,
                 args.quiet,
                 args.force or args.accept_canonical,
             )
             # Re-read input file
-            if make_change:
+            if apply_patch:
                 original.write(overwrite=True)
                 original_source = str(original)
 
@@ -323,18 +323,5 @@ if __name__ == "__main__":
             continue
         patch = create_patch(filename, original_source, str(modified))
 
-        if args.patch_only:
-            print(patch)
-            continue
-
-        if not patch:
-            if not args.quiet:
-                print(f"No changes to make to {filename}")
-            continue
-
-        make_change = possibly_apply_patch(
-            patch, filename, quiet=args.quiet, force=args.force
-        )
-        
-        if make_change:
+        if make_change(args.quiet, args.force, args.patch_only, patch, filename):
             modified.write(overwrite=True)

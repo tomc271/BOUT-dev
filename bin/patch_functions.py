@@ -27,6 +27,19 @@ def yes_or_no(question):
             return True
 
 
+def make_change(quiet, force, patch_only, patch, filename):
+    if patch_only:
+        print(patch)
+        return False
+
+    if not patch:
+        if not quiet:
+            print(f"No changes to make to {filename}")
+        return False
+
+    return possibly_apply_patch(patch, filename, quiet, force)
+
+
 def possibly_apply_patch(patch, filepath, quiet=False, force=False):
     """Possibly apply patch to options_file. If force is True, applies the
     patch without asking, overwriting any existing file. Otherwise,
