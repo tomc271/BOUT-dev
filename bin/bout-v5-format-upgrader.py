@@ -151,7 +151,7 @@ if __name__ == "__main__":
 
         if not patch:
             if not args.quiet:
-                print("No changes to make to {}".format(filename))
+                print(f"No changes to make to {filename}")
             continue
 
         make_change = possibly_apply_patch(

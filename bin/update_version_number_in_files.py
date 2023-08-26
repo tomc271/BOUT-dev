@@ -29,7 +29,7 @@ def update_version_number_in_file(relative_filepath, pattern, new_version_number
 
         if not patch:
             if not args.quiet:
-                print("No changes to make to {}".format(full_filepath))
+                print(f"No changes to make to {full_filepath}")
             return
 
         make_change = possibly_apply_patch(

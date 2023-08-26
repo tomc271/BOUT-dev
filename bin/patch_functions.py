@@ -35,12 +35,12 @@ def possibly_apply_patch(patch, filepath, quiet=False, force=False):
     """
     if not quiet:
         print("\n******************************************")
-        print("Changes to {}\n".format(filepath))
+        print(f"Changes to {filepath}\n")
         print(patch)
         print("\n******************************************")
 
     if force:
         make_change = True
     else:
-        make_change = yes_or_no("Make changes to {}?".format(filepath))
+        make_change = yes_or_no(f"Make changes to {filepath}?")
     return make_change
