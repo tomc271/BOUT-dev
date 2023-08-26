@@ -175,16 +175,9 @@ if __name__ == "__main__":
                 print(f"No changes to make to {filename}")
             continue
 
-        if not args.quiet:
-            print("\n******************************************")
-            print(f"Changes to {filename}\n")
-            print(patch)
-            print("\n******************************************")
-
-        if args.force:
-            make_change = True
-        else:
-            make_change = yes_or_no(f"Make changes to {filename}?")
+        make_change = possibly_apply_patch(
+            patch, filename, quiet=args.quiet, force=args.force
+        )
 
         if make_change:
             with open(filename, "w") as f:

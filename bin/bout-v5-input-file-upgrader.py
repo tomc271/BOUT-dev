@@ -333,7 +333,8 @@ if __name__ == "__main__":
             continue
 
         make_change = possibly_apply_patch(
-            patch, modified.filename, args.quiet, args.force
+            patch, filename, quiet=args.quiet, force=args.force
         )
+        
         if make_change:
             modified.write(overwrite=True)

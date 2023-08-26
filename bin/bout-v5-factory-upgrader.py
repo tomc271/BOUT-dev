@@ -2,9 +2,8 @@
 
 import argparse
 import copy
-import difflib
 import re
-
+from patch_functions import *
 
 # Dictionary of factory methods that may need updating
 factories = {
@@ -265,16 +264,9 @@ if __name__ == "__main__":
                 print("No changes to make to {}".format(filename))
             continue
 
-        if not args.quiet:
-            print("\n******************************************")
-            print("Changes to {}\n".format(filename))
-            print(patch)
-            print("\n******************************************")
-
-        if args.force:
-            make_change = True
-        else:
-            make_change = yes_or_no("Make changes to {}?".format(filename))
+        make_change = possibly_apply_patch(
+            patch, filename, quiet=args.quiet, force=args.force
+        )
 
         if make_change:
             with open(filename, "w") as f:
