@@ -100,8 +100,8 @@ def apply_fixes(format_replacements, source):
 
     Parameters
     ----------
-    factories
-        Dictionary of factory properties
+    format_replacements
+        Dictionary of format replacements
     source
         Text to update
     """
