@@ -97,10 +97,28 @@ public:
   FieldMetric Bxy; ///< Magnitude of B = nabla z times nabla x
 
   /// Contravariant metric tensor (g^{ij})
+private:
   FieldMetric g11, g22, g33, g12, g13, g23;
 
+public:
   /// Covariant metric tensor
   FieldMetric g_11, g_22, g_33, g_12, g_13, g_23;
+
+  void set_g11(FieldMetric _g11)
+  {
+    g11 = _g11;
+    calcContravariant();
+  }
+  struct MetricTensor
+  {
+    FieldMetric g11, g22, g33, g12, g13, g23;
+  };
+
+  MetricTensor getContravariantMetricTensor()
+  {
+    MetricTensor m = { g11, g22, g33, g12, g13, g23 };
+    return m;
+  }
 
   /// Christoffel symbol of the second kind (connection coefficients)
   FieldMetric G1_11, G1_22, G1_33, G1_12, G1_13, G1_23;
