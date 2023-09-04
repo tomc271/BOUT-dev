@@ -60,7 +60,14 @@ CoordinatesAccessor::CoordinatesAccessor(const Coordinates* coords) {
         coords->Bxy.ydown()[ind];
 
     COPY_STRIPE(G1, G3);
-    COPY_STRIPE(g11, g12, g13, g22, g23, g33);
+
+//    data[stripe_size * ind.ind + static_cast<int>(Offset::g11)] = coords->g11[ind];
+//    data[stripe_size * ind.ind + static_cast<int>(Offset::g12)] = coords->g12[ind];
+//    data[stripe_size * ind.ind + static_cast<int>(Offset::g13)] = coords->g13[ind];
+//    data[stripe_size * ind.ind + static_cast<int>(Offset::g22)] = coords->g22[ind];
+//    data[stripe_size * ind.ind + static_cast<int>(Offset::g23)] = coords->g23[ind];
+//    data[stripe_size * ind.ind + static_cast<int>(Offset::g33)] = coords->g33[ind];
+
     COPY_STRIPE(g_11, g_12, g_13, g_22, g_23, g_33);
   }
 }
