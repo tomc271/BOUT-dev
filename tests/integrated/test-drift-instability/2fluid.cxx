@@ -12,6 +12,7 @@
 #include <bout/invert_laplace.hxx>
 
 #include <cmath>
+#include <csignal>
 #include <cstdio>
 #include <cstdlib>
 
@@ -216,6 +217,12 @@ protected:
     pe0 = Te0 * Ni0;
 
     /**************** CALCULATE METRICS ******************/
+
+
+    volatile int done = 0;
+    while (!done) {
+      sleep(1);
+    }
 
     const auto contravariant_components = coord->getContravariantMetricTensor();
     CovariantMetricTensor::FieldMetric g11, g22, g33, g12, g13, g23;
