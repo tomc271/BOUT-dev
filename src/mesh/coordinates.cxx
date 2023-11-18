@@ -1109,12 +1109,27 @@ int Coordinates::geometry(bool recalculate_staggered,
   G2 = interpolateAndExtrapolate(G2, location, true, true, true, transform.get());
   G3 = interpolateAndExtrapolate(G3, location, true, true, true, transform.get());
 
-  //////////////////////////////////////////////////////
   /// Non-uniform meshes. Need to use DDX, DDY
+  nonUniformMeshes(force_interpolate_from_centre);
+
+  if (location == CELL_CENTRE && recalculate_staggered) {
+    // Re-calculate interpolated Coordinates at staggered locations
+    localmesh->recalculateStaggeredCoordinates();
+  }
+
+  // Invalidate and recalculate cached variables
+  zlength_cache.reset();
+  Grad2_par2_DDY_invSgCache.clear();
+  invSgCache.reset();
+
+  return 0;
+}
+
+void Coordinates::nonUniformMeshes(bool force_interpolate_from_centre) {
 
   OPTION(Options::getRoot(), non_uniform, true);
 
-  Coordinates::FieldMetric d2x(localmesh), d2y(localmesh),
+  FieldMetric d2x(localmesh), d2y(localmesh),
       d2z(localmesh); // d^2 x / d i^2
 
   // Read correction for non-uniform meshes
@@ -1127,7 +1142,7 @@ int Coordinates::geometry(bool recalculate_staggered,
     if (localmesh->get(d2x, "d2x" + suffix, 0.0, false, location)) {
       output_warn.write(
           "\tWARNING: differencing quantity 'd2x' not found. Calculating from dx\n");
-      d1_dx = bout::derivatives::index::DDX(1. / dx); // d/di(1/dx)
+      d1_dx = DDX(1. / dx); // d/di(1/dx)
 
       communicate(d1_dx);
       d1_dx =
@@ -1181,7 +1196,7 @@ int Coordinates::geometry(bool recalculate_staggered,
     if (localmesh->get(d2x, "d2x", 0.0, false)) {
       output_warn.write(
           "\tWARNING: differencing quantity 'd2x' not found. Calculating from dx\n");
-      d1_dx = bout::derivatives::index::DDX(1. / dx); // d/di(1/dx)
+      d1_dx = DDX(1. / dx); // d/di(1/dx)
 
       communicate(d1_dx);
       d1_dx =
@@ -1228,18 +1243,6 @@ int Coordinates::geometry(bool recalculate_staggered,
 #endif
   }
   communicate(d1_dx, d1_dy, d1_dz);
-
-  if (location == CELL_CENTRE && recalculate_staggered) {
-    // Re-calculate interpolated Coordinates at staggered locations
-    localmesh->recalculateStaggeredCoordinates();
-  }
-
-  // Invalidate and recalculate cached variables
-  zlength_cache.reset();
-  Grad2_par2_DDY_invSgCache.clear();
-  invSgCache.reset();
-
-  return 0;
 }
 
 void Coordinates::CalculateChristoffelSymbols() {

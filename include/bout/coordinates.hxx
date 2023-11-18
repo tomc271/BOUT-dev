@@ -270,6 +270,8 @@ private:
   void checkContravariant();
   void interpolateAndExtrapolateContravariantMetricTensor(const Coordinates* coords_in);
 
+  void nonUniformMeshes(bool force_interpolate_from_centre);
+
   MetricTensor contravariantMetricTensor;
   MetricTensor covariantMetricTensor;
 
