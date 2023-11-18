@@ -1133,116 +1133,52 @@ void Coordinates::nonUniformMeshes(bool force_interpolate_from_centre) {
       d2z(localmesh); // d^2 x / d i^2
 
   // Read correction for non-uniform meshes
-  std::string suffix = getLocationSuffix(location);
+  const std::string suffix = getLocationSuffix(location);
   if (location == CELL_CENTRE
       or (!force_interpolate_from_centre and localmesh->sourceHasVar("dx" + suffix))) {
-    bool extrapolate_x = not localmesh->sourceHasXBoundaryGuards();
-    bool extrapolate_y = not localmesh->sourceHasYBoundaryGuards();
+    const bool extrapolate_x = not localmesh->sourceHasXBoundaryGuards();
+    const bool extrapolate_y = not localmesh->sourceHasYBoundaryGuards();
 
-    if (localmesh->get(d2x, "d2x" + suffix, 0.0, false, location)) {
-      output_warn.write(
-          "\tWARNING: differencing quantity 'd2x' not found. Calculating from dx\n");
-      d1_dx = DDX(1. / dx); // d/di(1/dx)
-
-      communicate(d1_dx);
-      d1_dx =
-          interpolateAndExtrapolate(d1_dx, location, true, true, true, transform.get());
-    } else {
-      d2x.setLocation(location);
-      // set boundary cells if necessary
-      d2x = interpolateAndExtrapolate(d2x, location, extrapolate_x, extrapolate_y, false,
-                                      transform.get());
-
-      d1_dx = -d2x / (dx * dx);
-    }
-
-    if (localmesh->get(d2y, "d2y" + suffix, 0.0, false, location)) {
-      output_warn.write(
-          "\tWARNING: differencing quantity 'd2y' not found. Calculating from dy\n");
-      d1_dy = DDY(1. / dy); // d/di(1/dy)
-
-      communicate(d1_dy);
-      d1_dy =
-          interpolateAndExtrapolate(d1_dy, location, true, true, true, transform.get());
-    } else {
-      d2y.setLocation(location);
-      // set boundary cells if necessary
-      d2y = interpolateAndExtrapolate(d2y, location, extrapolate_x, extrapolate_y, false,
-                                      transform.get());
-
-      d1_dy = -d2y / (dy * dy);
-    }
-
+    d1_dx = firstDerivative(d2x, "d2x", dx, "dx", suffix, extrapolate_x, extrapolate_y);
+    d1_dy = firstDerivative(d2y, "d2y", dy, "dy", suffix, extrapolate_x, extrapolate_y);
 #if BOUT_USE_METRIC_3D
-    if (localmesh->get(d2z, "d2z" + suffix, 0.0, false)) {
-      output_warn.write(
-          "\tWARNING: differencing quantity 'd2z' not found. Calculating from dz\n");
-      d1_dz = bout::derivatives::index::DDZ(1. / dz);
-      communicate(d1_dz);
-      d1_dz =
-          interpolateAndExtrapolate(d1_dz, location, true, true, true, transform.get());
-    } else {
-      d2z.setLocation(location);
-      // set boundary cells if necessary
-      d2z = interpolateAndExtrapolate(d2z, location, extrapolate_x, extrapolate_y, false,
-                                      transform.get());
-
-      d1_dz = -d2z / (dz * dz);
-    }
+    d1_dz = firstDerivative(d2z, "d2z", dz, "dz", suffix, extrapolate_x, extrapolate_y);
 #else
     d1_dz = 0;
 #endif
   } else {
-    if (localmesh->get(d2x, "d2x", 0.0, false)) {
-      output_warn.write(
-          "\tWARNING: differencing quantity 'd2x' not found. Calculating from dx\n");
-      d1_dx = DDX(1. / dx); // d/di(1/dx)
-
-      communicate(d1_dx);
-      d1_dx =
-          interpolateAndExtrapolate(d1_dx, location, true, true, true, transform.get());
-    } else {
-      // Shift d2x to our location
-      d2x = interpolateAndExtrapolate(d2x, location, true, true, false, transform.get());
-
-      d1_dx = -d2x / (dx * dx);
-    }
-
-    if (localmesh->get(d2y, "d2y", 0.0, false)) {
-      output_warn.write(
-          "\tWARNING: differencing quantity 'd2y' not found. Calculating from dy\n");
-      d1_dy = DDY(1. / dy); // d/di(1/dy)
-
-      communicate(d1_dy);
-      d1_dy =
-          interpolateAndExtrapolate(d1_dy, location, true, true, true, transform.get());
-    } else {
-      // Shift d2y to our location
-      d2y = interpolateAndExtrapolate(d2y, location, true, true, false, transform.get());
-
-      d1_dy = -d2y / (dy * dy);
-    }
+    d1_dx = firstDerivative(d2x, "d2x", dx, "dx", "", true, true);
+    d1_dy = firstDerivative(d2y, "d2y", dy, "dy", "", true, true);
 
 #if BOUT_USE_METRIC_3D
-    if (localmesh->get(d2z, "d2z", 0.0, false)) {
-      output_warn.write(
-          "\tWARNING: differencing quantity 'd2z' not found. Calculating from dz\n");
-      d1_dz = bout::derivatives::index::DDZ(1. / dz);
-
-      communicate(d1_dz);
-      d1_dz =
-          interpolateAndExtrapolate(d1_dz, location, true, true, true, transform.get());
-    } else {
-      // Shift d2z to our location
-      d2z = interpolateAndExtrapolate(d2z, location, true, true, false, transform.get());
-
-      d1_dz = -d2z / (dz * dz);
-    }
+    d1_dz = firstDerivative(d2z, "d2Z", dz, "dz", "", true, true);
 #else
     d1_dz = 0;
 #endif
   }
   communicate(d1_dx, d1_dy, d1_dz);
+}
+
+Coordinates::FieldMetric Coordinates::firstDerivative(
+    Coordinates::FieldMetric& d2X, std::basic_string<char> d2X_name,
+    Coordinates::FieldMetric& dX, std::basic_string<char> dX_name,
+    const std::string& suffix, bool extrapolate_x, bool extrapolate_y) {
+
+  if (localmesh->get(d2X, d2X_name + suffix, 0.0, false, location)) {
+    output_warn.write("\tWARNING: differencing quantity '" + d2X_name
+                      + "' not found. Calculating from " + dX_name + "\n");
+    auto d1_dX = DDX(1. / dX); // d/di(1/dX)
+
+    communicate(d1_dX);
+    d1_dX = interpolateAndExtrapolate(d1_dX, location, true, true, true, transform.get());
+    return d1_dX;
+  }
+  d2X.setLocation(location);
+  // set boundary cells if necessary
+  d2X = interpolateAndExtrapolate(d2X, location, extrapolate_x, extrapolate_y, false,
+                                  transform.get());
+
+  return -d2X / (dX * dX);
 }
 
 void Coordinates::CalculateChristoffelSymbols() {
@@ -2069,9 +2005,5 @@ const MetricTensor::FieldMetric& Coordinates::g13() const {
 const MetricTensor::FieldMetric& Coordinates::g23() const {
   return contravariantMetricTensor.Getg23();
 }
-const MetricTensor::FieldMetric Coordinates::J() const {
-  return this_J;
-}
-const MetricTensor::FieldMetric Coordinates::Bxy() const {
-  return this_Bxy;
-}
+const MetricTensor::FieldMetric Coordinates::J() const { return this_J; }
+const MetricTensor::FieldMetric Coordinates::Bxy() const { return this_Bxy; }
