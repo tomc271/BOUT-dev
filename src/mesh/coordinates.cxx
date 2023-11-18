@@ -1148,8 +1148,8 @@ void Coordinates::nonUniformMeshes(bool force_interpolate_from_centre) {
     suffix = "";
   }
 
-  d1_dx = firstDerivative(d2x, "d2x", dx, "dx", suffix, extrapolate_x, extrapolate_y);
-  d1_dy = firstDerivative(d2y, "d2y", dy, "dy", suffix, extrapolate_x, extrapolate_y);
+  d1_dx = firstDerivative(d2x, "d2x" + suffix, dx, "dx", extrapolate_x, extrapolate_y);
+  d1_dy = firstDerivative(d2y, "d2y" + suffix, dy, "dy", extrapolate_x, extrapolate_y);
 #if BOUT_USE_METRIC_3D
   d1_dz = firstDerivative(d2z, "d2z", dz, "dz", suffix, extrapolate_x, extrapolate_y);
 #else
@@ -1159,12 +1159,14 @@ void Coordinates::nonUniformMeshes(bool force_interpolate_from_centre) {
   communicate(d1_dx, d1_dy, d1_dz);
 }
 
-Coordinates::FieldMetric Coordinates::firstDerivative(
-    Coordinates::FieldMetric& d2X, std::basic_string<char> d2X_name,
-    Coordinates::FieldMetric& dX, std::basic_string<char> dX_name, std::string& suffix,
-    bool extrapolate_x, bool extrapolate_y) {
+Coordinates::FieldMetric Coordinates::firstDerivative(Coordinates::FieldMetric& d2X,
+                                                      std::basic_string<char> d2X_name,
+                                                      Coordinates::FieldMetric& dX,
+                                                      std::basic_string<char> dX_name,
+                                                      bool extrapolate_x,
+                                                      bool extrapolate_y) {
 
-  if (localmesh->get(d2X, d2X_name + suffix, 0.0, false, location)) {
+  if (localmesh->get(d2X, d2X_name, 0.0, false, location)) {
     output_warn.write("\tWARNING: differencing quantity '" + d2X_name
                       + "' not found. Calculating from " + dX_name + "\n");
     auto d1_dX = DDX(1. / dX); // d/di(1/dX)
