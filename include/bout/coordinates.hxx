@@ -275,7 +275,7 @@ private:
   FieldMetric firstDerivative(Coordinates::FieldMetric& d2X,
                               std::basic_string<char> d2X_name,
                               Coordinates::FieldMetric& dX,
-                              std::basic_string<char> dX_name, const std::string& suffix,
+                              std::basic_string<char> dX_name, std::string& suffix,
                               bool extrapolate_x, bool extrapolate_y);
 
   MetricTensor contravariantMetricTensor;

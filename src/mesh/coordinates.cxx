@@ -1133,36 +1133,36 @@ void Coordinates::nonUniformMeshes(bool force_interpolate_from_centre) {
       d2z(localmesh); // d^2 x / d i^2
 
   // Read correction for non-uniform meshes
-  const std::string suffix = getLocationSuffix(location);
+  std::string suffix = getLocationSuffix(location);
+
+  bool extrapolate_x = not localmesh->sourceHasXBoundaryGuards();
+  bool extrapolate_y = not localmesh->sourceHasYBoundaryGuards();
+
   if (location == CELL_CENTRE
       or (!force_interpolate_from_centre and localmesh->sourceHasVar("dx" + suffix))) {
-    const bool extrapolate_x = not localmesh->sourceHasXBoundaryGuards();
-    const bool extrapolate_y = not localmesh->sourceHasYBoundaryGuards();
-
-    d1_dx = firstDerivative(d2x, "d2x", dx, "dx", suffix, extrapolate_x, extrapolate_y);
-    d1_dy = firstDerivative(d2y, "d2y", dy, "dy", suffix, extrapolate_x, extrapolate_y);
-#if BOUT_USE_METRIC_3D
-    d1_dz = firstDerivative(d2z, "d2z", dz, "dz", suffix, extrapolate_x, extrapolate_y);
-#else
-    d1_dz = 0;
-#endif
+    extrapolate_x = not localmesh->sourceHasXBoundaryGuards();
+    extrapolate_y = not localmesh->sourceHasYBoundaryGuards();
   } else {
-    d1_dx = firstDerivative(d2x, "d2x", dx, "dx", "", true, true);
-    d1_dy = firstDerivative(d2y, "d2y", dy, "dy", "", true, true);
-
-#if BOUT_USE_METRIC_3D
-    d1_dz = firstDerivative(d2z, "d2Z", dz, "dz", "", true, true);
-#else
-    d1_dz = 0;
-#endif
+    extrapolate_x = true;
+    extrapolate_y = true;
+    suffix = "";
   }
+
+  d1_dx = firstDerivative(d2x, "d2x", dx, "dx", suffix, extrapolate_x, extrapolate_y);
+  d1_dy = firstDerivative(d2y, "d2y", dy, "dy", suffix, extrapolate_x, extrapolate_y);
+#if BOUT_USE_METRIC_3D
+  d1_dz = firstDerivative(d2z, "d2z", dz, "dz", suffix, extrapolate_x, extrapolate_y);
+#else
+  d1_dz = 0;
+#endif
+
   communicate(d1_dx, d1_dy, d1_dz);
 }
 
 Coordinates::FieldMetric Coordinates::firstDerivative(
     Coordinates::FieldMetric& d2X, std::basic_string<char> d2X_name,
-    Coordinates::FieldMetric& dX, std::basic_string<char> dX_name,
-    const std::string& suffix, bool extrapolate_x, bool extrapolate_y) {
+    Coordinates::FieldMetric& dX, std::basic_string<char> dX_name, std::string& suffix,
+    bool extrapolate_x, bool extrapolate_y) {
 
   if (localmesh->get(d2X, d2X_name + suffix, 0.0, false, location)) {
     output_warn.write("\tWARNING: differencing quantity '" + d2X_name
