@@ -1166,7 +1166,9 @@ Coordinates::FieldMetric Coordinates::firstDerivative(Coordinates::FieldMetric& 
                                                       bool extrapolate_x,
                                                       bool extrapolate_y) {
 
-  if (localmesh->get(d2X, d2X_name, 0.0, false, location)) {
+  int unsuccessful =
+      localmesh->get(d2X, d2X_name, 0.0, false, location); // Warning: this updates d2X
+  if (unsuccessful) {                                      // 0 means success
     output_warn.write("\tWARNING: differencing quantity '" + d2X_name
                       + "' not found. Calculating from " + dX_name + "\n");
     auto d1_dX = DDX(1. / dX); // d/di(1/dX)
