@@ -481,22 +481,21 @@ Coordinates::Coordinates(Mesh* mesh, Options* options, const CELL_LOC loc,
     checkContravariant();
     checkCovariant();
 
-    this_J = interpolateAndExtrapolate(coords_in->J(), location, true, true, false,
-                                       transform.get());
-    this_Bxy = interpolateAndExtrapolate(coords_in->Bxy(), location, true, true, false,
-                                         transform.get());
+    this_J = interpolateAndExtrapolate(J(), location, true, true, false, transform.get());
+    this_Bxy =
+        interpolateAndExtrapolate(Bxy(), location, true, true, false, transform.get());
 
     bout::checkFinite(this_J, "The Jacobian", "RGN_NOCORNERS");
     bout::checkPositive(this_J, "The Jacobian", "RGN_NOCORNERS");
     bout::checkFinite(this_Bxy, "Bxy", "RGN_NOCORNERS");
     bout::checkPositive(this_Bxy, "Bxy", "RGN_NOCORNERS");
 
-    ShiftTorsion = interpolateAndExtrapolate(coords_in->ShiftTorsion, location, true,
-                                             true, false, transform.get());
+    ShiftTorsion = interpolateAndExtrapolate(ShiftTorsion, location, true, true, false,
+                                             transform.get());
 
     if (mesh->IncIntShear) {
-      IntShiftTorsion = interpolateAndExtrapolate(coords_in->IntShiftTorsion, location,
-                                                  true, true, false, transform.get());
+      IntShiftTorsion = interpolateAndExtrapolate(IntShiftTorsion, location, true, true,
+                                                  false, transform.get());
     }
   } else {
     // Note: If boundary cells were not loaded from the grid file, use
