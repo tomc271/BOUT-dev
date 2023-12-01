@@ -38,6 +38,19 @@ int test(const std::string& acoef, const std::string& bcoef, const std::string& 
   Field3D deriv = A * result + B * Grad2_par2(result) + C * D2DYDZ(result)
                   + D * D2DZ2(result) + E * DDY(result);
 
+  if (A.data[0] == 1.5 && B.data[0] == -2) {
+    output.write("A: {:f}\n", A.data[0]);
+    output.write("B: {:f}\n", B.data[0]);
+    output.write("C: {:f}\n", C.data[0]);
+    output.write("D: {:f}\n", D.data[0]);
+    output.write("E: {:f}\n", E.data[0]);
+    output.write("Grad2_par2(result): {:f}\n", Grad2_par2(result).data[0]);
+    output.write("D2DYDZ(result): {:f}\n", D2DYDZ(result).data[0]);
+    output.write("D2DZ2(result): {:f}\n", D2DZ2(result).data[0]);
+    output.write("DDY(result): {:f}\n", DDY(result).data[0]);
+    output.write("deriv(mesh->xstart, 2, 0): {:f}\n", deriv(mesh->xstart, 2, 0));
+  }
+
   // Check the result
   bool success{true};
   int local_ystart = mesh->ystart;
