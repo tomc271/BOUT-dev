@@ -129,7 +129,7 @@ struct ArrayData {
     return *this;
   }
 
-  inline T& operator[](int ind) { return data[ind]; }
+ inline T& operator[](int ind) { return data[ind]; }
   inline const T& operator[](int ind) const { return data[ind]; }
 
 private:
