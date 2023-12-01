@@ -256,18 +256,23 @@ void Geometry::checkContravariant(int ystart) { contravariantMetricTensor.check(
 
 void Geometry::setContravariantMetricTensor(MetricTensor metric_tensor,
                                             CELL_LOC cell_location,
+                                            const bool update_inverse,
                                             const std::string& region) {
   contravariantMetricTensor.setMetricTensor(metric_tensor);
-  covariantMetricTensor.setMetricTensor(
-      contravariantMetricTensor.oppositeRepresentation(cell_location, region));
+  if (update_inverse) {
+    covariantMetricTensor.setMetricTensor(
+        contravariantMetricTensor.oppositeRepresentation(cell_location, region));
+  }
 }
 
 void Geometry::setCovariantMetricTensor(MetricTensor metric_tensor,
-                                        CELL_LOC cell_location,
+                                        CELL_LOC cell_location, const bool update_inverse,
                                         const std::string& region) {
-  covariantMetricTensor.setMetricTensor(metric_tensor);
-  contravariantMetricTensor.setMetricTensor(
-      covariantMetricTensor.oppositeRepresentation(cell_location, region));
+  if (update_inverse) {
+    covariantMetricTensor.setMetricTensor(metric_tensor);
+    contravariantMetricTensor.setMetricTensor(
+        covariantMetricTensor.oppositeRepresentation(cell_location, region));
+  }
 }
 
 const MetricTensor::FieldMetric& Geometry::g_11() const {

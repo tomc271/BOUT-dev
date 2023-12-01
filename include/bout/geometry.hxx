@@ -106,9 +106,11 @@ public:
   const FieldMetric& Bxy() const;
 
   void setContravariantMetricTensor(MetricTensor metric_tensor, CELL_LOC cell_location,
+                                    const bool update_inverse = true,
                                     const std::string& region = "RGN_ALL");
 
   void setCovariantMetricTensor(MetricTensor metric_tensor, CELL_LOC cell_location,
+                                const bool update_inverse = true,
                                 const std::string& region = "RGN_ALL");
 
   void setG1_11(FieldMetric G1_11);

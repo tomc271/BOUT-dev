@@ -459,7 +459,7 @@ Coordinates::Coordinates(Mesh* mesh, Options* options, const CELL_LOC loc,
                                               transform.get());
 
     geometry.setContravariantMetricTensor(MetricTensor(g11, g22, g33, g12, g13, g23),
-                                          location);
+                                          location, false);
 
     // Check input metrics
     checkContravariant();
@@ -485,7 +485,7 @@ Coordinates::Coordinates(Mesh* mesh, Options* options, const CELL_LOC loc,
         g_13 = getAtLocOrUnaligned(mesh, "g_13", 0.0, suffix, location);
         g_23 = getAtLocOrUnaligned(mesh, "g_23", 0.0, suffix, location);
         geometry.setCovariantMetricTensor(
-            MetricTensor(g_11, g_22, g_33, g_12, g_13, g_23), location);
+            MetricTensor(g_11, g_22, g_33, g_12, g_13, g_23), location, false);
 
         output_warn.write(
             "\tWARNING! Covariant components of metric tensor set manually. "
@@ -1422,12 +1422,12 @@ void Coordinates::checkContravariant() { geometry.checkContravariant(localmesh->
 
 void Coordinates::setContravariantMetricTensor(MetricTensor metric_tensor,
                                                const std::string& region) {
-  geometry.setContravariantMetricTensor(std::move(metric_tensor), location, region);
+  geometry.setContravariantMetricTensor(std::move(metric_tensor), location, true, region);
 }
 
 void Coordinates::setCovariantMetricTensor(MetricTensor metric_tensor,
                                            const std::string& region) {
-  geometry.setCovariantMetricTensor(std::move(metric_tensor), location, region);
+  geometry.setCovariantMetricTensor(std::move(metric_tensor), location, true, region);
 }
 
 const FieldMetric& Coordinates::g_11() const { return geometry.g_11(); }
