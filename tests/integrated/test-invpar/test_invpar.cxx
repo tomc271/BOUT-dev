@@ -49,6 +49,14 @@ int test(const std::string& acoef, const std::string& bcoef, const std::string& 
     output.write("D2DZ2(result): {:f}\n", D2DZ2(result).data[0]);
     output.write("DDY(result): {:f}\n", DDY(result).data[0]);
     output.write("deriv(mesh->xstart, 2, 0): {:f}\n", deriv(mesh->xstart, 2, 0));
+    output.write("Grad2_par2(result)[{:d},{:d}] : {:e}\n", 2, 0,
+                 Grad2_par2(result)(mesh->xstart, 2, 0));
+    output.write("D2DYDZ(result)[{:d},{:d}] : {:e}\n", 2, 0,
+                 D2DYDZ(result)(mesh->xstart, 2, 0));
+    output.write("D2DZ2(result)[{:d},{:d}] : {:e}\n", 2, 0,
+                 D2DZ2(result)(mesh->xstart, 2, 0));
+    output.write("DDY(result)[{:d},{:d}] : {:e}\n", 2, 0,
+                 DDY(result)(mesh->xstart, 2, 0));
   }
 
   // Check the result
