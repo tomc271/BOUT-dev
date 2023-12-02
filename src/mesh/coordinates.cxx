@@ -1142,14 +1142,29 @@ Field2D Coordinates::Grad2_par2(const Field2D& f, CELL_LOC outloc,
   TRACE("Coordinates::Grad2_par2( Field2D )");
   ASSERT1(location == outloc || (outloc == CELL_DEFAULT && location == f.getLocation()))
 
-  return Grad2_par2_DDY_invSg(outloc, method);
+  auto result = Grad2_par2_DDY_invSg(outloc, method) * DDY(f, outloc, method)
+                + D2DY2(f, outloc, method) / g22();
+
+  return result;
 }
 
 Field3D Coordinates::Grad2_par2(const Field3D& f, CELL_LOC outloc,
                                 const std::string& method) {
   TRACE("Coordinates::Grad2_par2( Field3D )");
+  if (outloc == CELL_DEFAULT) {
+    outloc = f.getLocation();
+  }
+  ASSERT1(location == outloc);
 
-  return Grad2_par2_DDY_invSg(outloc, method);
+  Field3D result = ::DDY(f, outloc, method);
+
+  Field3D r2 = D2DY2(f, outloc, method) / g22();
+
+  result = Grad2_par2_DDY_invSg(outloc, method) * result + r2;
+
+  ASSERT2(result.getLocation() == outloc);
+
+  return result;
 }
 
 /////////////////////////////////////////////////////////
