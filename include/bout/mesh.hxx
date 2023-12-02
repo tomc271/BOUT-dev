@@ -774,6 +774,8 @@ public:
 
   DifferentialOperators* getDifferentialOperators();
 
+  void ClearCoordsMap();
+
 protected:
   /// Source for grid data
   GridDataSource* source{nullptr};

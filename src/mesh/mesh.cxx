@@ -886,6 +886,8 @@ DifferentialOperators* Mesh::getDifferentialOperators() {
   return &differential_operators;
 }
 
+void Mesh::ClearCoordsMap() { coords_map.clear(); }
+
 constexpr decltype(MeshFactory::type_name) MeshFactory::type_name;
 constexpr decltype(MeshFactory::section_name) MeshFactory::section_name;
 constexpr decltype(MeshFactory::option_name) MeshFactory::option_name;

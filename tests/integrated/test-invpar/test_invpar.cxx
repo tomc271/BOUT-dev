@@ -110,6 +110,7 @@ int main(int argc, char** argv) {
     for (auto location : {CELL_CENTRE, CELL_YLOW, CELL_XLOW, CELL_ZLOW}) {
       success &= test(acoef, bcoef, ccoef, dcoef, ecoef, func, tol, f, location);
     }
+    mesh->ClearCoordsMap();
     i += 1;
   }
   bool allsuccess{true};
