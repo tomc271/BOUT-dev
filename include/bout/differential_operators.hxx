@@ -93,12 +93,6 @@ public:
                          MetricTensor& covariantMetricTensor, const Field2D& J,
                          const Field2D& dx, const Field2D& dy);
 
-  //  const Field2D& Grad2_par2_DDY_invSg(const MetricTensor& covariantMetricTensor,
-  //                                      FieldMetric* invSgCache, const FieldMetric& dy, CELL_LOC outloc,
-  //                                      const std::string& method,
-  //                                      std::map<std::string, std::unique_ptr<FieldMetric>>
-  //                                          Grad2_par2_DDY_invSgCache) const;
-
 private:
   Mesh* mesh;
 };

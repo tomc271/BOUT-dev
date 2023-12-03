@@ -297,25 +297,3 @@ Field2D DifferentialOperators::Laplace_perpXY(MAYBE_UNUSED(const Field2D& A),
       "DifferentialOperators::Laplace_perpXY for 3D metric not implemented");
 #endif
 }
-
-//const FieldMetric& DifferentialOperators::Grad2_par2_DDY_invSg(
-//    const MetricTensor& covariantMetricTensor, invSgCache*, const FieldMetric& dy,
-//    CELL_LOC outloc, const std::string& method,
-//    std::map<std::string, std::unique_ptr<FieldMetric>> Grad2_par2_DDY_invSgCache) const {
-//  if (auto search = Grad2_par2_DDY_invSgCache.find(method);
-//      search != Grad2_par2_DDY_invSgCache.end()) {
-//    return *search->second;
-//  }
-//  const auto coordinates = covariantMetricTensor.Getg11().getCoordinates();
-//  coordinates->invSg();
-//
-//  // Communicate to get parallel slices
-//  coordinates->communicateInvSgCache();
-//  invSgCache->applyParallelBoundary("parallel_neumann");
-//
-//  // cache
-//  auto ptr = std::make_unique<FieldMetric>();
-//  *ptr = DDY(*invSgCache, dy, outloc, method) * invSg(covariantMetricTensor, nullptr);
-//  Grad2_par2_DDY_invSgCache[method] = std::move(ptr);
-//  return *Grad2_par2_DDY_invSgCache[method];
-//}
