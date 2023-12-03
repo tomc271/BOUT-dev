@@ -155,7 +155,7 @@ Field2D DifferentialOperators::Grad2_par2(const Field2D& f, const Field2D& dy,
   const auto grad2_par2_DDY_invSg = coordinates->Grad2_par2_DDY_invSg(outloc, method);
 
   return grad2_par2_DDY_invSg * DDY(f, dy, outloc, method)
-         + D2DY2(f, outloc, method) / covariantMetricTensor.Getg22();
+         + D2DY2(f, dy, outloc, method) / covariantMetricTensor.Getg22();
 }
 
 Field3D DifferentialOperators::Grad2_par2(const Field3D& f, const FieldMetric& dy,
@@ -168,7 +168,7 @@ Field3D DifferentialOperators::Grad2_par2(const Field3D& f, const FieldMetric& d
 
   Field3D result = ::DDY(f, outloc, method);
 
-  Field3D r2 = D2DY2(f, outloc, method) / covariantMetricTensor.Getg22();
+  Field3D r2 = D2DY2(f, dy, outloc, method) / covariantMetricTensor.Getg22();
 
   const auto coordinates =
       covariantMetricTensor.Getg11().getCoordinates(); //TODO: Find a better way
@@ -185,49 +185,51 @@ Field3D DifferentialOperators::Grad2_par2(const Field3D& f, const FieldMetric& d
 FieldMetric DifferentialOperators::Laplace_par(const Field2D& f, const Field2D& g22,
                                                const Field2D& J, const Field2D& dy,
                                                CELL_LOC outloc) {
-  return D2DY2(f, outloc) / g22 + DDY(J / g22, dy, outloc) * DDY(f, dy, outloc) / J;
+  return D2DY2(f, dy, outloc) / g22 + DDY(J / g22, dy, outloc) * DDY(f, dy, outloc) / J;
 }
 
 Field3D DifferentialOperators::Laplace_par(const Field3D& f, const Field3D& g22,
                                            const Field3D& J, const Field2D& dy,
                                            CELL_LOC outloc) {
-  return D2DY2(f, outloc) / g22 + DDY(J / g22, dy, outloc) * ::DDY(f, outloc) / J;
+  return D2DY2(f, dy, outloc) / g22 + DDY(J / g22, dy, outloc) * ::DDY(f, outloc) / J;
 }
 
 // Full Laplacian operator on scalar field
 
-FieldMetric DifferentialOperators::Laplace(
-    const Field2D& f, MetricTensor& covariantMetricTensor, const Field2D& dy,
-    const Field2D& G1, const Field2D& G2, const Field2D& G3, CELL_LOC outloc,
-    const std::string& dfdy_boundary_conditions, const std::string& dfdy_dy_region) {
+FieldMetric DifferentialOperators::Laplace(const Field2D& f,
+                                           MetricTensor& covariantMetricTensor,
+                                           const Field2D& dx, const Field2D& dy,
+                                           const Field2D& G1, const Field2D& G2,
+                                           const Field2D& G3, CELL_LOC outloc,
+                                           const std::string& dfdy_boundary_conditions,
+                                           const std::string& dfdy_dy_region) {
   TRACE("DifferentialOperators::Laplace( Field2D )");
 
   return G1 * DDX(f, dy, outloc) + G2 * DDY(f, dy, outloc)
-         + covariantMetricTensor.Getg11() * D2DX2(f, outloc)
-         + covariantMetricTensor.Getg22() * D2DY2(f, outloc)
+         + covariantMetricTensor.Getg11() * D2DX2(f, dx, outloc)
+         + covariantMetricTensor.Getg22() * D2DY2(f, dy, outloc)
          + 2.0 * covariantMetricTensor.Getg12()
                * D2DXDY(f, outloc, "DEFAULT", "RGN_NOBNDRY", dfdy_boundary_conditions,
                         dfdy_dy_region);
 }
 
-Field3D DifferentialOperators::Laplace(const Field3D& f,
-                                       MetricTensor& covariantMetricTensor,
-                                       const Field3D& G1, const Field3D& G2,
-                                       const Field3D& G3, CELL_LOC outloc,
-                                       const std::string& dfdy_boundary_conditions,
-                                       const std::string& dfdy_dy_region) {
+Field3D DifferentialOperators::Laplace(
+    const Field3D& f, MetricTensor& covariantMetricTensor, const Field3D& dx,
+    const Field3D& dy, const Field3D& dz, const Field3D& G1, const Field3D& G2,
+    const Field3D& G3, CELL_LOC outloc, const std::string& dfdy_boundary_conditions,
+    const std::string& dfdy_dy_region) {
   TRACE("DifferentialOperators::Laplace( Field3D )");
 
   Field3D result = G1 * ::DDX(f, outloc) + G2 * ::DDY(f, outloc) + G3 * ::DDZ(f, outloc)
-                   + covariantMetricTensor.Getg11() * D2DX2(f, outloc)
-                   + covariantMetricTensor.Getg22() * D2DY2(f, outloc)
-                   + covariantMetricTensor.Getg33() * D2DZ2(f, outloc)
+                   + covariantMetricTensor.Getg11() * D2DX2(f, dx, outloc)
+                   + covariantMetricTensor.Getg22() * D2DY2(f, dy, outloc)
+                   + covariantMetricTensor.Getg33() * D2DZ2(f, dz, outloc)
                    + 2.0
                          * (covariantMetricTensor.Getg12()
                                 * D2DXDY(f, outloc, "DEFAULT", "RGN_NOBNDRY",
                                          dfdy_boundary_conditions, dfdy_dy_region)
-                            + covariantMetricTensor.Getg13() * D2DXDZ(f, outloc)
-                            + covariantMetricTensor.Getg23() * D2DYDZ(f, outloc));
+                            + covariantMetricTensor.Getg13() * ::D2DXDZ(f, outloc)
+                            + covariantMetricTensor.Getg23() * ::D2DYDZ(f, outloc));
 
   return result;
 }
@@ -297,3 +299,89 @@ Field2D DifferentialOperators::Laplace_perpXY(MAYBE_UNUSED(const Field2D& A),
       "DifferentialOperators::Laplace_perpXY for 3D metric not implemented");
 #endif
 }
+
+const Field2D DifferentialOperators::D2DX2(const Field2D& field, const Field2D& dx,
+                                           CELL_LOC outloc, const std::string& method,
+                                           const std::string& region) const {
+  return bout::derivatives::index::D2DX2(field, outloc, method, region) / SQ(dx);
+}
+
+const Field3D DifferentialOperators::D2DX2(const Field3D& field, const Field3D& dx,
+                                           CELL_LOC outloc, const std::string& method,
+                                           const std::string& region) const {
+  return bout::derivatives::index::D2DX2(field, outloc, method, region) / SQ(dx);
+}
+
+const Field2D DifferentialOperators::D2DY2(const Field2D& field, const Field2D& dy,
+                                           CELL_LOC outloc, const std::string& method,
+                                           const std::string& region) const {
+  return bout::derivatives::index::D2DY2(field, outloc, method, region) / SQ(dy);
+}
+
+const Field3D DifferentialOperators::D2DY2(const Field3D& field, const Field3D& dy,
+                                           CELL_LOC outloc, const std::string& method,
+                                           const std::string& region) const {
+  return bout::derivatives::index::D2DY2(field, outloc, method, region) / SQ(dy);
+}
+
+const Field2D DifferentialOperators::D2DZ2(const Field2D& field, const Field2D& dz,
+                                           CELL_LOC outloc, const std::string& method,
+                                           const std::string& region) const {
+  return bout::derivatives::index::D2DZ2(field, outloc, method, region) / SQ(dz);
+}
+
+const Field3D DifferentialOperators::D2DZ2(const Field3D& field, const Field3D& dz,
+                                           CELL_LOC outloc, const std::string& method,
+                                           const std::string& region) const {
+  return bout::derivatives::index::D2DZ2(field, outloc, method, region) / SQ(dz);
+}
+
+const FieldMetric
+DifferentialOperators::D2DXDY(const Field2D& field, CELL_LOC outloc,
+                              const std::string& method, const std::string& region,
+                              const std::string& dfdy_boundary_condition,
+                              const std::string& dfdy_region) {
+  return ::D2DXDY(field, outloc, method, region, dfdy_boundary_condition, dfdy_region);
+}
+
+const Field3D DifferentialOperators::D2DXDY(const Field3D& field, CELL_LOC outloc,
+                                            const std::string& method,
+                                            const std::string& region,
+                                            const std::string& dfdy_boundary_condition,
+                                            const std::string& dfdy_region) {
+  return ::D2DXDY(field, outloc, method, region, dfdy_boundary_condition, dfdy_region);
+}
+
+const Field2D DifferentialOperators::D2DYDZ(const Field2D& field, CELL_LOC outloc,
+                                            MAYBE_UNUSED(const std::string& method),
+                                            MAYBE_UNUSED(const std::string& region)) {
+  return ::D2DYDZ(field, outloc, method, region);
+}
+
+const Field3D DifferentialOperators::D2DYDZ(const Field3D& field, CELL_LOC outloc,
+                                            MAYBE_UNUSED(const std::string& method),
+                                            const std::string& region) {
+  return ::D2DYDZ(field, outloc, method, region);
+}
+
+const Field2D DifferentialOperators::D2DXDZ(const Field2D& field, CELL_LOC outloc,
+                                            MAYBE_UNUSED(const std::string& method),
+                                            MAYBE_UNUSED(const std::string& region)) {
+  return ::D2DXDZ(field, outloc, method, region);
+}
+
+const Field3D DifferentialOperators::D2DXDZ(const Field3D& field, CELL_LOC outloc,
+                                            MAYBE_UNUSED(const std::string& method),
+                                            const std::string& region) {
+  return ::D2DXDZ(field, outloc, method, region);
+}
+
+//const Field3D DifferentialOperators::D2DXDY(const Field3D& field3D, const Field3D& dx,
+//                                            const Field3D& dy, CELL_LOC outloc,
+//                                            const std::string& method,
+//                                            const std::string& region,
+//                                            const std::string& dfdy_boundary_conditions,
+//                                            const std::string& dfdy_dy_region) const {
+//  return D2DXDY(field3D, outloc, method, region, dfdy_boundary_conditions,
+//                dfdy_dy_region);
+//}

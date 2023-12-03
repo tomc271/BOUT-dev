@@ -76,12 +76,13 @@ public:
 
   // Full Laplacian operator on scalar field
   Field2D Laplace(const Field2D& f, MetricTensor& covariantMetricTensor,
-                  const Field2D& dy, const Field2D& G1, const Field2D& G2,
-                  const Field2D& G3, CELL_LOC outloc = CELL_DEFAULT,
+                  const Field2D& dx, const Field2D& dy, const Field2D& G1,
+                  const Field2D& G2, const Field2D& G3, CELL_LOC outloc = CELL_DEFAULT,
                   const std::string& dfdy_boundary_conditions = "free_o3",
                   const std::string& dfdy_dy_region = "");
 
   Field3D Laplace(const Field3D& f, MetricTensor& covariantMetricTensor,
+                  const Field3D& dx, const Field3D& dy, const Field3D& dz,
                   const Field3D& G1, const Field3D& G2, const Field3D& G3,
                   CELL_LOC outloc = CELL_DEFAULT,
                   const std::string& dfdy_boundary_conditions = "free_o3",
@@ -92,6 +93,69 @@ public:
   Field2D Laplace_perpXY(const Field2D& A, const Field2D& f,
                          MetricTensor& covariantMetricTensor, const Field2D& J,
                          const Field2D& dx, const Field2D& dy);
+
+  const Field2D D2DX2(const Field2D& field, const Field2D& dx,
+                      CELL_LOC outloc = CELL_DEFAULT,
+                      const std::string& method = "DEFAULT",
+                      const std::string& region = "RGN_NOBNDRY") const;
+
+  const Field3D D2DX2(const Field3D& field, const Field3D& dx,
+                      CELL_LOC outloc = CELL_DEFAULT,
+                      const std::string& method = "DEFAULT",
+                      const std::string& region = "RGN_NOBNDRY") const;
+
+  const Field2D D2DY2(const Field2D& field, const Field2D& dy,
+                      CELL_LOC outloc = CELL_DEFAULT,
+                      const std::string& method = "DEFAULT",
+                      const std::string& region = "RGN_NOBNDRY") const;
+
+  const Field3D D2DY2(const Field3D& field, const Field3D& dy,
+                      CELL_LOC outloc = CELL_DEFAULT,
+                      const std::string& method = "DEFAULT",
+                      const std::string& region = "RGN_NOBNDRY") const;
+
+  const Field2D D2DZ2(const Field2D& field, const Field2D& dz,
+                      CELL_LOC outloc = CELL_DEFAULT,
+                      const std::string& method = "DEFAULT",
+                      const std::string& region = "RGN_NOBNDRY") const;
+
+  const Field3D D2DZ2(const Field3D& field, const Field3D& dz,
+                      CELL_LOC outloc = CELL_DEFAULT,
+                      const std::string& method = "DEFAULT",
+                      const std::string& region = "RGN_NOBNDRY") const;
+
+  const FieldMetric D2DXDY(const Field2D& field, CELL_LOC outloc,
+                           const std::string& method, const std::string& region,
+                           const std::string& dfdy_boundary_condition,
+                           const std::string& dfdy_region);
+
+  const Field3D D2DXDY(const Field3D& field, CELL_LOC outloc, const std::string& method,
+                       const std::string& region,
+                       const std::string& dfdy_boundary_condition,
+                       const std::string& dfdy_region);
+
+  const Field2D D2DYDZ(const Field2D& field, CELL_LOC outloc,
+                       const std::string& method = "DEFAULT",
+                       const std::string& region = "RGN_NOBNDRY");
+
+  const Field3D D2DYDZ(const Field3D& field, CELL_LOC outloc,
+                       const std::string& method = "DEFAULT",
+                       const std::string& region = "RGN_NOBNDRY");
+
+  const Field2D D2DXDZ(const Field2D& field, CELL_LOC outloc = CELL_DEFAULT,
+                       const std::string& method = "DEFAULT",
+                       const std::string& region = "RGN_NOBNDRY");
+
+  const Field3D D2DXDZ(const Field3D& field, CELL_LOC outloc = CELL_DEFAULT,
+                       const std::string& method = "DEFAULT",
+                       const std::string& region = "RGN_NOBNDRY");
+
+  //  const Field3D D2DXDY(const Field3D& field3D, const Field3D& dx, const Field3D& dy,
+  //                       CELL_LOC outloc = CELL_DEFAULT,
+  //                       const std::string& method = "DEFAULT",
+  //                       const std::string& region = "RGN_NOBNDRY",
+  //                       const std::string& dfdy_boundary_conditions = "free_o3",
+  //                       const std::string& dfdy_dy_region = "RGN_NOBNDRY") const;
 
 private:
   Mesh* mesh;
