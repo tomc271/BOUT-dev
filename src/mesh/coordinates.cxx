@@ -1143,7 +1143,7 @@ Field2D Coordinates::Grad2_par2(const Field2D& f, CELL_LOC outloc,
   ASSERT1(location == outloc || (outloc == CELL_DEFAULT && location == f.getLocation()))
 
   auto result = Grad2_par2_DDY_invSg(outloc, method) * DDY(f, outloc, method)
-                + D2DY2(f, outloc, method) / g22();
+                + D2DY2(f, outloc, method) / g_22();
 
   return result;
 }
