@@ -1156,8 +1156,8 @@ Field3D Coordinates::Delp2(const Field3D& f, CELL_LOC outloc, bool useFFT) {
     }
   } else {
     result = G1() * DDX(f, outloc) + G3() * DDZ(f, outloc)
-             + g11() * differential_operators->D2DX2(f, dx, outloc)
-             + g33() * differential_operators->D2DZ2(f, dz, outloc)
+             + g11() * differential_operators->D2DX2(f, outloc)
+             + g33() * differential_operators->D2DZ2(f, outloc)
              + 2 * g13() * differential_operators->D2DXDZ(f, outloc);
   }
 

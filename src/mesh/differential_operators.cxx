@@ -300,6 +300,42 @@ Field2D DifferentialOperators::Laplace_perpXY(MAYBE_UNUSED(const Field2D& A),
 #endif
 }
 
+const Field2D DifferentialOperators::D2DX2(const Field2D& field, CELL_LOC outloc,
+                                           const std::string& method,
+                                           const std::string& region) const {
+  return ::D2DX2(field, outloc, method, region);
+}
+
+const Field2D DifferentialOperators::D2DY2(const Field2D& field, CELL_LOC outloc,
+                                           const std::string& method,
+                                           const std::string& region) const {
+  return ::D2DY2(field, outloc, method, region);
+}
+
+const Field2D DifferentialOperators::D2DZ2(const Field2D& field, CELL_LOC outloc,
+                                           const std::string& method,
+                                           const std::string& region) const {
+  return ::D2DZ2(field, outloc, method, region);
+}
+
+const Field3D DifferentialOperators::D2DX2(const Field3D& field, CELL_LOC outloc,
+                                           const std::string& method,
+                                           const std::string& region) const {
+  return ::D2DX2(field, outloc, method, region);
+}
+
+const Field3D DifferentialOperators::D2DY2(const Field3D& field, CELL_LOC outloc,
+                                           const std::string& method,
+                                           const std::string& region) const {
+  return ::D2DY2(field, outloc, method, region);
+}
+
+const Field3D DifferentialOperators::D2DZ2(const Field3D& field, CELL_LOC outloc,
+                                           const std::string& method,
+                                           const std::string& region) const {
+  return ::D2DZ2(field, outloc, method, region);
+}
+
 const Field2D DifferentialOperators::D2DX2(const Field2D& field, const Field2D& dx,
                                            CELL_LOC outloc, const std::string& method,
                                            const std::string& region) const {

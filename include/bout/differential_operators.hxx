@@ -94,6 +94,30 @@ public:
                          MetricTensor& covariantMetricTensor, const Field2D& J,
                          const Field2D& dx, const Field2D& dy);
 
+  const Field2D D2DX2(const Field2D& field, CELL_LOC outloc,
+                      const std::string& method = "DEFAULT",
+                      const std::string& region = "RGN_NOBNDRY") const;
+
+  const Field2D D2DY2(const Field2D& field, CELL_LOC outloc,
+                      const std::string& method = "DEFAULT",
+                      const std::string& region = "RGN_NOBNDRY") const;
+
+  const Field2D D2DZ2(const Field2D& field, CELL_LOC outloc,
+                      const std::string& method = "DEFAULT",
+                      const std::string& region = "RGN_NOBNDRY") const;
+
+  const Field3D D2DX2(const Field3D& field, CELL_LOC outloc,
+                      const std::string& method = "DEFAULT",
+                      const std::string& region = "RGN_NOBNDRY") const;
+
+  const Field3D D2DY2(const Field3D& field, CELL_LOC outloc,
+                      const std::string& method = "DEFAULT",
+                      const std::string& region = "RGN_NOBNDRY") const;
+
+  const Field3D D2DZ2(const Field3D& field, CELL_LOC outloc,
+                      const std::string& method = "DEFAULT",
+                      const std::string& region = "RGN_NOBNDRY") const;
+
   const Field2D D2DX2(const Field2D& field, const Field2D& dx,
                       CELL_LOC outloc = CELL_DEFAULT,
                       const std::string& method = "DEFAULT",
