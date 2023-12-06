@@ -89,7 +89,7 @@ private:
     mesh->get(Bpxy, "Bpxy");
     mesh->get(Btxy, "Btxy");
     mesh->get(hthe, "hthe");
-    mesh->get(coord->dx, "dpsi");
+    mesh->get(coord->dx(), "dpsi");
     mesh->get(I, "sinty");
 
     // Load normalisation values
@@ -176,7 +176,7 @@ private:
     Rxy /= rho_s;
     hthe /= rho_s;
     I *= rho_s * rho_s * (bmag / 1e4) * ShearFactor;
-    coord->dx /= rho_s * rho_s * (bmag / 1e4);
+    coord->dx() /= rho_s * rho_s * (bmag / 1e4);
 
     // Normalise magnetic field
     Bpxy /= (bmag / 1.e4);

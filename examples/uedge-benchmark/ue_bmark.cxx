@@ -59,7 +59,7 @@ protected:
     GRID_LOAD(Rxy);        // Major radius [m]
     GRID_LOAD(Bpxy, Btxy); // Poloidal, Toroidal B field [T]
     GRID_LOAD(hthe);       // Poloidal arc length [m / radian]
-    mesh->get(mesh->getCoordinates()->dx, "dpsi");
+    mesh->get(mesh->getCoordinates()->dx(), "dpsi");
 
     // Load normalisation values
     GRID_LOAD(Te_x, Ti_x, Ni_x, bmag);
@@ -115,7 +115,7 @@ protected:
     // Normalise geometry
     Rxy /= rho_s;
     hthe /= rho_s;
-    coords->dx /= rho_s * rho_s * (bmag / 1e4);
+    coords->dx() /= rho_s * rho_s * (bmag / 1e4);
 
     // Normalise magnetic field
     Bpxy /= (bmag / 1e4);

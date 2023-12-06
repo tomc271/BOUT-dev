@@ -290,14 +290,14 @@ int GBS::init(bool restarting) {
   phiSolver = Laplacian::create(opt->getSection("phiSolver"));
   aparSolver = Laplacian::create(opt->getSection("aparSolver"));
 
-  dx4 = SQ(SQ(coords->dx));
-  dy4 = SQ(SQ(coords->dy));
-  dz4 = SQ(SQ(coords->dz));
+  dx4 = SQ(SQ(coords->dx()));
+  dy4 = SQ(SQ(coords->dy()));
+  dz4 = SQ(SQ(coords->dz()));
 
   SAVE_REPEAT(Ve);
 
-  output.write("dx = {:e}, dy = {:e}, dz = {:e}\n", (coords->dx)(2, 2),
-               (coords->dy)(2, 2), coords->dz);
+  output.write("dx = {:e}, dy = {:e}, dz = {:e}\n", (coords->dx())(2, 2),
+               (coords->dy())(2, 2), coords->dz());
   output.write("g11 = {:e}, g22 = {:e}, g33 = {:e}\n", coords->g11()(2, 2),
                coords->g22()(2, 2), coords->g33()(2, 2));
   output.write("g12 = {:e}, g23 = {:e}\n", coords->g12()(2, 2), coords->g23()(2, 2));
@@ -321,7 +321,7 @@ void GBS::LoadMetric(BoutReal Lnorm, BoutReal Bnorm) {
   Field2D dx;
   if (!mesh->get(dx, "dpsi")) {
     output << "\tUsing dpsi as the x grid spacing\n";
-    coords->dx = dx; // Only use dpsi if found
+    coords->dx() = dx; // Only use dpsi if found
   } else {
     // dx will have been read already from the grid
     output << "\tUsing dx as the x grid spacing\n";
@@ -330,7 +330,7 @@ void GBS::LoadMetric(BoutReal Lnorm, BoutReal Bnorm) {
   Rxy /= Lnorm;
   hthe /= Lnorm;
   sinty *= SQ(Lnorm) * Bnorm;
-  coords->dx /= SQ(Lnorm) * Bnorm;
+  coords->dx() /= SQ(Lnorm) * Bnorm;
 
   Bpxy /= Bnorm;
   Btxy /= Bnorm;
