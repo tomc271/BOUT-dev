@@ -81,7 +81,7 @@ public:
 
   void setDx(FieldMetric dx);
   void setDy(FieldMetric dy);
-  void setDz(FieldMetric dz);
+  [[maybe_unused]] void setDz(FieldMetric dz);
 
   void setD1_dx(FieldMetric d1_dx);
   void setD1_dy(FieldMetric d1_dy);
