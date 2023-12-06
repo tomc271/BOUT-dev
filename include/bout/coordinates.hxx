@@ -83,6 +83,10 @@ public:
   void setDy(FieldMetric dy);
   void setDz(FieldMetric dz);
 
+  void setD1_dx(FieldMetric d1_dx);
+  void setD1_dy(FieldMetric d1_dy);
+  void setD1_dz(FieldMetric d1_dz);
+
   /// Length of the Z domain. Used for FFTs
   const Field2D& zlength() const;
 
@@ -90,7 +94,9 @@ public:
   bool non_uniform{};
 
   /// 2nd-order correction for non-uniform meshes d/di(1/dx), d/di(1/dy) and d/di(1/dz)
-  FieldMetric d1_dx, d1_dy, d1_dz;
+  const FieldMetric& d1_dx() const;
+  const FieldMetric& d1_dy() const;
+  const FieldMetric& d1_dz() const;
 
   /// Covariant metric tensor
   const FieldMetric& g_11() const;
@@ -283,6 +289,9 @@ private:
   Geometry geometry;
 
   FieldMetric dx_, dy_, dz_; ///< Mesh spacing in x, y and z
+
+  /// 2nd-order correction for non-uniform meshes d/di(1/dx), d/di(1/dy) and d/di(1/dz)
+  FieldMetric d1_dx_, d1_dy_, d1_dz_;
 
   /// Handles calculation of yup and ydown
   std::unique_ptr<ParallelTransform> transform{nullptr};
