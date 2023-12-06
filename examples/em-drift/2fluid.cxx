@@ -169,7 +169,7 @@ private:
     Rxy /= rho_s;
     hthe /= rho_s;
     I *= rho_s * rho_s * (bmag / 1e4) * ShearFactor;
-    coord->dx() /= rho_s * rho_s * (bmag / 1e4);
+    coord->setDx(coord->dx() / rho_s * rho_s * (bmag / 1e4));
 
     // Normalise magnetic field
     Bpxy /= (bmag / 1.e4);

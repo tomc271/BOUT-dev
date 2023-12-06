@@ -115,12 +115,12 @@ protected:
     // Normalise geometry
     Rxy /= rho_s;
     hthe /= rho_s;
-    coords->dx() /= rho_s * rho_s * (bmag / 1e4);
+    coords->setDx(coords->dx() / rho_s * rho_s * (bmag / 1e4));
 
     // Normalise magnetic field
     Bpxy /= (bmag / 1e4);
     Btxy /= (bmag / 1e4);
-    coords->Bxy() /= (bmag / 1e4);
+    coords->setBxy(coords->Bxy() / (bmag / 1e4));
 
     // calculate pressures
     pei0 = (Ti0 + Te0) * Ni0;

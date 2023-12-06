@@ -962,7 +962,7 @@ public:
     Btxy /= Bbar;
     B0 /= Bbar;
     hthe /= Lbar;
-    metric->dx() /= Lbar * Lbar * Bbar;
+    metric->setDx(metric->dx() / Lbar * Lbar * Bbar);
     I *= Lbar * Lbar * Bbar;
 
     if (constn0) {
