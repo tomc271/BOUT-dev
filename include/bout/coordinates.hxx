@@ -79,11 +79,16 @@ public:
   const FieldMetric& dy() const;
   const FieldMetric& dz() const;
 
+  void setDx(FieldMetric dx);
+  void setDy(FieldMetric dy);
+  void setDz(FieldMetric dz);
+
   /// Length of the Z domain. Used for FFTs
   const Field2D& zlength() const;
 
   /// True if corrections for non-uniform mesh spacing should be included in operators
   bool non_uniform{};
+
   /// 2nd-order correction for non-uniform meshes d/di(1/dx), d/di(1/dy) and d/di(1/dz)
   FieldMetric d1_dx, d1_dy, d1_dz;
 

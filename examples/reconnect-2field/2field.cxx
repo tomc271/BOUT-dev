@@ -151,7 +151,7 @@ protected:
     // Normalise geometry
     Rxy /= rho_s;
     hthe /= rho_s;
-    coord->dx /= rho_s * rho_s * Bnorm;
+    coord->dx() /= rho_s * rho_s * Bnorm;
 
     // Normalise magnetic field
     Bpxy /= Bnorm;

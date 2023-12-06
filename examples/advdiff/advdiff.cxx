@@ -22,8 +22,8 @@ protected:
     Coordinates* coord = mesh->getCoordinates();
 
     mesh->get(V0, "V0");
-    mesh->get(coord->dx, "dx");
-    mesh->get(coord->dy, "dy");
+    mesh->get(coord->dx(), "dx");
+    mesh->get(coord->dy(), "dy");
 
     // read options
 

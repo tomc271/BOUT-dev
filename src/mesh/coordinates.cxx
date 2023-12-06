@@ -632,7 +632,8 @@ const Field2D& Coordinates::zlength() const {
 int Coordinates::calculateGeometry() const {
   TRACE("Coordinates::calculateGeometry");
 
-  communicate(dx(), dy(), dz(), g11(), g22(), g33(), g12(), g13(), g23(), g_11(), g_22(),
+  auto tmp = dx(); // TODO: There must be a better way than this!
+  communicate(tmp, dy(), dz(), g11(), g22(), g33(), g12(), g13(), g23(), g_11(), g_22(),
               g_33(), g_12(), g_13(), g_23(), J(), Bxy());
 
   output_progress.write("Calculating differential geometry terms\n");
@@ -1360,6 +1361,10 @@ void Coordinates::checkContravariant() { geometry.checkContravariant(localmesh->
 const FieldMetric& Coordinates::dx() const { return dx_; }
 const FieldMetric& Coordinates::dy() const { return dy_; }
 const FieldMetric& Coordinates::dz() const { return dz_; }
+
+void Coordinates::setDx(FieldMetric dx) { dx_ = dx; }
+void Coordinates::setDy(FieldMetric dy) { dy_ = dy; }
+void Coordinates::setDz(FieldMetric dz) { dz_ = dz; }
 
 void Coordinates::setContravariantMetricTensor(MetricTensor metric_tensor,
                                                const std::string& region,

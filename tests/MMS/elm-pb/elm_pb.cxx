@@ -389,7 +389,7 @@ public:
     Btxy /= Bbar;
     B0 /= Bbar;
     hthe /= Lbar;
-    coords->dx /= Lbar * Lbar * Bbar;
+    coords->dx() /= Lbar * Lbar * Bbar;
     I *= Lbar * Lbar * Bbar;
 
     BoutReal pnorm = max(P0, true); // Maximum over all processors
@@ -423,8 +423,7 @@ public:
     const auto g12 = 0.0;
     const auto g13 = -I * coords->g11();
     const auto g23 = -Btxy / (hthe * Bpxy * Rxy);
-    coords->setContravariantMetricTensor(
-        MetricTensor(g11, g22, g33, g12, g13, g23));
+    coords->setContravariantMetricTensor(MetricTensor(g11, g22, g33, g12, g13, g23));
 
     coords->setJ(hthe / Bpxy);
     coords->setBxy(B0);
@@ -435,10 +434,7 @@ public:
     const auto g_12 = Btxy * hthe * I * Rxy / Bpxy;
     const auto g_13 = I * Rxy * Rxy;
     const auto g_23 = Btxy * hthe * Rxy / Bpxy;
-    coords->setCovariantMetricTensor(
-        MetricTensor(g_11, g_22, g_33, g_12, g_13, g_23));
-
-    coords->geometry(); // Calculate quantities from metric tensor
+    coords->setCovariantMetricTensor(MetricTensor(g_11, g_22, g_33, g_12, g_13, g_23));
 
     // Set B field vector
 
@@ -638,7 +634,7 @@ public:
       ddt(U) += viscos_perp * Delp2(U); // Perpendicular viscosity
     }
 
-    ddt(U) -= 10 * (SQ(SQ(coords->dx)) * D4DX4(U) + SQ(SQ(coords->dz)) * D4DZ4(U));
+    ddt(U) -= 10 * (SQ(SQ(coords->dx())) * D4DX4(U) + SQ(SQ(coords->dz())) * D4DZ4(U));
 
     ////////////////////////////////////////////////////
     // Pressure equation
@@ -658,7 +654,7 @@ public:
       ddt(P) += diffusion_par * Grad2_par2(P); // Parallel diffusion
     }
 
-    ddt(P) -= 10 * (SQ(SQ(coords->dx)) * D4DX4(P) + SQ(SQ(coords->dz)) * D4DZ4(P));
+    ddt(P) -= 10 * (SQ(SQ(coords->dx())) * D4DX4(P) + SQ(SQ(coords->dz())) * D4DZ4(P));
 
     ////////////////////////////////////////////////////
     // Compressional effects

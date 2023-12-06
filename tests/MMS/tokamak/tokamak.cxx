@@ -31,8 +31,8 @@ public:
     // Test bracket advection operator
     ddt(advect) = -1e-3 * bracket(drive, advect, BRACKET_ARAKAWA)
                   - 10.
-                        * (SQ(SQ(mesh->getCoordinates()->dx)) * D4DX4(advect)
-                           + SQ(SQ(mesh->getCoordinates()->dz)) * D4DZ4(advect));
+                        * (SQ(SQ(mesh->getCoordinates()->dx())) * D4DX4(advect)
+                           + SQ(SQ(mesh->getCoordinates()->dz())) * D4DZ4(advect));
 
     // Test perpendicular diffusion operator
     ddt(delp2) = 1e-5 * Delp2(delp2);
@@ -53,7 +53,7 @@ public:
     Field2D dx;
     if (!mesh->get(dx, "dpsi")) {
       output << "\tUsing dpsi as the x grid spacing\n";
-      coords->dx = dx; // Only use dpsi if found
+      coords->dx() = dx; // Only use dpsi if found
     } else {
       // dx will have been read already from the grid
       output << "\tUsing dx as the x grid spacing\n";
@@ -62,7 +62,7 @@ public:
     Rxy /= Lnorm;
     hthe /= Lnorm;
     sinty *= SQ(Lnorm) * Bnorm;
-    coords->dx /= SQ(Lnorm) * Bnorm;
+    coords->dx() /= SQ(Lnorm) * Bnorm;
 
     Bpxy /= Bnorm;
     Btxy /= Bnorm;
@@ -86,8 +86,7 @@ public:
     const auto g12 = 0.0;
     const auto g13 = -sinty * coords->g11();
     const auto g23 = -sbp * Btxy / (hthe * Bpxy * Rxy);
-    coords->setContravariantMetricTensor(
-        MetricTensor(g11, g22, g33, g12, g13, g23));
+    coords->setContravariantMetricTensor(MetricTensor(g11, g22, g33, g12, g13, g23));
 
     coords->setJ(hthe / Bpxy);
 
@@ -97,10 +96,7 @@ public:
     const auto g_12 = sbp * Btxy * hthe * sinty * Rxy / Bpxy;
     const auto g_13 = sinty * Rxy * Rxy;
     const auto g_23 = sbp * Btxy * hthe * Rxy / Bpxy;
-    coords->setCovariantMetricTensor(
-        MetricTensor(g_11, g_22, g_33, g_12, g_13, g_23));
-
-    coords->geometry();
+    coords->setCovariantMetricTensor(MetricTensor(g_11, g_22, g_33, g_12, g_13, g_23));
   }
 
 private:
