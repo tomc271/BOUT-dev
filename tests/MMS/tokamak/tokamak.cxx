@@ -62,11 +62,11 @@ public:
     Rxy /= Lnorm;
     hthe /= Lnorm;
     sinty *= SQ(Lnorm) * Bnorm;
-    coords->dx() /= SQ(Lnorm) * Bnorm;
+    coords->setDx(coords->dx() / SQ(Lnorm) * Bnorm);
 
     Bpxy /= Bnorm;
     Btxy /= Bnorm;
-    coords->Bxy() /= Bnorm;
+    coords->setBxy(coords->Bxy() / Bnorm);
 
     // Calculate metric components
     bool ShiftXderivs;

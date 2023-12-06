@@ -867,7 +867,7 @@ protected:
     Btxy /= Bbar;
     B0 /= Bbar;
     hthe /= Lbar;
-    coord->dx() /= Lbar * Lbar * Bbar;
+    coord->setDx(coord->dx() / Lbar * Lbar * Bbar);
     I *= Lbar * Lbar * Bbar;
 
     if ((!T0_fake_prof) && n0_fake_prof) {

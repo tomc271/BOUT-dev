@@ -389,7 +389,7 @@ public:
     Btxy /= Bbar;
     B0 /= Bbar;
     hthe /= Lbar;
-    coords->dx() /= Lbar * Lbar * Bbar;
+    coords->setDx(coords->dx() / Lbar * Lbar * Bbar);
     I *= Lbar * Lbar * Bbar;
 
     BoutReal pnorm = max(P0, true); // Maximum over all processors
