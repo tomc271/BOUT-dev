@@ -26,8 +26,8 @@ protected:
 
     // this assumes equidistant grid
     int nguard = mesh->xstart;
-    coord->dx() = Lx / (mesh->GlobalNx - 2 * nguard);
-    coord->dy() = Ly / (mesh->GlobalNy - 2 * nguard);
+    coord->setDx(Lx / (mesh->GlobalNx - 2 * nguard));
+    coord->setDy(Ly / (mesh->GlobalNy - 2 * nguard));
 
     SAVE_ONCE(Lx, Ly);
 
