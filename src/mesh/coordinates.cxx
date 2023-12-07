@@ -1365,7 +1365,7 @@ const FieldMetric& Coordinates::dz() const { return dz_; }
 
 void Coordinates::setDx(FieldMetric dx) { dx_ = dx; }
 void Coordinates::setDy(FieldMetric dy) { dy_ = dy; }
-[[maybe_unused]] void Coordinates::setDz(FieldMetric dz) { dz_ = dz; }
+void Coordinates::setDz(FieldMetric dz) { dz_ = dz; }
 
 void Coordinates::setD1_dx(FieldMetric d1_dx) { d1_dx_ = d1_dx; }
 void Coordinates::setD1_dy(FieldMetric d1_dy) { d1_dy_ = d1_dy; }

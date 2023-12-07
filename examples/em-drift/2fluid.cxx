@@ -72,7 +72,7 @@ private:
     mesh->get(Bpxy, "Bpxy");
     mesh->get(Btxy, "Btxy");
     mesh->get(hthe, "hthe");
-    mesh->get(coord->dx(), "dpsi");
+    coord->setDx(mesh->get("dpsi"));
     mesh->get(I, "sinty");
 
     // Load normalisation values
