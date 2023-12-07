@@ -54,6 +54,8 @@ CoordinatesAccessor::CoordinatesAccessor(const Coordinates* coords) {
     data[stripe_size * ind.ind + static_cast<int>(Offset::dy)] = coords->dy()[ind];
     data[stripe_size * ind.ind + static_cast<int>(Offset::dz)] = coords->dz()[ind];
 
+    COPY_STRIPE(d1_dx, d1_dy, d1_dz);
+    
     data[stripe_size * ind.ind + static_cast<int>(Offset::J)] = coords->J()[ind];
 
     data[stripe_size * ind.ind + static_cast<int>(Offset::B)] = coords->Bxy()[ind];
