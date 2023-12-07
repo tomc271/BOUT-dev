@@ -83,6 +83,8 @@ public:
   void setDy(FieldMetric dy);
   void setDz(FieldMetric dz);
 
+  void setDy(BoutReal value, int x, int y);
+
   void setD1_dx(FieldMetric d1_dx);
   void setD1_dy(FieldMetric d1_dy);
   void setD1_dz(FieldMetric d1_dz);

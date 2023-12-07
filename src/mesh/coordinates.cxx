@@ -1367,6 +1367,8 @@ void Coordinates::setDx(FieldMetric dx) { dx_ = dx; }
 void Coordinates::setDy(FieldMetric dy) { dy_ = dy; }
 void Coordinates::setDz(FieldMetric dz) { dz_ = dz; }
 
+void Coordinates::setDy(BoutReal value, int x, int y) { dy_(x, y) = value; }
+
 void Coordinates::setD1_dx(FieldMetric d1_dx) { d1_dx_ = d1_dx; }
 void Coordinates::setD1_dy(FieldMetric d1_dy) { d1_dy_ = d1_dy; }
 void Coordinates::setD1_dz(FieldMetric d1_dz) { d1_dz_ = d1_dz; }
