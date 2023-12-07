@@ -330,11 +330,11 @@ void GBS::LoadMetric(BoutReal Lnorm, BoutReal Bnorm) {
   Rxy /= Lnorm;
   hthe /= Lnorm;
   sinty *= SQ(Lnorm) * Bnorm;
-  coords->dx() /= SQ(Lnorm) * Bnorm;
+  coords->setDx(coords->dx() / (SQ(Lnorm) * Bnorm);
 
   Bpxy /= Bnorm;
   Btxy /= Bnorm;
-  coords->Bxy() /= Bnorm;
+  coords->setBxy(coords->Bxy() / Bnorm);
 
   // Calculate metric components
   bool ShiftXderivs;
@@ -367,8 +367,6 @@ void GBS::LoadMetric(BoutReal Lnorm, BoutReal Bnorm) {
   const auto g_23 = sbp * Btxy * hthe * Rxy / Bpxy;
   coords->setCovariantMetricTensor(
       MetricTensor(g_11, g_22, g_33, g_12, g_13, g_23));
-
-  coords->geometry();
 }
 
 // just define a macro for V_E dot Grad
@@ -433,7 +431,8 @@ int GBS::rhs(BoutReal t) {
   Ge = 0.0;
   if (elecvis) {
     Ge = -(0.73 * Te * Ne * tau_e)
-         * (2. * Grad_par(Ve) + (5. * C(Te) + 5. * Te * C(logNe) + C(phi)) / coords->Bxy());
+         * (2. * Grad_par(Ve)
+            + (5. * C(Te) + 5. * Te * C(logNe) + C(phi)) / coords->Bxy());
     mesh->communicate(Ge);
     Ge.applyBoundary("neumann");
   } else {
@@ -447,7 +446,7 @@ int GBS::rhs(BoutReal t) {
 
   if (evolve_Ne) {
     // Density
-    ddt(Ne) = -vE_Grad(Ne, phi)                            // ExB term
+    ddt(Ne) = -vE_Grad(Ne, phi)                              // ExB term
               + (2. / coords->Bxy()) * (C(Pe) - Ne * C(phi)) // Perpendicular compression
               + D(Ne, Dn) + H(Ne, Hn);
 
