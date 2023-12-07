@@ -83,7 +83,7 @@ protected:
     GRID_LOAD(Btxy);
     GRID_LOAD(hthe);
     mesh->get(coord->Bxy(), "Bxy");
-    mesh->get(coord->dx(), "dpsi");
+    coord->setDx(mesh->get("dpsi"));
     mesh->get(I, "sinty");
 
     // Load normalisation values

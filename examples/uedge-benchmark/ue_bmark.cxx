@@ -59,7 +59,7 @@ protected:
     GRID_LOAD(Rxy);        // Major radius [m]
     GRID_LOAD(Bpxy, Btxy); // Poloidal, Toroidal B field [T]
     GRID_LOAD(hthe);       // Poloidal arc length [m / radian]
-    mesh->get(mesh->getCoordinates()->dx(), "dpsi");
+    mesh->getCoordinates()->setDx(mesh->get("dpsi"));
 
     // Load normalisation values
     GRID_LOAD(Te_x, Ti_x, Ni_x, bmag);
