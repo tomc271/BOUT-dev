@@ -76,6 +76,15 @@ public:
 
   FieldMetric dx, dy, dz; ///< Mesh spacing in x, y and z
 
+  ///< Mesh spacing in x, y and z
+  const FieldMetric& getDx() const;
+  const FieldMetric& getDy() const;
+  const FieldMetric& getDz() const;
+
+  void setDx(FieldMetric dx);
+  void setDy(FieldMetric dy);
+  void setDz(FieldMetric dz);
+
   /// Length of the Z domain. Used for FFTs
   const Field2D& zlength() const;
 

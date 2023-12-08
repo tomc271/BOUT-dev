@@ -1355,6 +1355,14 @@ void Coordinates::checkCovariant() { return geometry.checkCovariant(localmesh->y
 
 void Coordinates::checkContravariant() { geometry.checkContravariant(localmesh->ystart); }
 
+const FieldMetric& Coordinates::getDx() const { return dx; }
+const FieldMetric& Coordinates::getDy() const { return dy; }
+const FieldMetric& Coordinates::getDz() const { return dz; }
+
+void Coordinates::setDx(FieldMetric dx_) { dx = dx_; }
+void Coordinates::setDy(FieldMetric dy_) { dy = dy_; }
+void Coordinates::setDz(FieldMetric dz_) { dz = dz_; }
+
 void Coordinates::setContravariantMetricTensor(MetricTensor metric_tensor,
                                                const std::string& region,
                                                bool recalculate_staggered,
