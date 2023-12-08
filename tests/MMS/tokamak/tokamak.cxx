@@ -62,7 +62,7 @@ public:
     Rxy /= Lnorm;
     hthe /= Lnorm;
     sinty *= SQ(Lnorm) * Bnorm;
-    coords->setDx(coords->dx() / SQ(Lnorm) * Bnorm);
+    coords->setDx(coords->dx() / (SQ(Lnorm) * Bnorm));
 
     Bpxy /= Bnorm;
     Btxy /= Bnorm;

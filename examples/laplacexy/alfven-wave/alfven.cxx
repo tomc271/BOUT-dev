@@ -188,7 +188,7 @@ protected:
     Rxy /= Lnorm;
     hthe /= Lnorm;
     sinty *= SQ(Lnorm) * Bnorm;
-    coord->setDx(coord->dx() / SQ(Lnorm) * Bnorm);
+    coord->setDx(coord->dx() / (SQ(Lnorm) * Bnorm));
 
     Bpxy /= Bnorm;
     Btxy /= Bnorm;

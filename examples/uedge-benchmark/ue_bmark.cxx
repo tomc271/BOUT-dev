@@ -115,7 +115,7 @@ protected:
     // Normalise geometry
     Rxy /= rho_s;
     hthe /= rho_s;
-    coords->setDx(coords->dx() / rho_s * rho_s * (bmag / 1e4));
+    coords->setDx(coords->dx() / (rho_s * rho_s * (bmag / 1e4)));
 
     // Normalise magnetic field
     Bpxy /= (bmag / 1e4);
