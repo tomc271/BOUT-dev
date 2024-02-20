@@ -34,6 +34,7 @@
 #define __COORDINATES_H__
 
 #include "christoffel_symbols.hxx"
+#include "g_values.hxx"
 #include "differential_operators.hxx"
 #include "bout/metricTensor.hxx"
 #include "bout/paralleltransform.hxx"
@@ -275,9 +276,9 @@ public:
   const FieldMetric& G2() const;
   const FieldMetric& G3() const;
 
-  void setG1(const FieldMetric& G1);
-  void setG2(const FieldMetric& G2);
-  void setG3(const FieldMetric& G3);
+  void setG1(const FieldMetric& G1) const;
+  void setG2(const FieldMetric& G2) const;
+  void setG3(const FieldMetric& G3) const;
 
   const FieldMetric& Grad2_par2_DDY_invSg(CELL_LOC outloc,
                                           const std::string& method) const;
@@ -286,10 +287,15 @@ public:
 
   ChristoffelSymbols& christoffel_symbols() const;
 
+  GValues& g_values() const;
+
   void recalculateAndReset(bool recalculate_staggered,
                            bool force_interpolate_from_centre);
 
   FieldMetric recalculateJacobian() const;
+
+  template <typename T, typename... Ts>
+  void communicate(T& t, Ts... ts) const;
 
 private:
   int nz; // Size of mesh in Z. This is mesh->ngz-1
@@ -329,6 +335,9 @@ private:
   /// Christoffel symbol of the second kind (connection coefficients)
   mutable std::unique_ptr<ChristoffelSymbols> christoffel_symbols_cache{nullptr};
 
+  /// `g_values` needs renaming, when we know what the name should be
+  mutable std::unique_ptr<GValues> g_values_cache{nullptr};
+
   void applyToContravariantMetricTensor(
       const std::function<const FieldMetric(const FieldMetric)>& function);
 
@@ -341,8 +350,6 @@ private:
   mutable std::unique_ptr<FieldMetric> jacobian_cache{nullptr};
 
   FieldMetric Bxy_; ///< Magnitude of B = nabla z times nabla x
-
-  FieldMetric G1_, G2_, G3_;
 
   void invalidateAndRecalculateCachedVariables();
 
@@ -365,6 +372,9 @@ private:
   void communicateChristoffelSymbolTerms() const;
   void extrapolateChristoffelSymbols();
 
+  void communicateGValues() const;
+  void extrapolateGValues();
+
   FieldMetric recalculateBxy() const;
 
   /// Non-uniform meshes. Need to use DDX, DDY
@@ -376,6 +386,8 @@ private:
   void setBoundaryCells(Options* options, const std::string& suffix);
 
   FieldMetric getDzFromOptionsFile(Mesh* mesh, const std::string& suffix) const;
+
+  void fixZShiftGuards(Field2D& zShift) const;
 };
 
 /*
