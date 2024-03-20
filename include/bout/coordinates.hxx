@@ -38,8 +38,6 @@
 #include "bout/metric_tensor.hxx"
 #include "bout/paralleltransform.hxx"
 
-class Mesh;
-
 /*!
  * Represents a coordinate system, and associated operators
  */

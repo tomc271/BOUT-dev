@@ -50,12 +50,7 @@ class Mesh;
 #include <bout/mpi_wrapper.hxx>
 
 #include "bout/bout_types.hxx"
-#include "bout/field2d.hxx"
-#include "bout/field3d.hxx"
-#include "bout/field_data.hxx"
 #include "bout/options.hxx"
-
-#include "fieldgroup.hxx"
 
 #include "bout/boundary_region.hxx"
 #include "bout/parallel_boundary_region.hxx"
@@ -64,10 +59,9 @@ class Mesh;
 
 #include <bout/griddata.hxx>
 
-#include "coordinates.hxx" // Coordinates class
-
 #include "bout/unused.hxx"
 
+#include "mesh_interface.hxx"
 #include "bout/generic_factory.hxx"
 #include <bout/region.hxx>
 
@@ -93,10 +87,8 @@ public:
 template <class DerivedType>
 using RegisterMesh = MeshFactory::RegisterInFactory<DerivedType>;
 
-/// Type used to return pointers to handles
-using comm_handle = void*;
 
-class Mesh {
+class Mesh : public MeshInterface {
 public:
   /// Constructor for a "bare", uninitialised Mesh
   /// Only useful for testing
@@ -349,14 +341,14 @@ public:
   ///
   /// \param g Group of fields to communicate
   /// \returns handle to be used as input to wait()
-  virtual comm_handle send(FieldGroup& g) = 0;
+  virtual comm_handle send(FieldGroup& g) override = 0;
 
   /// Send only the x-guard cells
   virtual comm_handle sendX(FieldGroup& g, comm_handle handle = nullptr,
-                            bool disable_corners = false) = 0;
+                            bool disable_corners = false) override = 0;
 
   /// Send only the y-guard cells
-  virtual comm_handle sendY(FieldGroup& g, comm_handle handle = nullptr) = 0;
+  virtual comm_handle sendY(FieldGroup& g, comm_handle handle = nullptr) override = 0;
 
   /// Wait for the handle, return error code
   virtual int wait(comm_handle handle) = 0; ///< Wait for the handle, return error code
