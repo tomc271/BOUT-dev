@@ -2,11 +2,7 @@
 #ifndef BOUT_MESH_INTERFACE_HXX
 #define BOUT_MESH_INTERFACE_HXX
 
-#include "coordinates.hxx"
-#include "fieldgroup.hxx"
-#include "bout/field2d.hxx"
-#include "bout/field3d.hxx"
-#include "bout/field_data.hxx"
+class FieldGroup;
 
 /// Type used to return pointers to handles
 using comm_handle = void*;

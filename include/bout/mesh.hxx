@@ -50,7 +50,12 @@ class Mesh;
 #include <bout/mpi_wrapper.hxx>
 
 #include "bout/bout_types.hxx"
+#include "bout/field2d.hxx"
+#include "bout/field3d.hxx"
+#include "bout/field_data.hxx"
 #include "bout/options.hxx"
+
+#include "fieldgroup.hxx"
 
 #include "bout/boundary_region.hxx"
 #include "bout/parallel_boundary_region.hxx"
