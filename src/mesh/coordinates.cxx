@@ -437,6 +437,9 @@ Coordinates::Coordinates(Mesh* mesh, Options* mesh_options, const CELL_LOC loc,
     mesh_options = Options::getRoot()->getSection("mesh");
   }
 
+  // required early for differentiation.
+  setParallelTransform(mesh_options);
+
   nz = mesh->LocalNz;
 
   const std::string suffix = getLocationSuffix(location);
@@ -501,8 +504,6 @@ void Coordinates::interpolateFieldsFromOtherCoordinates(Options* mesh_options,
         "require dz! \nPlease provide a dz for the staggered quantity!");
   }
 
-  setParallelTransform(mesh_options);
-
   dx_ = interpolateAndExtrapolate(coords_in->dx(), location, true, true, false,
                                   transform.get());
   dy_ = interpolateAndExtrapolate(coords_in->dy(), location, true, true, false,
@@ -533,9 +534,6 @@ void Coordinates::setBoundaryCells(Options* mesh_options, const std::string& suf
   }
 
   dz_ = getDzFromOptionsFile(localmesh, suffix);
-
-  // required early for differentiation.
-  setParallelTransform(mesh_options);
 
   dz_ = interpolateAndExtrapolate(dz_, location, extrapolate_x, extrapolate_y, false,
                                   transform.get());
