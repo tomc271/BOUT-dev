@@ -8,7 +8,7 @@
 #include <iostream>
 #include <mpi.h>
 
-#if BOUT_USE_BACKTRACE
+#if BOUT_USE_BACKTRACE && HAVE_DLFCN_H
 #include <dlfcn.h>
 #include <execinfo.h>
 #endif
@@ -45,7 +45,7 @@ BoutException::~BoutException() {
 
 std::string BoutException::getBacktrace() const {
   std::string backtrace_message;
-#if BOUT_USE_BACKTRACE
+#if BOUT_USE_BACKTRACE && HAVE_DLFCN_H
   backtrace_message = "====== Exception path ======\n";
   // skip first stack frame (points here)
   for (int i = trace_size - 1; i > 1; --i) {
@@ -99,7 +99,7 @@ std::string BoutException::getBacktrace() const {
 }
 
 void BoutException::makeBacktrace() {
-#if BOUT_USE_BACKTRACE
+#if BOUT_USE_BACKTRACE && HAVE_DLFCN_H
   trace_size = backtrace(trace, TRACE_MAX);
   messages = backtrace_symbols(trace, trace_size);
 #endif
