@@ -44,6 +44,8 @@ target_link_libraries(pvode PUBLIC MPI::MPI_CXX)
 
 add_library(pvpre
   include/pvode/pvbbdpre.h
+  source/nvector.cpp
+  source/llnlmath.cpp
   precon/pvbbdpre.cpp
   precon/band.cpp
   precon/band.h
