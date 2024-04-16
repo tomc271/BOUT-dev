@@ -786,7 +786,7 @@ class uuid_time_generator {
     mac_address addr;
     std::copy(pips->Address, pips->Address + 6, std::begin(addr));
     device_address = addr;
-    has_mac_address = true
+    has_mac_address = true;
 #endif
 
         return has_mac_address;
