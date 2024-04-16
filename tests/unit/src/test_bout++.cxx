@@ -58,7 +58,9 @@ class SignalHandlerTest : public ::testing::Test {
 public:
   SignalHandlerTest() = default;
   virtual ~SignalHandlerTest() {
+#ifndef _WIN32
     std::signal(SIGUSR1, SIG_DFL);
+#endif
     std::signal(SIGFPE, SIG_DFL);
     std::signal(SIGSEGV, SIG_DFL);
 #if BOUT_USE_SIGFPE

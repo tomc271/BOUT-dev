@@ -224,7 +224,7 @@ void setupSignalHandler(SignalHandler signal_handler) {
   feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
 #endif
 
-#ifndef _MSC_VER
+#if not defined _MSC_VER && not defined _WIN32
   /// Trap SIGUSR1 to allow a clean exit after next write
   std::signal(SIGUSR1, signal_handler);
 #endif
@@ -935,7 +935,7 @@ void bout_signal_handler(int sig) {
   case SIGINT:
     throw BoutException("\n****** SigInt caught ******\n\n");
     break;
-#ifndef _MSC_VER
+#if not defined _MSC_VER && not defined _WIN32
   case SIGKILL:
     throw BoutException("\n****** SigKill caught ******\n\n");
     break;
