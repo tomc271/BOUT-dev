@@ -585,7 +585,11 @@ check_cxx_source_compiles("int main() { const char* name = __PRETTY_FUNCTION__; 
 set(BOUT_HAS_PRETTY_FUNCTION ${HAS_PRETTY_FUNCTION})
 
 # Locations of the various Python modules, including the generated boutconfig module
-set(BOUT_PYTHONPATH "${CMAKE_CURRENT_BINARY_DIR}/tools/pylib:${CMAKE_CURRENT_SOURCE_DIR}/tools/pylib")
+if (WIN32)
+  set(BOUT_PYTHONPATH "${CMAKE_CURRENT_BINARY_DIR}/tools/pylib\;${CMAKE_CURRENT_SOURCE_DIR}/tools/pylib")
+else ()
+  set(BOUT_PYTHONPATH "${CMAKE_CURRENT_BINARY_DIR}/tools/pylib:${CMAKE_CURRENT_SOURCE_DIR}/tools/pylib")
+endif ()
 # Variables for boutconfig module -- note that these will contain
 # generator expressions and CMake targets, and not generally be very
 # useful
