@@ -107,4 +107,4 @@ if __name__ == "__main__":
         )
         out.write(template.render(**args) + "\n")
 
-    os.rename(tmpf, outf)
+    os.replace(tmpf, outf)
