@@ -72,7 +72,7 @@ public:
 
 using SignalHandlerTestDeathTest = SignalHandlerTest;
 
-#if !defined(__NVCC__)
+#if !defined(__NVCC__) && !defined(_WIN32)
 TEST_F(SignalHandlerTestDeathTest, SegFault) {
   bout::experimental::setupSignalHandler(bout::experimental::defaultSignalHandler);
   // This test is *incredibly* expensive, maybe as much as 1s, so only test the one signal
@@ -81,6 +81,7 @@ TEST_F(SignalHandlerTestDeathTest, SegFault) {
 #endif
 #endif
 
+#ifndef _WIN32
 TEST(ParseCommandLineArgs, DataDir) {
   std::vector<std::string> v_args{"test", "-d", "test_data_directory"};
   auto v_args_copy = v_args;
@@ -326,6 +327,7 @@ TEST(ParseCommandLineArgs, ColorLong) {
   EXPECT_TRUE(args.color_output);
   EXPECT_EQ(args.original_argv, v_args);
 }
+#endif
 
 class PrintStartupTest : public ::testing::Test {
 public:
