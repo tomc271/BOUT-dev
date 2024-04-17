@@ -72,6 +72,14 @@ function(bout_update_submodules)
   endif()
 endfunction()
 
+if (MINGW OR CYGWIN)
+  if (CMAKE_VERSION VERSION_LESS "2.8.12")
+    add_compile_options("-Wa,-mbig-obj")
+  else()
+    add_definitions("-Wa,-mbig-obj")
+  endif()
+endif()
+
 set(BOUT_SOURCES
   ./include/bout/array.hxx
   ./include/bout/assert.hxx
