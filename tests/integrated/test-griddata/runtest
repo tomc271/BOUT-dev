@@ -3,6 +3,8 @@
 from __future__ import print_function
 from __future__ import division
 
+import os
+
 try:
     from builtins import str
 except:
@@ -19,7 +21,10 @@ build_and_log("griddata test")
 for nproc in [1]:
     stdout.write("Checking %d processors ... " % (nproc))
 
-    shell("rm ./data*nc")
+    if os.name == "nt":
+        shell("del data*nc")
+    else:
+        shell("rm ./data*nc")
     s, out = launch_safe("./test_griddata -d screw", nproc=nproc, pipe=True)
 
     with open("run.log." + str(nproc), "w") as f:

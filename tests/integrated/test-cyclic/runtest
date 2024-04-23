@@ -9,6 +9,8 @@
 
 from __future__ import print_function
 
+import os
+
 try:
     from builtins import str
 except:
@@ -31,7 +33,10 @@ for nproc in [1, 2, 4]:
     for f in flags:
         stdout.write("\tflags '" + f + "' ... ")
 
-        shell("rm data/BOUT.dmp.* 2> err.log")
+        if os.name == "nt":
+            shell("del data\\BOUT.dmp.* 2> err.log")
+        else:
+            shell("rm data/BOUT.dmp.* 2> err.log")
 
         # Run the case
         status, out = launch(cmd + " " + f, nproc=nproc, mthread=1, pipe=True)

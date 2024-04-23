@@ -4,6 +4,7 @@
 #
 # requires: netcdf
 # cores: 2
+import os
 
 from boutdata.collect import collect
 from boututils.run_wrapper import build_and_log, shell, launch_safe
@@ -40,7 +41,10 @@ testvars = {
 
 for nproc in [1, 2]:
     # delete any existing output
-    shell("rm -f data/BOUT.dmp.*.nc data/BOUT.restart.*.nc")
+    if os.name == "nt":
+        shell("del -f data\\BOUT.dmp.*.nc data\\BOUT.restart.*.nc")
+    else:
+        shell("rm -f data/BOUT.dmp.*.nc data/BOUT.restart.*.nc")
 
     print(f"   {nproc} processor....")
 
@@ -69,9 +73,10 @@ for nproc in [1, 2]:
 if success:
     print("=> All DataFileFacade tests passed")
     # clean up binary files
-    shell(
-        "rm -f data/BOUT.dmp.*.nc data/BOUT.restart.*.nc data/restart/BOUT.restart.0.nc"
-    )
+    if os.name == "nt":
+        shell("del -f data\\BOUT.dmp.*.nc data\\BOUT.restart.*.nc data\\restart\\BOUT.restart.0.nc")
+    else:
+        shell("rm -f data/BOUT.dmp.*.nc data/BOUT.restart.*.nc data/restart/BOUT.restart.0.nc")
     exit(0)
 
 print("=> Some failed tests")

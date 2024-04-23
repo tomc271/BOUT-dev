@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 
 import numpy as np
 from sys import exit
@@ -27,8 +28,12 @@ command = "./test-communications NXPE=" + str(nxpe)
 
 build_and_log("Communications Test")
 
-# remove old outputs
-shell("rm data/BOUT.dmp.*")
+if os.name == "nt":
+    command = "test-communications NXPE=" + str(nxpe)
+    shell("del data\\BOUT.dmp.*") # remove old outputs
+else:
+    command = "./test-communications NXPE=" + str(nxpe)
+    shell("rm data/BOUT.dmp.*") # remove old outputs
 
 print("Running Communications Test, nproc=" + str(nxpe * nype))
 
@@ -178,10 +183,13 @@ test(f[:, -1], [108, 109, 110, 111], 0, region, "upper y")
 
 # With nxpe=2, neither separatrix is on a processor boundary
 nxpe = 2
-command = "./test-communications NXPE=" + str(nxpe)
 
-# remove old outputs
-shell("rm data/BOUT.dmp.*")
+if os.name == "nt":
+    command = "test-communications NXPE=" + str(nxpe)
+    shell("del data\\BOUT.dmp.*") # remove old outputs
+else:
+    command = "./test-communications NXPE=" + str(nxpe)
+    shell("rm data/BOUT.dmp.*") # remove old outputs
 
 print("Running Communications Test, nproc=" + str(nxpe * nype))
 
@@ -277,10 +285,13 @@ test(f[:, -1], [107, 108, 109, 110, 111], 0, region, "upper y")
 ####################################################
 
 nxpe = 1
-command = "./test-communications NXPE=" + str(nxpe)
 
-# remove old outputs
-shell("rm data/BOUT.dmp.*")
+if os.name == "nt":
+    command = "test-communications NXPE=" + str(nxpe)
+    shell("del data\\BOUT.dmp.*") # remove old outputs
+else:
+    command = "./test-communications NXPE=" + str(nxpe)
+    shell("rm data/BOUT.dmp.*") # remove old outputs
 
 print("Running Communications Test, nproc=" + str(nxpe * nype))
 
@@ -341,10 +352,13 @@ nype = 1
 ####################################################
 
 nxpe = 3
-command = "./test-communications -d data_limiter NXPE=" + str(nxpe)
 
-# remove old outputs
-shell("rm data_limiter/BOUT.dmp.*")
+if os.name == "nt":
+    command = "test-communications -d data_limiter NXPE=" + str(nxpe)
+    shell("del data_limiter\\BOUT.dmp.*") # remove old outputs
+else:
+    command = "./test-communications -d data_limiter NXPE=" + str(nxpe)
+    shell("rm data_limiter/BOUT.dmp.*") # remove old outputs
 
 print("Running Communications Test, nproc=" + str(nxpe * nype))
 
@@ -377,10 +391,13 @@ test(f[:, -1], [28, 29, 30, 31], 0, region, "upper y")
 ####################################################
 
 nxpe = 2
-command = "./test-communications -d data_limiter NXPE=" + str(nxpe)
 
-# remove old outputs
-shell("rm data_limiter/BOUT.dmp.*")
+if os.name == "nt":
+    command = "test-communications -d data_limiter NXPE=" + str(nxpe)
+    shell("del data_limiter\\BOUT.dmp.*") # remove old outputs
+else:
+    command = "./test-communications -d data_limiter NXPE=" + str(nxpe)
+    shell("rm data_limiter/BOUT.dmp.*") # remove old outputs
 
 print("Running Communications Test, nproc=" + str(nxpe * nype))
 
@@ -406,10 +423,13 @@ test(f[:, -1], [27, 28, 29, 30, 31], 0, region, "upper y")
 ####################################################
 
 nxpe = 1
-command = "./test-communications -d data_limiter NXPE=" + str(nxpe)
 
-# remove old outputs
-shell("rm data_limiter/BOUT.dmp.*")
+if os.name == "nt":
+    command = "test-communications -d data_limiter NXPE=" + str(nxpe)
+    shell("del data_limiter\\BOUT.dmp.*") # remove old outputs
+else:
+    command = "./test-communications -d data_limiter NXPE=" + str(nxpe)
+    shell("rm data_limiter/BOUT.dmp.*") # remove old outputs
 
 print("Running Communications Test, nproc=" + str(nxpe * nype))
 
