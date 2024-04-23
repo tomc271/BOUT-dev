@@ -38,7 +38,7 @@ BoutException::~BoutException() {
   // up the msg_stack. We also won't know how many messages to pop, so
   // just clear everything
   msg_stack.clear();
-#if BOUT_USE_BACKTRACE
+#if BOUT_USE_BACKTRACE && HAVE_DLFCN_H
   free(messages);
 #endif
 }
