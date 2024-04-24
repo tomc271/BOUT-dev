@@ -1,1 +1,16 @@
-../test-drift-instability/runtest
+import sys
+import importlib.util
+from importlib.machinery import SourceFileLoader
+
+
+# From: https://gist.github.com/mportesdev/afb2ec26021ccabee0f67d6f7d18be3f
+module_name = "other-module"
+file_path = '../test-drift-instability/runtest'
+loader = SourceFileLoader(module_name, file_path)
+spec = importlib.util.spec_from_loader(module_name, loader)
+module = importlib.util.module_from_spec(spec)
+sys.modules[module_name] = module
+
+
+if __name__ == "__main__":
+    spec.loader.exec_module(module)
