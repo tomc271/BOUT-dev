@@ -416,7 +416,11 @@ execute_process(COMMAND ${Python3_EXECUTABLE} -c "import site ; print('/'.join(s
   OUTPUT_VARIABLE PYTHON_SITEPATH_SUFFIX
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
-set(CMAKE_INSTALL_PYTHON_SITEARCH lib/${PYTHON_SITEPATH_SUFFIX} CACHE STRING "Location to install python arch-specific modules")
+if (WIN32)
+  set(CMAKE_INSTALL_PYTHON_SITEARCH ${PYTHON_SITEPATH_SUFFIX} CACHE STRING "Location to install python arch-specific modules")
+else()
+  set(CMAKE_INSTALL_PYTHON_SITEARCH lib/${PYTHON_SITEPATH_SUFFIX} CACHE STRING "Location to install python arch-specific modules")
+endif()
 
 set(BOUT_ENABLE_PYTHON MAYBE CACHE STRING "Build the Python interface")
 if (BOUT_ENABLE_PYTHON OR BOUT_ENABLE_PYTHON STREQUAL "MAYBE")
