@@ -511,7 +511,7 @@ void checkDataDirectoryIsAccessible(const std::string& data_dir) {
 
 void savePIDtoFile(const std::string& data_dir, int MYPE) {
   std::stringstream filename;
-  filename << data_dir << "/.BOUT.pid." << MYPE;
+  filename << data_dir << ".BOUT.pid." << MYPE;
   std::ofstream pid_file;
   pid_file.open(filename.str(), std::ios::out | std::ios::trunc);
 

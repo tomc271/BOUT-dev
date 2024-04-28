@@ -414,9 +414,18 @@ TEST(BoutInitialiseFunctions, CheckDataDirectoryIsAccessible) {
 TEST(BoutInitialiseFunctions, SavePIDtoFile) {
   WithQuietOutput quiet{output_info};
 
+#ifdef _WIN32
+  EXPECT_NO_THROW(bout::experimental::savePIDtoFile("tmp", 1));
+#else
   EXPECT_NO_THROW(bout::experimental::savePIDtoFile("/tmp", 1));
+#endif
 
+#ifdef _WIN32
+  std::string filename{"tmp.BOUT.pid.1"};
+#else
   std::string filename{"/tmp/.BOUT.pid.1"};
+#endif
+
   std::ifstream pid_file;
   pid_file.open(filename);
 
