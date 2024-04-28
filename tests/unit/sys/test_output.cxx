@@ -12,6 +12,9 @@ public:
   OutputTest() : sbuf(std::cout.rdbuf()) {
     // Redirect cout to our stringstream buffer or any other ostream
     std::cout.rdbuf(buffer.rdbuf());
+#ifdef _WIN32
+    filename.erase(0, 1); // std::tmpnam() produces a filename prepended by '\', which is invalid on Windows
+#endif
   }
 
   virtual ~OutputTest() {

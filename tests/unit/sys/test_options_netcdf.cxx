@@ -25,7 +25,11 @@ extern Mesh* mesh;
 // Reuse the "standard" fixture for FakeMesh
 class OptionsNetCDFTest : public FakeMeshFixture {
 public:
-  OptionsNetCDFTest() : FakeMeshFixture() {}
+  OptionsNetCDFTest() : FakeMeshFixture() {
+#ifdef _WIN32
+    filename.erase(0, 1); // std::tmpnam() produces a filename prepended by '\', which is invalid on Windows
+#endif
+  }
   ~OptionsNetCDFTest() override { std::remove(filename.c_str()); }
 
   // A temporary filename
