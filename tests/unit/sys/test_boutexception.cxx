@@ -33,7 +33,7 @@ TEST(BoutExceptionTest, GetBacktrace) {
   } catch (const BoutException& e) {
     std::string expected_1{"[bt] #1"};
     std::string expected_2{"serial_tests"};
-#if BOUT_USE_BACKTRACE
+#if BOUT_USE_BACKTRACE && HAVE_DLFCN_H
     // Should be able to find something about backtrace
     EXPECT_TRUE(IsSubString(e.getBacktrace(), expected_1));
     EXPECT_TRUE(IsSubString(e.getBacktrace(), expected_2));
