@@ -271,7 +271,27 @@ TEST(TimerTest, ListAllInfo) {
 
   using namespace ::testing;
   EXPECT_THAT(cout_capture.str(), HasSubstr("Timer name         |"));
+
+#ifdef _WIN32
+  auto matcher1 = ContainsRegex("one *");
+  auto matcher2 = ContainsRegex(" 0\\.\\d+ ");
+  auto matcher3 = ContainsRegex(" 1    ");
+  auto matcher4 = ContainsRegex(" 0\\.\\d+");
+  EXPECT_THAT(cout_capture.str(), AnyOf(matcher1, matcher2, matcher3, matcher4));
+#else
   EXPECT_THAT(cout_capture.str(), ContainsRegex("one *| 0\\.\\d+ | 1    | 0\\.\\d+"));
+#endif
+
+#ifdef _WIN32
+  auto matcher_1 = ContainsRegex("two *");
+  auto matcher_2 = ContainsRegex(" 0 * ");
+  auto matcher_3 = ContainsRegex(" 2    ");
+  auto matcher_4 = ContainsRegex(" 0\\.\\d+");
+  EXPECT_THAT(cout_capture.str(), AnyOf(matcher_1, matcher_2, matcher_3, matcher_4));
+
+#else
   EXPECT_THAT(cout_capture.str(), ContainsRegex("two *| 0 * | 2    | 0\\.\\d+"));
+#endif
+
 }
 #endif
