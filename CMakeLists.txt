@@ -352,6 +352,7 @@ set(BOUT_SOURCES
   ./src/sys/timer.cxx
   ./src/sys/type_name.cxx
   ./src/sys/utils.cxx
+  ./include/bout/spatial_dimensions.hxx
   ./include/bout/metric_tensor.hxx
   ./src/mesh/metric_tensor.cxx
   ./include/bout/christoffel_symbols.hxx

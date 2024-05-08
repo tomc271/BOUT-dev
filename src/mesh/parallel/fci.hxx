@@ -43,7 +43,7 @@ class FCIMap {
 
 public:
   FCIMap() = delete;
-  FCIMap(Mesh& mesh, const Coordinates::FieldMetric& dy, Options& options, int offset,
+  FCIMap(Mesh& mesh, const SpatialDimensions::FieldMetric& dy, Options& options, int offset,
          const std::shared_ptr<BoundaryRegionPar>& inner_boundary,
          const std::shared_ptr<BoundaryRegionPar>& outer_boundary, bool zperiodic);
 
@@ -71,7 +71,7 @@ public:
 class FCITransform : public ParallelTransform {
 public:
   FCITransform() = delete;
-  FCITransform(Mesh& mesh, const Coordinates::FieldMetric& dy, bool zperiodic = true,
+  FCITransform(Mesh& mesh, const SpatialDimensions::FieldMetric& dy, bool zperiodic = true,
                Options* opt = nullptr)
       : ParallelTransform(mesh, opt) {
 

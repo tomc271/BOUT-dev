@@ -21,7 +21,7 @@ class LAPDdrift : public PhysicsModel {
 private:
   // 2D initial profiles
   Field2D Ni0, Ti0, Te0, Vi0, phi0, Ve0, Ajpar0, src_ni0;
-  Coordinates::FieldMetric rho0;
+  SpatialDimensions::FieldMetric rho0;
   Vector2D b0xcv; // for curvature terms
 
   // 3D evolving fields
@@ -332,7 +332,7 @@ protected:
 
     /**************** CALCULATE METRICS ******************/
 
-    MetricTensor::FieldMetric g11, g22, g33, g12, g13, g23;
+    SpatialDimensions::FieldMetric g11, g22, g33, g12, g13, g23;
     g11 = SQ(Rxy * Bpxy);
     g22 = 1.0 / SQ(hthe);
     g33 = SQ(I) * coord->g11() + SQ(coord->Bxy()) / coord->g11();
@@ -344,7 +344,7 @@ protected:
 
     coord->setJ(hthe / Bpxy);
 
-    MetricTensor::FieldMetric g_11, g_22, g_33, g_12, g_13, g_23;
+    SpatialDimensions::FieldMetric g_11, g_22, g_33, g_12, g_13, g_23;
     g_11 = 1.0 / coord->g11() + SQ(I * Rxy);
     g_22 = SQ(coord->Bxy() * hthe / Bpxy);
     g_33 = Rxy * Rxy;
@@ -735,7 +735,7 @@ protected:
   /////////////////////////////////////////////////////////////////
 
   /****************SPECIAL DIFFERENTIAL OPERATORS******************/
-  Coordinates::FieldMetric Perp_Grad_dot_Grad(const Field2D& p, const Field2D& f) {
+  SpatialDimensions::FieldMetric Perp_Grad_dot_Grad(const Field2D& p, const Field2D& f) {
 
     return DDX(p) * DDX(f) * mesh->getCoordinates()->g11();
   }
@@ -744,8 +744,8 @@ protected:
   // ExB terms. These routines allow comparisons with BOUT-06
   // if bout_exb=true is set in BOUT.inp
   /////////////////////////////////////////////////////////////////
-  Coordinates::FieldMetric vE_Grad(const Field2D& f, const Field2D& p) {
-    Coordinates::FieldMetric result;
+  SpatialDimensions::FieldMetric vE_Grad(const Field2D& f, const Field2D& p) {
+    SpatialDimensions::FieldMetric result;
     if (bout_exb) {
       // Use a subset of terms for comparison to BOUT-06
       result = 0.0;

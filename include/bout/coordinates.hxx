@@ -38,18 +38,14 @@
 #include "bout/metric_tensor.hxx"
 #include "bout/paralleltransform.hxx"
 
-class Mesh;
+using FieldMetric = SpatialDimensions::FieldMetric;
 
 /*!
  * Represents a coordinate system, and associated operators
  */
 class Coordinates {
+
 public:
-#if BOUT_USE_METRIC_3D
-  using FieldMetric = Field3D;
-#else
-  using FieldMetric = Field2D;
-#endif
 
   /// Constructor interpolating from another Coordinates object
   /// By default attempts to read staggered Coordinates from grid data source,
@@ -94,9 +90,6 @@ public:
   void setD1_dy(FieldMetric d1_dy) { d1_dy_ = std::move(d1_dy); }
   void setD1_dz(FieldMetric d1_dz) { d1_dz_ = std::move(d1_dz); }
 
-  /// Length of the Z domain. Used for FFTs
-  const Field2D& zlength() const;
-
   /// True if corrections for non-uniform mesh spacing should be included in operators
   bool non_uniform() const { return non_uniform_; }
   void setNon_uniform(bool non_uniform) { non_uniform_ = non_uniform; }
@@ -107,20 +100,20 @@ public:
   const FieldMetric& d1_dz() const { return d1_dz_; }
 
   /// Covariant metric tensor
-  const MetricTensor::FieldMetric& g_11() const { return covariantMetricTensor.g11(); }
-  const MetricTensor::FieldMetric& g_22() const { return covariantMetricTensor.g22(); }
-  const MetricTensor::FieldMetric& g_33() const { return covariantMetricTensor.g33(); }
-  const MetricTensor::FieldMetric& g_12() const { return covariantMetricTensor.g12(); }
-  const MetricTensor::FieldMetric& g_13() const { return covariantMetricTensor.g13(); }
-  const MetricTensor::FieldMetric& g_23() const { return covariantMetricTensor.g23(); }
+  const FieldMetric& g_11() const { return covariantMetricTensor.g11(); }
+  const FieldMetric& g_22() const { return covariantMetricTensor.g22(); }
+  const FieldMetric& g_33() const { return covariantMetricTensor.g33(); }
+  const FieldMetric& g_12() const { return covariantMetricTensor.g12(); }
+  const FieldMetric& g_13() const { return covariantMetricTensor.g13(); }
+  const FieldMetric& g_23() const { return covariantMetricTensor.g23(); }
 
   /// Contravariant metric tensor (g^{ij})
-  const MetricTensor::FieldMetric& g11() const { return contravariantMetricTensor.g11(); }
-  const MetricTensor::FieldMetric& g22() const { return contravariantMetricTensor.g22(); }
-  const MetricTensor::FieldMetric& g33() const { return contravariantMetricTensor.g33(); }
-  const MetricTensor::FieldMetric& g12() const { return contravariantMetricTensor.g12(); }
-  const MetricTensor::FieldMetric& g13() const { return contravariantMetricTensor.g13(); }
-  const MetricTensor::FieldMetric& g23() const { return contravariantMetricTensor.g23(); }
+  const FieldMetric& g11() const { return contravariantMetricTensor.g11(); }
+  const FieldMetric& g22() const { return contravariantMetricTensor.g22(); }
+  const FieldMetric& g33() const { return contravariantMetricTensor.g33(); }
+  const FieldMetric& g12() const { return contravariantMetricTensor.g12(); }
+  const FieldMetric& g13() const { return contravariantMetricTensor.g13(); }
+  const FieldMetric& g23() const { return contravariantMetricTensor.g23(); }
 
   const ContravariantMetricTensor& getContravariantMetricTensor() const {
     return contravariantMetricTensor;
@@ -166,23 +159,28 @@ public:
     IntShiftTorsion_ = std::move(IntShiftTorsion);
   }
 
+  /// Gradient along magnetic field  b.Grad(f)
+  FieldMetric Grad_par(const Field2D& var, CELL_LOC outloc = CELL_DEFAULT,
+                       const std::string& method = "DEFAULT");
+
+  Field3D Grad_par(const Field3D& var, CELL_LOC outloc = CELL_DEFAULT,
+                   const std::string& method = "DEFAULT");
+
+  /// Advection along magnetic field V*b.Grad(f)
+  FieldMetric Vpar_Grad_par(const Field2D& v, const Field2D& f,
+                            CELL_LOC outloc = CELL_DEFAULT,
+                            const std::string& method = "DEFAULT");
+
+  /// Divergence along magnetic field  Div(b*f) = B.Grad(f/B)
+  FieldMetric Div_par(const Field2D& f, CELL_LOC outloc = CELL_DEFAULT,
+                      const std::string& method = "DEFAULT");
+
+  Field3D Div_par(const Field3D& f, CELL_LOC outloc = CELL_DEFAULT,
+                  const std::string& method = "DEFAULT");
+
+private:
+
   int communicateAndCheckMeshSpacing() const;
-
-  ///////////////////////////////////////////////////////////
-  // Parallel transforms
-  ///////////////////////////////////////////////////////////
-
-  /// Set the parallel (y) transform for this mesh.
-  /// Mostly useful for tests.
-  void setParallelTransform(std::unique_ptr<ParallelTransform> pt) {
-    transform = std::move(pt);
-  }
-
-  /// Return the parallel transform
-  ParallelTransform& getParallelTransform() {
-    ASSERT1(transform != nullptr);
-    return *transform;
-  }
 
   ///////////////////////////////////////////////////////////
   // Operators
@@ -212,28 +210,9 @@ public:
               const std::string& method = "DEFAULT",
               const std::string& region = "RGN_NOBNDRY") const;
 
-  /// Gradient along magnetic field  b.Grad(f)
-  FieldMetric Grad_par(const Field2D& var, CELL_LOC outloc = CELL_DEFAULT,
-                       const std::string& method = "DEFAULT");
-
-  Field3D Grad_par(const Field3D& var, CELL_LOC outloc = CELL_DEFAULT,
-                   const std::string& method = "DEFAULT");
-
-  /// Advection along magnetic field V*b.Grad(f)
-  FieldMetric Vpar_Grad_par(const Field2D& v, const Field2D& f,
-                            CELL_LOC outloc = CELL_DEFAULT,
-                            const std::string& method = "DEFAULT");
-
   Field3D Vpar_Grad_par(const Field3D& v, const Field3D& f,
                         CELL_LOC outloc = CELL_DEFAULT,
                         const std::string& method = "DEFAULT");
-
-  /// Divergence along magnetic field  Div(b*f) = B.Grad(f/B)
-  FieldMetric Div_par(const Field2D& f, CELL_LOC outloc = CELL_DEFAULT,
-                      const std::string& method = "DEFAULT");
-
-  Field3D Div_par(const Field3D& f, CELL_LOC outloc = CELL_DEFAULT,
-                  const std::string& method = "DEFAULT");
 
   // Second derivative along magnetic field
   FieldMetric Grad2_par2(const Field2D& f, CELL_LOC outloc = CELL_DEFAULT,
@@ -264,6 +243,8 @@ public:
   // Full perpendicular Laplacian, in form of inverse of Laplacian operator in LaplaceXY
   // solver
   Field2D Laplace_perpXY(const Field2D& A, const Field2D& f) const;
+
+public:
 
   /// Christoffel symbol of the second kind (connection coefficients)
   const FieldMetric& G1_11() const { return christoffel_symbols().G1_11(); }
@@ -302,13 +283,31 @@ public:
 
   GValues& g_values() const;
 
-  void recalculateAndReset(bool recalculate_staggered,
-                           bool force_interpolate_from_centre);
-
   FieldMetric recalculateJacobian() const;
 
-  template <typename T, typename... Ts>
-  void communicate(T& t, Ts... ts) const;
+public:
+
+  /// Length of the Z domain. Used for FFTs
+  const Field2D& zlength() const;
+
+  ///////////////////////////////////////////////////////////
+  // Parallel transforms
+  ///////////////////////////////////////////////////////////
+
+  /// Set the parallel (y) transform for this mesh.
+  /// Mostly useful for tests.
+  void setParallelTransform(std::unique_ptr<ParallelTransform> pt) {
+    transform = std::move(pt);
+  }
+
+  /// Return the parallel transform
+  ParallelTransform& getParallelTransform() {
+    ASSERT1(transform != nullptr);
+    return *transform;
+  }
+
+  void recalculateAndReset(bool recalculate_staggered,
+                           bool force_interpolate_from_centre);
 
 private:
   int nz; // Size of mesh in Z. This is mesh->ngz-1
