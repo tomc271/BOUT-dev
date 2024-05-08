@@ -38,8 +38,10 @@
 
 #include "bout/boutcomm.hxx"
 #include "bout/difops.hxx" // Differential operators
-#include "bout/field2d.hxx"
+
 #include "bout/field3d.hxx"
+#include "bout/field2d.hxx"
+
 #include "bout/globals.hxx"
 #include "bout/mesh.hxx"
 #include "bout/options_io.hxx"

@@ -7,7 +7,7 @@
 #include "bout/metric_tensor.hxx"
 #include <bout/bout_types.hxx>
 
-using FieldMetric = MetricTensor::FieldMetric;
+using FieldMetric = SpatialDimensions::FieldMetric;
 
 class Coordinates;
 

@@ -68,6 +68,7 @@ class BoundaryRegionPar;
 
 #include "bout/unused.hxx"
 
+#include "spatial_dimensions.hxx"
 #include "bout/generic_factory.hxx"
 #include <bout/region.hxx>
 
@@ -102,7 +103,9 @@ using RegisterMesh = MeshFactory::RegisterInFactory<DerivedType>;
 using comm_handle = void*;
 
 class Mesh {
+
 public:
+
   /// Constructor for a "bare", uninitialised Mesh
   /// Only useful for testing
   Mesh() : source(nullptr), options(nullptr), include_corner_cells(true) {}
@@ -203,7 +206,7 @@ public:
   /// @param[in] communicate  Should the field be communicated to fill guard cells?
   ///
   /// @returns the value. Will be allocated if needed
-  Coordinates::FieldMetric get(const std::string& name, BoutReal def = 0.0,
+  SpatialDimensions::FieldMetric get(const std::string& name, BoutReal def = 0.0,
                                bool communicate = true, CELL_LOC location = CELL_DEFAULT);
 
   /// Get a Field3D from the input source

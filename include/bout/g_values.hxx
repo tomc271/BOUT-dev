@@ -4,7 +4,7 @@
 
 #include "bout/metric_tensor.hxx"
 
-using FieldMetric = MetricTensor::FieldMetric;
+using FieldMetric = SpatialDimensions::FieldMetric;
 
 /// `GValues` needs renaming, when we know what the name should be
 class GValues {

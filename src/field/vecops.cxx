@@ -143,7 +143,7 @@ Vector2D Grad_perp(const Field2D& f, CELL_LOC outloc, const std::string& method)
  * Divergence operators
  **************************************************************************/
 
-Coordinates::FieldMetric Div(const Vector2D& v, CELL_LOC outloc,
+SpatialDimensions::FieldMetric Div(const Vector2D& v, CELL_LOC outloc,
                              const std::string& method) {
   TRACE("Div( Vector2D )");
   SCOREP0();
@@ -161,7 +161,7 @@ Coordinates::FieldMetric Div(const Vector2D& v, CELL_LOC outloc,
   Vector2D vcn = v;
   vcn.toContravariant();
 
-  Coordinates::FieldMetric result = DDX(metric->J() * vcn.x, outloc, method);
+  SpatialDimensions::FieldMetric result = DDX(metric->J() * vcn.x, outloc, method);
   result += DDY(metric->J() * vcn.y, outloc, method);
   result += DDZ(metric->J() * vcn.z, outloc, method);
   result /= metric->J();
@@ -207,7 +207,7 @@ Field3D Div(const Vector3D& v, CELL_LOC outloc, const std::string& method) {
  * Divergence operators for flux methods
  **************************************************************************/
 
-Coordinates::FieldMetric Div(const Vector2D& v, const Field2D& f, CELL_LOC outloc,
+SpatialDimensions::FieldMetric Div(const Vector2D& v, const Field2D& f, CELL_LOC outloc,
                              const std::string& method) {
   TRACE("Div( Vector2D, Field2D )");
   SCOREP0();
@@ -225,7 +225,7 @@ Coordinates::FieldMetric Div(const Vector2D& v, const Field2D& f, CELL_LOC outlo
   Vector2D vcn = v;
   vcn.toContravariant();
 
-  Coordinates::FieldMetric result =
+  SpatialDimensions::FieldMetric result =
       FDDX(vcn.x.getCoordinates()->J() * vcn.x, f, outloc, method);
   result += FDDY(vcn.y.getCoordinates()->J() * vcn.y, f, outloc, method);
   result += FDDZ(vcn.z.getCoordinates()->J() * vcn.z, f, outloc, method);
@@ -322,7 +322,7 @@ Vector3D Curl(const Vector3D& v) {
 /**************************************************************************
  * Upwinding operators
  **************************************************************************/
-Coordinates::FieldMetric V_dot_Grad(const Vector2D& v, const Field2D& f) {
+SpatialDimensions::FieldMetric V_dot_Grad(const Vector2D& v, const Field2D& f) {
   TRACE("V_dot_Grad( Vector2D , Field2D )");
   SCOREP0();
 

@@ -52,12 +52,15 @@ public:
   Vector2D(const Vector2D& f);
 
   /// Many-argument constructor for fully specifying the initialisation of a Vector3D
-  Vector2D(Mesh* localmesh = nullptr, bool covariant = true,
+  explicit Vector2D(Mesh* localmesh = nullptr, bool covariant = true,
            CELL_LOC location = CELL_LOC::centre);
 
   ~Vector2D() override;
 
-  Coordinates::FieldMetric x, y, z; ///< components
+  ///< components
+  SpatialDimensions::FieldMetric x;
+  SpatialDimensions::FieldMetric y;
+  SpatialDimensions::FieldMetric z;
 
   bool covariant{true}; ///< true if the components are covariant (default)
 
@@ -132,7 +135,7 @@ public:
   const Vector3D
   operator/(const Field3D& rhs) const; ///< Divides all components by \p rhs
 
-  const Coordinates::FieldMetric operator*(const Vector2D& rhs) const; ///< Dot product
+  const SpatialDimensions::FieldMetric operator*(const Vector2D& rhs) const; ///< Dot product
   const Field3D operator*(const Vector3D& rhs) const;                  ///< Dot product
 
   /// Set component locations consistently
@@ -176,7 +179,7 @@ const Vector3D cross(const Vector2D& lhs, const Vector3D& rhs);
  *
  * |v| = sqrt( v dot v )
  */
-Coordinates::FieldMetric abs(const Vector2D& v, const std::string& region = "RGN_ALL");
+SpatialDimensions::FieldMetric abs(const Vector2D& v, const std::string& region = "RGN_ALL");
 
 /// Transform to and from field-aligned coordinates
 inline Vector2D toFieldAligned(Vector2D v,
