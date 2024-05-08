@@ -33,23 +33,19 @@
 #ifndef BOUT_COORDINATES_H
 #define BOUT_COORDINATES_H
 
-#include "christoffel_symbols.hxx"
-#include "g_values.hxx"
 #include "bout/metric_tensor.hxx"
 #include "bout/paralleltransform.hxx"
+#include "christoffel_symbols.hxx"
+#include "g_values.hxx"
 
-class Mesh;
+using FieldMetric = SpatialDimensions::FieldMetric;
 
 /*!
  * Represents a coordinate system, and associated operators
  */
 class Coordinates {
+
 public:
-#if BOUT_USE_METRIC_3D
-  using FieldMetric = Field3D;
-#else
-  using FieldMetric = Field2D;
-#endif
 
   /// Constructor interpolating from another Coordinates object
   /// By default attempts to read staggered Coordinates from grid data source,
@@ -58,7 +54,7 @@ public:
   /// (useful if CELL_CENTRE Coordinates have been changed, so reading from file
   /// would not be correct).
   explicit Coordinates(Mesh* mesh, Options* options = nullptr, CELL_LOC loc = CELL_CENTRE,
-                       const Coordinates* coords_in = nullptr,
+                       Coordinates* coords_in = nullptr,
                        bool force_interpolate_from_centre = false);
 
   /// A constructor useful for testing purposes. To use it, inherit
@@ -76,9 +72,9 @@ public:
   void outputVars(Options& output_options);
 
   ///< Mesh spacing in x, y and z
-  const FieldMetric& dx() const { return dx_; }
-  const FieldMetric& dy() const { return dy_; }
-  const FieldMetric& dz() const { return dz_; }
+  FieldMetric& dx() { return dx_; }
+  FieldMetric& dy() { return dy_; }
+  FieldMetric& dz() { return dz_; }
 
   void setDx(FieldMetric dx) { dx_ = std::move(dx); }
   void setDy(FieldMetric dy) { dy_ = std::move(dy); }
@@ -94,57 +90,82 @@ public:
   void setD1_dy(FieldMetric d1_dy) { d1_dy_ = std::move(d1_dy); }
   void setD1_dz(FieldMetric d1_dz) { d1_dz_ = std::move(d1_dz); }
 
-  /// Length of the Z domain. Used for FFTs
-  const Field2D& zlength() const;
-
   /// True if corrections for non-uniform mesh spacing should be included in operators
   bool non_uniform() const { return non_uniform_; }
   void setNon_uniform(bool non_uniform) { non_uniform_ = non_uniform; }
 
   /// 2nd-order correction for non-uniform meshes d/di(1/dx), d/di(1/dy) and d/di(1/dz)
-  const FieldMetric& d1_dx() const { return d1_dx_; }
-  const FieldMetric& d1_dy() const { return d1_dy_; }
-  const FieldMetric& d1_dz() const { return d1_dz_; }
+  FieldMetric& d1_dx() { return d1_dx_; }
+  FieldMetric& d1_dy() { return d1_dy_; }
+  FieldMetric& d1_dz() { return d1_dz_; }
 
   /// Covariant metric tensor
-  const MetricTensor::FieldMetric& g_11() const { return covariantMetricTensor.g11(); }
-  const MetricTensor::FieldMetric& g_22() const { return covariantMetricTensor.g22(); }
-  const MetricTensor::FieldMetric& g_33() const { return covariantMetricTensor.g33(); }
-  const MetricTensor::FieldMetric& g_12() const { return covariantMetricTensor.g12(); }
-  const MetricTensor::FieldMetric& g_13() const { return covariantMetricTensor.g13(); }
-  const MetricTensor::FieldMetric& g_23() const { return covariantMetricTensor.g23(); }
+  FieldMetric& g_11() { return covariantMetricTensor.g11(); }
+  FieldMetric& g_22() { return covariantMetricTensor.g22(); }
+  FieldMetric& g_33() { return covariantMetricTensor.g33(); }
+  FieldMetric& g_12() { return covariantMetricTensor.g12(); }
+  FieldMetric& g_13() { return covariantMetricTensor.g13(); }
+  FieldMetric& g_23() { return covariantMetricTensor.g23(); }
 
   /// Contravariant metric tensor (g^{ij})
-  const MetricTensor::FieldMetric& g11() const { return contravariantMetricTensor.g11(); }
-  const MetricTensor::FieldMetric& g22() const { return contravariantMetricTensor.g22(); }
-  const MetricTensor::FieldMetric& g33() const { return contravariantMetricTensor.g33(); }
-  const MetricTensor::FieldMetric& g12() const { return contravariantMetricTensor.g12(); }
-  const MetricTensor::FieldMetric& g13() const { return contravariantMetricTensor.g13(); }
-  const MetricTensor::FieldMetric& g23() const { return contravariantMetricTensor.g23(); }
+  FieldMetric& g11() { return contravariantMetricTensor.g11(); }
+  FieldMetric& g22() { return contravariantMetricTensor.g22(); }
+  FieldMetric& g33() { return contravariantMetricTensor.g33(); }
+  FieldMetric& g12() { return contravariantMetricTensor.g12(); }
+  FieldMetric& g13() { return contravariantMetricTensor.g13(); }
+  FieldMetric& g23() { return contravariantMetricTensor.g23(); }
 
-  const ContravariantMetricTensor& getContravariantMetricTensor() const {
+  /// Christoffel symbol of the second kind (connection coefficients)
+  FieldMetric& G1_11() { return christoffel_symbols().G1_11(); }
+  FieldMetric& G1_22() { return christoffel_symbols().G1_22(); }
+  FieldMetric& G1_33() { return christoffel_symbols().G1_33(); }
+  FieldMetric& G1_12() { return christoffel_symbols().G1_12(); }
+  FieldMetric& G1_13() { return christoffel_symbols().G1_13(); }
+  FieldMetric& G1_23() { return christoffel_symbols().G1_23(); }
+  FieldMetric& G2_11() { return christoffel_symbols().G2_11(); }
+  FieldMetric& G2_22() { return christoffel_symbols().G2_22(); }
+  FieldMetric& G2_33() { return christoffel_symbols().G2_33(); }
+  FieldMetric& G2_12() { return christoffel_symbols().G2_12(); }
+  FieldMetric& G2_13() { return christoffel_symbols().G2_13(); }
+  FieldMetric& G2_23() { return christoffel_symbols().G2_23(); }
+  FieldMetric& G3_11() { return christoffel_symbols().G3_11(); }
+  FieldMetric& G3_22() { return christoffel_symbols().G3_22(); }
+  FieldMetric& G3_33() { return christoffel_symbols().G3_33(); }
+  FieldMetric& G3_12() { return christoffel_symbols().G3_12(); }
+  FieldMetric& G3_13() { return christoffel_symbols().G3_13(); }
+  FieldMetric& G3_23() { return christoffel_symbols().G3_23(); }
+
+  FieldMetric& G1() { return g_values().G1(); }
+  FieldMetric& G2() { return g_values().G2(); }
+  FieldMetric& G3() { return g_values().G3(); }
+
+  void setG1(const FieldMetric& G1) { g_values().setG1(G1); }
+  void setG2(const FieldMetric& G2) { g_values().setG2(G2); }
+  void setG3(const FieldMetric& G3) { g_values().setG3(G3); }
+
+  ContravariantMetricTensor& getContravariantMetricTensor() {
     return contravariantMetricTensor;
   }
 
-  const CovariantMetricTensor& getCovariantMetricTensor() const {
+  CovariantMetricTensor& getCovariantMetricTensor() {
     return covariantMetricTensor;
   }
 
-  void setContravariantMetricTensor(const ContravariantMetricTensor& metric_tensor,
+  void setContravariantMetricTensor(ContravariantMetricTensor metric_tensor,
                                     const std::string& region = "RGN_ALL",
                                     bool recalculate_staggered = true,
                                     bool force_interpolate_from_centre = false);
 
-  void setCovariantMetricTensor(const CovariantMetricTensor& metric_tensor,
+  void setCovariantMetricTensor(CovariantMetricTensor metric_tensor,
                                 const std::string& region = "RGN_ALL",
                                 bool recalculate_staggered = true,
                                 bool force_interpolate_from_centre = false);
 
   ///< Coordinate system Jacobian, so volume of cell is J*dx*dy*dz
-  const FieldMetric& J() const;
+  FieldMetric& J();
 
   ///< Magnitude of B = nabla z times nabla x
-  const FieldMetric& Bxy() const { return Bxy_; }
+  FieldMetric& Bxy() { return Bxy_; }
 
   void setJ(const FieldMetric& J);
 
@@ -165,52 +186,6 @@ public:
   void setIntShiftTorsion(FieldMetric IntShiftTorsion) {
     IntShiftTorsion_ = std::move(IntShiftTorsion);
   }
-
-  int communicateAndCheckMeshSpacing() const;
-
-  ///////////////////////////////////////////////////////////
-  // Parallel transforms
-  ///////////////////////////////////////////////////////////
-
-  /// Set the parallel (y) transform for this mesh.
-  /// Mostly useful for tests.
-  void setParallelTransform(std::unique_ptr<ParallelTransform> pt) {
-    transform = std::move(pt);
-  }
-
-  /// Return the parallel transform
-  ParallelTransform& getParallelTransform() {
-    ASSERT1(transform != nullptr);
-    return *transform;
-  }
-
-  ///////////////////////////////////////////////////////////
-  // Operators
-  ///////////////////////////////////////////////////////////
-
-  FieldMetric DDX(const Field2D& f, CELL_LOC outloc = CELL_DEFAULT,
-                  const std::string& method = "DEFAULT",
-                  const std::string& region = "RGN_NOBNDRY") const;
-
-  FieldMetric DDY(const Field2D& f, CELL_LOC outloc = CELL_DEFAULT,
-                  const std::string& method = "DEFAULT",
-                  const std::string& region = "RGN_NOBNDRY") const;
-
-  FieldMetric DDZ(const Field2D& f, CELL_LOC outloc = CELL_DEFAULT,
-                  const std::string& method = "DEFAULT",
-                  const std::string& region = "RGN_NOBNDRY") const;
-
-  Field3D DDX(const Field3D& f, CELL_LOC outloc = CELL_DEFAULT,
-              const std::string& method = "DEFAULT",
-              const std::string& region = "RGN_NOBNDRY") const;
-
-  Field3D DDY(const Field3D& f, CELL_LOC outloc = CELL_DEFAULT,
-              const std::string& method = "DEFAULT",
-              const std::string& region = "RGN_NOBNDRY") const;
-
-  Field3D DDZ(const Field3D& f, CELL_LOC outloc = CELL_DEFAULT,
-              const std::string& method = "DEFAULT",
-              const std::string& region = "RGN_NOBNDRY") const;
 
   /// Gradient along magnetic field  b.Grad(f)
   FieldMetric Grad_par(const Field2D& var, CELL_LOC outloc = CELL_DEFAULT,
@@ -263,54 +238,75 @@ public:
 
   // Full perpendicular Laplacian, in form of inverse of Laplacian operator in LaplaceXY
   // solver
-  Field2D Laplace_perpXY(const Field2D& A, const Field2D& f) const;
+  Field2D Laplace_perpXY(const Field2D& A, const Field2D& f);
 
-  /// Christoffel symbol of the second kind (connection coefficients)
-  const FieldMetric& G1_11() const { return christoffel_symbols().G1_11(); }
-  const FieldMetric& G1_22() const { return christoffel_symbols().G1_22(); }
-  const FieldMetric& G1_33() const { return christoffel_symbols().G1_33(); }
-  const FieldMetric& G1_12() const { return christoffel_symbols().G1_12(); }
-  const FieldMetric& G1_13() const { return christoffel_symbols().G1_13(); }
-  const FieldMetric& G1_23() const { return christoffel_symbols().G1_23(); }
-  const FieldMetric& G2_11() const { return christoffel_symbols().G2_11(); }
-  const FieldMetric& G2_22() const { return christoffel_symbols().G2_22(); }
-  const FieldMetric& G2_33() const { return christoffel_symbols().G2_33(); }
-  const FieldMetric& G2_12() const { return christoffel_symbols().G2_12(); }
-  const FieldMetric& G2_13() const { return christoffel_symbols().G2_13(); }
-  const FieldMetric& G2_23() const { return christoffel_symbols().G2_23(); }
-  const FieldMetric& G3_11() const { return christoffel_symbols().G3_11(); }
-  const FieldMetric& G3_22() const { return christoffel_symbols().G3_22(); }
-  const FieldMetric& G3_33() const { return christoffel_symbols().G3_33(); }
-  const FieldMetric& G3_12() const { return christoffel_symbols().G3_12(); }
-  const FieldMetric& G3_13() const { return christoffel_symbols().G3_13(); }
-  const FieldMetric& G3_23() const { return christoffel_symbols().G3_23(); }
+  /// Length of the Z domain. Used for FFTs
+  const Field2D& zlength() const;
 
-  const FieldMetric& G1() const { return g_values().G1(); }
-  const FieldMetric& G2() const { return g_values().G2(); }
-  const FieldMetric& G3() const { return g_values().G3(); }
+  ///////////////////////////////////////////////////////////
+  // Parallel transforms
+  ///////////////////////////////////////////////////////////
 
-  void setG1(const FieldMetric& G1) const { g_values().setG1(G1); }
-  void setG2(const FieldMetric& G2) const { g_values().setG2(G2); }
-  void setG3(const FieldMetric& G3) const { g_values().setG3(G3); }
+  /// Set the parallel (y) transform for this mesh.
+  /// Mostly useful for tests.
+  void setParallelTransform(std::unique_ptr<ParallelTransform> pt) {
+    transform = std::move(pt);
+  }
 
-  const FieldMetric& Grad2_par2_DDY_invSg(CELL_LOC outloc,
-                                          const std::string& method) const;
-
-  const FieldMetric& invSg() const;
-
-  ChristoffelSymbols& christoffel_symbols() const;
-
-  GValues& g_values() const;
+  /// Return the parallel transform
+  ParallelTransform& getParallelTransform() {
+    ASSERT1(transform != nullptr);
+    return *transform;
+  }
 
   void recalculateAndReset(bool recalculate_staggered,
                            bool force_interpolate_from_centre);
 
-  FieldMetric recalculateJacobian() const;
+  FieldMetric DDX(const Field2D& f, CELL_LOC outloc = CELL_DEFAULT,
+                  const std::string& method = "DEFAULT",
+                  const std::string& region = "RGN_NOBNDRY");
+
+  FieldMetric DDY(const Field2D& f, CELL_LOC outloc = CELL_DEFAULT,
+                  const std::string& method = "DEFAULT",
+                  const std::string& region = "RGN_NOBNDRY");
+
+  FieldMetric DDZ(const Field2D& f, CELL_LOC outloc = CELL_DEFAULT,
+                  const std::string& method = "DEFAULT",
+                  const std::string& region = "RGN_NOBNDRY");
+
+  Field3D DDX(const Field3D& f, CELL_LOC outloc = CELL_DEFAULT,
+              const std::string& method = "DEFAULT",
+              const std::string& region = "RGN_NOBNDRY");
+
+  Field3D DDY(const Field3D& f, CELL_LOC outloc = CELL_DEFAULT,
+              const std::string& method = "DEFAULT",
+              const std::string& region = "RGN_NOBNDRY");
+
+  Field3D DDZ(const Field3D& f, CELL_LOC outloc = CELL_DEFAULT,
+              const std::string& method = "DEFAULT",
+              const std::string& region = "RGN_NOBNDRY");
+
+  int communicateAndCheckMeshSpacing();
 
   template <typename T, typename... Ts>
   void communicate(T& t, Ts... ts) const;
 
+  FieldMetric recalculateJacobian();
+
 private:
+  ///////////////////////////////////////////////////////////
+  // Operators
+  ///////////////////////////////////////////////////////////
+
+  const FieldMetric& Grad2_par2_DDY_invSg(CELL_LOC outloc,
+                                          const std::string& method);
+
+  const FieldMetric& invSg();
+
+  ChristoffelSymbols& christoffel_symbols();
+
+  GValues& g_values();
+
   int nz; // Size of mesh in Z. This is mesh->ngz-1
   Mesh* localmesh;
   CELL_LOC location;
@@ -356,7 +352,7 @@ private:
       const std::function<const FieldMetric(const FieldMetric)>& function);
 
   void applyToChristoffelSymbols(
-      const std::function<const FieldMetric(const FieldMetric)>& function) const;
+      const std::function<const FieldMetric(const FieldMetric)>& function);
 
   mutable std::unique_ptr<FieldMetric> jacobian_cache{nullptr};
 
@@ -380,19 +376,19 @@ private:
 
   FieldMetric getUnaligned(const std::string& name, BoutReal default_value);
 
-  void communicateChristoffelSymbolTerms() const;
+  void communicateChristoffelSymbolTerms();
   void extrapolateChristoffelSymbols();
 
-  void communicateGValues() const;
+  void communicateGValues();
   void extrapolateGValues();
 
-  FieldMetric recalculateBxy() const;
+  FieldMetric recalculateBxy();
 
   /// Non-uniform meshes. Need to use DDX, DDY
   void correctionForNonUniformMeshes(bool force_interpolate_from_centre);
 
   void interpolateFieldsFromOtherCoordinates(Options* options,
-                                             const Coordinates* coords_in);
+                                             Coordinates* coords_in);
 
   void setBoundaryCells(Options* options, const std::string& suffix);
 

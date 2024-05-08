@@ -32,7 +32,7 @@ BoutReal BoundaryOpPar::getValue(const BoundaryRegionPar& bndry, BoutReal t) {
 void BoundaryOpPar_dirichlet::apply(Field3D& f, BoutReal t) {
   Field3D& f_next = f.ynext(bndry->dir);
 
-  Coordinates const& coord = *(f.getCoordinates());
+  Coordinates& coord = *(f.getCoordinates());
 
   // Loop over grid points If point is in boundary, then fill in
   // f_next such that the field would be VALUE on the boundary
@@ -61,7 +61,7 @@ void BoundaryOpPar_dirichlet_O3::apply(Field3D& f, BoutReal t) {
   Field3D& f_next = f.ynext(bndry->dir);
   Field3D& f_prev = f.ynext(-bndry->dir);
 
-  Coordinates const& coord = *(f.getCoordinates());
+  Coordinates& coord = *(f.getCoordinates());
 
   // Loop over grid points If point is in boundary, then fill in
   // f_next such that the field would be VALUE on the boundary
@@ -96,7 +96,7 @@ void BoundaryOpPar_dirichlet_interp::apply(Field3D& f, BoutReal t) {
   Field3D& f_next = f.ynext(bndry->dir);
   Field3D& f_prev = f.ynext(-bndry->dir);
 
-  Coordinates const& coord = *(f.getCoordinates());
+  Coordinates& coord = *(f.getCoordinates());
 
   // Loop over grid points If point is in boundary, then fill in
   // f_next such that the field would be VALUE on the boundary
@@ -128,7 +128,7 @@ void BoundaryOpPar_neumann::apply(Field3D& f, BoutReal t) {
   Field3D& f_next = f.ynext(bndry->dir);
   f_next.allocate(); // Ensure unique before modifying
 
-  Coordinates const& coord = *(f.getCoordinates());
+  Coordinates& coord = *(f.getCoordinates());
 
   // If point is in boundary, then fill in f_next such that the derivative
   // would be VALUE on the boundary

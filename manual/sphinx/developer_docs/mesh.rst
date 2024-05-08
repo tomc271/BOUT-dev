@@ -262,7 +262,7 @@ The mesh spacing is given by the public members `Coordinates::dx`,
     FieldMetric d2x, d2y;    // 2nd-order correction for non-uniform meshes
     Field2D zlength();   // Computed from dz
 
-`Coordinates::FieldMetric` can be either `Field2D` or if BOUT++ has
+`SpatialDimensions::FieldMetric` can be either `Field2D` or if BOUT++ has
 been configured with ``-DBOUT_ENABLE_METRIC_3D`` then a `Field3D`.
 
 Metrics

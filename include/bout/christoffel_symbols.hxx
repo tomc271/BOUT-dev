@@ -7,7 +7,7 @@
 #include "bout/metric_tensor.hxx"
 #include <bout/bout_types.hxx>
 
-using FieldMetric = MetricTensor::FieldMetric;
+using FieldMetric = SpatialDimensions::FieldMetric;
 
 class Coordinates;
 
@@ -21,31 +21,31 @@ public:
                      FieldMetric G3_11, FieldMetric G3_22, FieldMetric G3_33,
                      FieldMetric G3_12, FieldMetric G3_13, FieldMetric G3_23);
 
-  explicit ChristoffelSymbols(const Coordinates& coordinates);
+  explicit ChristoffelSymbols(Coordinates& coordinates);
 
   //  ChristoffelSymbols(BoutReal g11, BoutReal g22, BoutReal g33, BoutReal g12, BoutReal g13,
   //                     BoutReal g23, Mesh* mesh);
 
-  const FieldMetric& G1_11() const { return G1_11_; }
-  const FieldMetric& G1_22() const { return G1_22_; }
-  const FieldMetric& G1_33() const { return G1_33_; }
-  const FieldMetric& G1_12() const { return G1_12_; }
-  const FieldMetric& G1_13() const { return G1_13_; }
-  const FieldMetric& G1_23() const { return G1_23_; }
+  FieldMetric& G1_11() { return G1_11_; }
+  FieldMetric& G1_22() { return G1_22_; }
+  FieldMetric& G1_33() { return G1_33_; }
+  FieldMetric& G1_12() { return G1_12_; }
+  FieldMetric& G1_13() { return G1_13_; }
+  FieldMetric& G1_23() { return G1_23_; }
 
-  const FieldMetric& G2_11() const { return G2_11_; }
-  const FieldMetric& G2_22() const { return G2_22_; }
-  const FieldMetric& G2_33() const { return G2_33_; }
-  const FieldMetric& G2_12() const { return G2_12_; }
-  const FieldMetric& G2_13() const { return G2_13_; }
-  const FieldMetric& G2_23() const { return G2_23_; }
+  FieldMetric& G2_11() { return G2_11_; }
+  FieldMetric& G2_22() { return G2_22_; }
+  FieldMetric& G2_33() { return G2_33_; }
+  FieldMetric& G2_12() { return G2_12_; }
+  FieldMetric& G2_13() { return G2_13_; }
+  FieldMetric& G2_23() { return G2_23_; }
 
-  const FieldMetric& G3_11() const { return G3_11_; }
-  const FieldMetric& G3_22() const { return G3_22_; }
-  const FieldMetric& G3_33() const { return G3_33_; }
-  const FieldMetric& G3_12() const { return G3_12_; }
-  const FieldMetric& G3_13() const { return G3_13_; }
-  const FieldMetric& G3_23() const { return G3_23_; }
+  FieldMetric& G3_11() { return G3_11_; }
+  FieldMetric& G3_22() { return G3_22_; }
+  FieldMetric& G3_33() { return G3_33_; }
+  FieldMetric& G3_12() { return G3_12_; }
+  FieldMetric& G3_13() { return G3_13_; }
+  FieldMetric& G3_23() { return G3_23_; }
 
   void setChristoffelSymbols(const FieldMetric& G1_11, const FieldMetric& G1_22,
                              const FieldMetric& G1_33, const FieldMetric& G1_12,

@@ -129,9 +129,10 @@ void MetricTensor::map(
 
   const MetricTensor updated_metric_tensor = applyToComponents(function);
 
-  setMetricTensor(MetricTensor(updated_metric_tensor.g11_, updated_metric_tensor.g22_,
+  const auto& tmp = MetricTensor(updated_metric_tensor.g11_, updated_metric_tensor.g22_,
                                updated_metric_tensor.g33_, updated_metric_tensor.g12_,
-                               updated_metric_tensor.g13_, updated_metric_tensor.g23_));
+                               updated_metric_tensor.g13_, updated_metric_tensor.g23_);
+  setMetricTensor((MetricTensor&)tmp);
 }
 
 MetricTensor MetricTensor::applyToComponents(

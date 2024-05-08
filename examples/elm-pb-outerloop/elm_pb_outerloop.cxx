@@ -98,10 +98,10 @@ private:
   Field2D J0, P0; // Current and pressure
   Vector2D b0xcv; // Curvature term
   Field2D beta;   // Used for Vpar terms
-  Coordinates::FieldMetric gradparB;
+  SpatialDimensions::FieldMetric gradparB;
   Field2D phi0; // When diamagnetic terms used
   Field2D Psixy, x;
-  Coordinates::FieldMetric U0; // 0th vorticity of equilibrium flow,
+  SpatialDimensions::FieldMetric U0; // 0th vorticity of equilibrium flow,
   // radial flux coordinate, normalized radial flux coordinate
 
   bool constn0;
@@ -1092,7 +1092,7 @@ public:
 
     /**************** CALCULATE METRICS ******************/
 
-    MetricTensor::FieldMetric g11, g22, g33, g12, g13, g23;
+    SpatialDimensions::FieldMetric g11, g22, g33, g12, g13, g23;
     g11 = SQ(Rxy * Bpxy);
     g22 = 1.0 / SQ(hthe);
     g33 = SQ(I) * metric->g11() + SQ(B0) / metric->g11();
@@ -1105,7 +1105,7 @@ public:
     metric->setJ(hthe / Bpxy);
     metric->setBxy(B0);
 
-    MetricTensor::FieldMetric g_11, g_22, g_33, g_12, g_13, g_23;
+    SpatialDimensions::FieldMetric g_11, g_22, g_33, g_12, g_13, g_23;
     g_11 = 1.0 / metric->g11() + SQ(I * Rxy);
     g_22 = SQ(B0 * hthe / Bpxy);
     g_33 = Rxy * Rxy;

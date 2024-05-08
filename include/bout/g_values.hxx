@@ -2,9 +2,9 @@
 #ifndef BOUT_GVALUES_HXX
 #define BOUT_GVALUES_HXX
 
-#include "bout/metric_tensor.hxx"
+#include "spatial_dimensions.hxx"
 
-using FieldMetric = MetricTensor::FieldMetric;
+using FieldMetric = SpatialDimensions::FieldMetric;
 
 /// `GValues` needs renaming, when we know what the name should be
 class GValues {
@@ -12,11 +12,11 @@ class GValues {
 public:
   GValues(FieldMetric G1, FieldMetric G2, FieldMetric G3);
 
-  explicit GValues(const Coordinates& coordinates);
+  explicit GValues(Coordinates& coordinates);
 
-  const FieldMetric& G1() const { return G1_; }
-  const FieldMetric& G2() const { return G2_; }
-  const FieldMetric& G3() const { return G3_; }
+  FieldMetric& G1() { return G1_; }
+  FieldMetric& G2() { return G2_; }
+  FieldMetric& G3() { return G3_; }
 
   void setG1(const FieldMetric& G1) { G1_ = G1; }
   void setG2(const FieldMetric& G2) { G2_ = G2; }

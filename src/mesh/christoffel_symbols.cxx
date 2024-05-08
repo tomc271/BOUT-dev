@@ -16,15 +16,15 @@ ChristoffelSymbols::ChristoffelSymbols(
       G3_11_(std::move(G3_11)), G3_22_(std::move(G3_22)), G3_33_(std::move(G3_33)),
       G3_12_(std::move(G3_12)), G3_13_(std::move(G3_13)), G3_23_(std::move(G3_23)){};
 
-ChristoffelSymbols::ChristoffelSymbols(const Coordinates& coordinates) {
+ChristoffelSymbols::ChristoffelSymbols(Coordinates& coordinates) {
   // Calculate Christoffel symbol terms (18 independent values)
   // Note: This calculation is completely general: metric
   // tensor can be 2D or 3D. For 2D, all DDZ terms are zero
 
   coordinates.communicateAndCheckMeshSpacing();
 
-  const auto& contravariantMetricTensor = coordinates.getContravariantMetricTensor();
-  const auto& covariantMetricTensor = coordinates.getCovariantMetricTensor();
+  auto& contravariantMetricTensor = coordinates.getContravariantMetricTensor();
+  auto& covariantMetricTensor = coordinates.getCovariantMetricTensor();
 
   const auto& g11 = contravariantMetricTensor.g11();
   const auto& g22 = contravariantMetricTensor.g22();

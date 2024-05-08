@@ -95,6 +95,10 @@ public:
     f3vec.push_back(&f);
   }
 
+  void add(Field2D& f) {
+    fvec.push_back(&f);
+  }
+
   /// Add a Vector2D \p v to the group.
   ///
   /// Pointers to this vector's components will be stored internally,

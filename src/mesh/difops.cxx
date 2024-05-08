@@ -47,12 +47,12 @@
 * The parallel derivative along unperturbed B-field
 *******************************************************************************/
 
-Coordinates::FieldMetric Grad_par(const Field2D& var, CELL_LOC outloc,
+SpatialDimensions::FieldMetric Grad_par(const Field2D& var, CELL_LOC outloc,
                                   const std::string& method) {
   return var.getCoordinates(outloc)->Grad_par(var, outloc, method);
 }
 
-Coordinates::FieldMetric Grad_par(const Field2D& var, const std::string& method,
+SpatialDimensions::FieldMetric Grad_par(const Field2D& var, const std::string& method,
                                   CELL_LOC outloc) {
   return var.getCoordinates(outloc)->Grad_par(var, outloc, method);
 }
@@ -192,12 +192,12 @@ Field3D Grad_parP(const Field3D& apar, const Field3D& f) {
 * vparallel times the parallel derivative along unperturbed B-field
 *******************************************************************************/
 
-Coordinates::FieldMetric Vpar_Grad_par(const Field2D& v, const Field2D& f,
+SpatialDimensions::FieldMetric Vpar_Grad_par(const Field2D& v, const Field2D& f,
                                        CELL_LOC outloc, const std::string& method) {
   return f.getCoordinates(outloc)->Vpar_Grad_par(v, f, outloc, method);
 }
 
-Coordinates::FieldMetric Vpar_Grad_par(const Field2D& v, const Field2D& f,
+SpatialDimensions::FieldMetric Vpar_Grad_par(const Field2D& v, const Field2D& f,
                                        const std::string& method, CELL_LOC outloc) {
   return f.getCoordinates(outloc)->Vpar_Grad_par(v, f, outloc, method);
 }
@@ -216,12 +216,12 @@ Field3D Vpar_Grad_par(const Field3D& v, const Field3D& f, const std::string& met
 * Div_par
 * parallel divergence operator B \partial_{||} (F/B)
 *******************************************************************************/
-Coordinates::FieldMetric Div_par(const Field2D& f, CELL_LOC outloc,
+SpatialDimensions::FieldMetric Div_par(const Field2D& f, CELL_LOC outloc,
                                  const std::string& method) {
   return f.getCoordinates(outloc)->Div_par(f, outloc, method);
 }
 
-Coordinates::FieldMetric Div_par(const Field2D& f, const std::string& method,
+SpatialDimensions::FieldMetric Div_par(const Field2D& f, const std::string& method,
                                  CELL_LOC outloc) {
   return f.getCoordinates(outloc)->Div_par(f, outloc, method);
 }
@@ -311,7 +311,7 @@ Field3D Div_par_flux(const Field3D& v, const Field3D& f, const std::string& meth
 * Note: For parallel Laplacian use LaplacePar
 *******************************************************************************/
 
-Coordinates::FieldMetric Grad2_par2(const Field2D& f, CELL_LOC outloc,
+SpatialDimensions::FieldMetric Grad2_par2(const Field2D& f, CELL_LOC outloc,
                                     const std::string& method) {
   return f.getCoordinates(outloc)->Grad2_par2(f, outloc, method);
 }
@@ -325,7 +325,7 @@ Field3D Grad2_par2(const Field3D& f, CELL_LOC outloc, const std::string& method)
 * Parallel divergence of diffusive flux, K*Grad_par
 *******************************************************************************/
 
-Coordinates::FieldMetric Div_par_K_Grad_par(BoutReal kY, const Field2D& f,
+SpatialDimensions::FieldMetric Div_par_K_Grad_par(BoutReal kY, const Field2D& f,
                                             CELL_LOC outloc) {
   return kY * Grad2_par2(f, outloc);
 }
@@ -334,7 +334,7 @@ Field3D Div_par_K_Grad_par(BoutReal kY, const Field3D& f, CELL_LOC outloc) {
   return kY * Grad2_par2(f, outloc);
 }
 
-Coordinates::FieldMetric Div_par_K_Grad_par(const Field2D& kY, const Field2D& f,
+SpatialDimensions::FieldMetric Div_par_K_Grad_par(const Field2D& kY, const Field2D& f,
                                             CELL_LOC outloc) {
   if (outloc == CELL_DEFAULT) {
     outloc = f.getLocation();
@@ -372,7 +372,7 @@ Field3D Div_par_K_Grad_par(const Field3D& kY, const Field3D& f, CELL_LOC outloc)
 * perpendicular Laplacian operator
 *******************************************************************************/
 
-Coordinates::FieldMetric Delp2(const Field2D& f, CELL_LOC outloc, bool useFFT) {
+SpatialDimensions::FieldMetric Delp2(const Field2D& f, CELL_LOC outloc, bool useFFT) {
   return f.getCoordinates(outloc)->Delp2(f, outloc, useFFT);
 }
 
@@ -391,7 +391,7 @@ FieldPerp Delp2(const FieldPerp& f, CELL_LOC outloc, bool useFFT) {
 * Laplace_perp = Laplace - Laplace_par
 *******************************************************************************/
 
-Coordinates::FieldMetric Laplace_perp(const Field2D& f, CELL_LOC outloc,
+SpatialDimensions::FieldMetric Laplace_perp(const Field2D& f, CELL_LOC outloc,
                                       const std::string& dfdy_boundary_condition,
                                       const std::string& dfdy_region) {
   return Laplace(f, outloc, dfdy_boundary_condition, dfdy_region)
@@ -413,7 +413,7 @@ Field3D Laplace_perp(const Field3D& f, CELL_LOC outloc,
  *
  *******************************************************************************/
 
-Coordinates::FieldMetric Laplace_par(const Field2D& f, CELL_LOC outloc) {
+SpatialDimensions::FieldMetric Laplace_par(const Field2D& f, CELL_LOC outloc) {
   return f.getCoordinates(outloc)->Laplace_par(f, outloc);
 }
 
@@ -426,7 +426,7 @@ Field3D Laplace_par(const Field3D& f, CELL_LOC outloc) {
 * Full Laplacian operator on scalar field
 *******************************************************************************/
 
-Coordinates::FieldMetric Laplace(const Field2D& f, CELL_LOC outloc,
+SpatialDimensions::FieldMetric Laplace(const Field2D& f, CELL_LOC outloc,
                                  const std::string& dfdy_boundary_condition,
                                  const std::string& dfdy_region) {
   return f.getCoordinates(outloc)->Laplace(f, outloc, dfdy_boundary_condition,
@@ -455,7 +455,7 @@ Field2D Laplace_perpXY(const Field2D& A, const Field2D& f) {
 * Used for ExB terms and perturbed B field using A_||
 *******************************************************************************/
 
-Coordinates::FieldMetric b0xGrad_dot_Grad(const Field2D& phi, const Field2D& A,
+SpatialDimensions::FieldMetric b0xGrad_dot_Grad(const Field2D& phi, const Field2D& A,
                                           CELL_LOC outloc) {
 
   TRACE("b0xGrad_dot_Grad( Field2D , Field2D )");
@@ -469,15 +469,15 @@ Coordinates::FieldMetric b0xGrad_dot_Grad(const Field2D& phi, const Field2D& A,
   Coordinates* metric = phi.getCoordinates(outloc);
 
   // Calculate phi derivatives
-  Coordinates::FieldMetric const dpdx = DDX(phi, outloc);
-  Coordinates::FieldMetric const dpdy = DDY(phi, outloc);
+  SpatialDimensions::FieldMetric const dpdx = DDX(phi, outloc);
+  SpatialDimensions::FieldMetric const dpdy = DDY(phi, outloc);
 
   // Calculate advection velocity
-  Coordinates::FieldMetric const vx = -metric->g_23() * dpdy;
-  Coordinates::FieldMetric const vy = metric->g_23() * dpdx;
+  SpatialDimensions::FieldMetric const vx = -metric->g_23() * dpdy;
+  SpatialDimensions::FieldMetric const vy = metric->g_23() * dpdx;
 
   // Upwind A using these velocities
-  Coordinates::FieldMetric result = VDDX(vx, A, outloc) + VDDY(vy, A, outloc);
+  SpatialDimensions::FieldMetric result = VDDX(vx, A, outloc) + VDDY(vy, A, outloc);
   result /= metric->J() * sqrt(metric->g_22());
 
   ASSERT1(result.getLocation() == outloc);
@@ -502,13 +502,13 @@ Field3D b0xGrad_dot_Grad(const Field2D& phi, const Field3D& A, CELL_LOC outloc) 
   Coordinates* metric = phi.getCoordinates(outloc);
 
   // Calculate phi derivatives
-  Coordinates::FieldMetric const dpdx = DDX(phi, outloc);
-  Coordinates::FieldMetric const dpdy = DDY(phi, outloc);
+  SpatialDimensions::FieldMetric const dpdx = DDX(phi, outloc);
+  SpatialDimensions::FieldMetric const dpdy = DDY(phi, outloc);
 
   // Calculate advection velocity
-  Coordinates::FieldMetric const vx = -metric->g_23() * dpdy;
-  Coordinates::FieldMetric const vy = metric->g_23() * dpdx;
-  Coordinates::FieldMetric vz = metric->g_12() * dpdy - metric->g_22() * dpdx;
+  SpatialDimensions::FieldMetric const vx = -metric->g_23() * dpdy;
+  SpatialDimensions::FieldMetric const vy = metric->g_23() * dpdx;
+  SpatialDimensions::FieldMetric vz = metric->g_12() * dpdy - metric->g_22() * dpdx;
 
   if (mesh->IncIntShear) {
     // BOUT-06 style differencing
@@ -611,7 +611,7 @@ Field3D b0xGrad_dot_Grad(const Field3D& phi, const Field3D& A, CELL_LOC outloc) 
  * Terms of form b0 x Grad(f) dot Grad(g) / B = [f, g]
  *******************************************************************************/
 
-Coordinates::FieldMetric bracket(const Field2D& f, const Field2D& g,
+SpatialDimensions::FieldMetric bracket(const Field2D& f, const Field2D& g,
                                  BRACKET_METHOD method, CELL_LOC outloc,
                                  Solver* UNUSED(solver)) {
   TRACE("bracket(Field2D, Field2D)");
@@ -622,7 +622,7 @@ Coordinates::FieldMetric bracket(const Field2D& f, const Field2D& g,
   }
   ASSERT1(outloc == g.getLocation());
 
-  Coordinates::FieldMetric result{emptyFrom(f)};
+  SpatialDimensions::FieldMetric result{emptyFrom(f)};
 
   if ((method == BRACKET_SIMPLE) || (method == BRACKET_ARAKAWA)) {
     // Use a subset of terms for comparison to BOUT-06

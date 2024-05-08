@@ -5,9 +5,9 @@
 GValues::GValues(FieldMetric G1, FieldMetric G2, FieldMetric G3)
     : G1_(std::move(G1)), G2_(std::move(G2)), G3_(std::move(G3)){};
 
-GValues::GValues(const Coordinates& coordinates) {
+GValues::GValues(Coordinates& coordinates) {
 
-  const auto& contravariantMetricTensor = coordinates.getContravariantMetricTensor();
+  auto& contravariantMetricTensor = coordinates.getContravariantMetricTensor();
   const auto& J = coordinates.J();
 
   const auto& g11 = contravariantMetricTensor.g11();

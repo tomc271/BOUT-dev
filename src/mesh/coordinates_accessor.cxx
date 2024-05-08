@@ -13,7 +13,7 @@ namespace {
 std::map<const Coordinates*, Array<BoutReal>> coords_store;
 } // namespace
 
-CoordinatesAccessor::CoordinatesAccessor(const Coordinates* coords) {
+CoordinatesAccessor::CoordinatesAccessor(Coordinates* coords) {
   ASSERT0(coords != nullptr);
 
   // Size of the mesh in Z. Used to convert 3D -> 2D index

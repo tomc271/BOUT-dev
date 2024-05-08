@@ -41,7 +41,6 @@ class FieldData;
 class BoundaryOp;
 class BoundaryOpPar;
 class Coordinates;
-class Mesh;
 
 class BoundaryRegion;
 class BoundaryRegionPar;
