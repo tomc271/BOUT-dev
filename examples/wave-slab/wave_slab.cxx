@@ -31,7 +31,7 @@ public:
       mesh->get(I, "sinty");
     }
 
-    MetricTensor::FieldMetric g11, g22, g33, g12, g13, g23;
+    SpatialDimensions::FieldMetric g11, g22, g33, g12, g13, g23;
     g11 = pow(Rxy * Bpxy, 2.0);
     g22 = 1.0 / pow(hthe, 2.0);
     g33 = pow(I, 2.0) * coords->g11() + pow(coords->Bxy(), 2.0) / coords->g11();
@@ -43,7 +43,7 @@ public:
 
     coords->setJ(hthe / Bpxy);
 
-    MetricTensor::FieldMetric g_11, g_22, g_33, g_12, g_13, g_23;
+    SpatialDimensions::FieldMetric g_11, g_22, g_33, g_12, g_13, g_23;
     g_11 = 1.0 / coords->g11() + (pow(I * Rxy, 2.0));
     g_22 = pow(coords->Bxy() * hthe / Bpxy, 2.0);
     g_33 = Rxy * Rxy;

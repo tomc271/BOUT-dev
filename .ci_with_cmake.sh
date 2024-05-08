@@ -3,7 +3,7 @@
 set -ex
 
 cmake --version
-cmake -S . -B build $@ -DCMAKE_INSTALL_PREFIX=$(pwd)/installed
+cmake -S BOUT-dev -B build $@ -DCMAKE_INSTALL_PREFIX=$(pwd)/installed
 
 if test ".$UNIT_ONLY" = ".YES" ; then
     make -C build build-check-unit-tests

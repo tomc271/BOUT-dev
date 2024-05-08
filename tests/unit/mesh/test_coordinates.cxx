@@ -19,7 +19,7 @@ using bout::globals::mesh;
 
 class CoordinatesTest : public FakeMeshFixture {
 public:
-  using FieldMetric = Coordinates::FieldMetric;
+  using FieldMetric = SpatialDimensions::FieldMetric;
   CoordinatesTest() : FakeMeshFixture() {}
 };
 

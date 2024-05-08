@@ -2,18 +2,17 @@
 #ifndef BOUT_METRIC_TENSOR_HXX
 #define BOUT_METRIC_TENSOR_HXX
 
+#include "spatial_dimensions.hxx"
 #include "bout/field2d.hxx"
 #include "bout/field3d.hxx"
 #include <bout/bout_types.hxx>
+#include <functional>
+
+using FieldMetric = SpatialDimensions::FieldMetric;
 
 class MetricTensor {
 
-public:
-#if BOUT_USE_METRIC_3D
-  using FieldMetric = Field3D;
-#else
-  using FieldMetric = Field2D;
-#endif
+protected:
 
   MetricTensor(FieldMetric g11, FieldMetric g22, FieldMetric g33, FieldMetric g12,
                FieldMetric g13, FieldMetric g23);
@@ -21,8 +20,7 @@ public:
   MetricTensor(BoutReal g11, BoutReal g22, BoutReal g33, BoutReal g12, BoutReal g13,
                BoutReal g23, Mesh* mesh);
 
-  // check that tensors are positive (if expected) and finite (always)
-  void check(int ystart);
+public:
 
   const FieldMetric& g11() const { return g11_; }
   const FieldMetric& g22() const { return g22_; }
@@ -52,14 +50,18 @@ public:
 
   MetricTensor inverse(const std::string& region = "RGN_ALL");
 
+  // check that tensors are positive (if expected) and finite (always)
+  void check(int ystart);
+
   // Transforms the MetricTensor by applying the given function to every component
   void map(const std::function<const FieldMetric(const FieldMetric)>& function);
 
+private:
+
+  FieldMetric g11_, g22_, g33_, g12_, g13_, g23_;
+
   MetricTensor applyToComponents(
       const std::function<const FieldMetric(const FieldMetric)>& function) const;
-
-protected:
-  FieldMetric g11_, g22_, g33_, g12_, g13_, g23_;
 };
 
 class CovariantMetricTensor : public MetricTensor {

@@ -5,17 +5,14 @@
 
 #include "test_extras.hxx"
 
-/// Global mesh
 namespace bout {
-namespace globals {
-extern Mesh* mesh;
-}
+
 } // namespace bout
 
 using bout::globals::mesh;
 
 using CoordinatesAccessorTest = FakeMeshFixture;
-using FieldMetric = Coordinates::FieldMetric;
+using FieldMetric = SpatialDimensions::FieldMetric;
 
 TEST_F(CoordinatesAccessorTest, CreateAccessor) {
   CoordinatesAccessor acc(mesh->getCoordinates());

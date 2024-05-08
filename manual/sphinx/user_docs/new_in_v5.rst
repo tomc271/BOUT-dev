@@ -34,7 +34,7 @@ Adding 3D metrics to BOUT++ has been a substantial effort, requiring many
 changes to a significant amount of the source code. The main change is that the
 metric components, ``g11``, ``g22``, and so on, as well as the grid spacing,
 ``dx``, ``dy``, ``dz``, have changed from `Field2D` to
-`Coordinates::FieldMetric`: a type alias for either `Field3D` or `Field2D`
+`SpatialDimensions::FieldMetric`: a type alias for either `Field3D` or `Field2D`
 depending on if BOUT++ was built with or without 3D metrics respectively.
 
 .. note::
@@ -45,18 +45,18 @@ depending on if BOUT++ was built with or without 3D metrics respectively.
    `getUniform` will return a ``BoutReal``.
 
 
-The use of `Coordinates::FieldMetric` has been followed through the rest of the
+The use of `SpatialDimensions::FieldMetric` has been followed through the rest of the
 code base. If a metric component enters an expression that previously contained
 only `Field2D` and `BoutReal` types, the result is now a
-`Coordinates::FieldMetric`. This means that functions that previously both took
-and returned a `Field2D` now return a `Coordinates::FieldMetric` (we could have
+`SpatialDimensions::FieldMetric`. This means that functions that previously both took
+and returned a `Field2D` now return a `SpatialDimensions::FieldMetric` (we could have
 chosen to make the return type ``auto`` instead and rely on the compiler to
 deduce the correct type, but we have chosen to make the dependence on the metric
 dimensionality more explicit).
 
 Because almost any operation on a vector involves the metric, the individual
 components of `Vector2D` are now also of type
-`Coordinates::FieldMetric`. Realistically, the use of `Vector2D` in a model
+`SpatialDimensions::FieldMetric`. Realistically, the use of `Vector2D` in a model
 making use of 3D metrics is probably ill-advised.
 
 Indexing
