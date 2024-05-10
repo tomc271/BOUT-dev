@@ -241,7 +241,7 @@ public:
   Field2D Laplace_perpXY(const Field2D& A, const Field2D& f);
 
   /// Length of the Z domain. Used for FFTs
-  const Field2D& zlength() const;
+  const Field2D& zlength();
 
   ///////////////////////////////////////////////////////////
   // Parallel transforms

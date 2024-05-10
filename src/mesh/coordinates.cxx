@@ -729,7 +729,7 @@ void Coordinates::outputVars(Options& output_options) {
   getParallelTransform().outputVars(output_options);
 }
 
-const Field2D& Coordinates::zlength() const {
+const Field2D& Coordinates::zlength() {
   BOUT_OMP(critical)
   if (not zlength_cache) {
     zlength_cache = std::make_unique<Field2D>(0., localmesh);
