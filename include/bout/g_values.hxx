@@ -6,6 +6,12 @@
 
 using FieldMetric = SpatialDimensions::FieldMetric;
 
+#if BOUT_USE_METRIC_3D
+#include "field3d.hxx"
+#else
+#include "field2d.hxx"
+#endif
+
 /// `GValues` needs renaming, when we know what the name should be
 class GValues {
 
