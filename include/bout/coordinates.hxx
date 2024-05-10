@@ -288,8 +288,7 @@ public:
 
   int communicateAndCheckMeshSpacing();
 
-  template <typename T, typename... Ts>
-  void communicate(T& t, Ts... ts) const;
+  void communicate(FieldMetric f) const;
 
   FieldMetric recalculateJacobian();
 

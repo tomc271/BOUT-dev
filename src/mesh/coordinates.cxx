@@ -64,11 +64,8 @@ std::string getLocationSuffix(CELL_LOC location) {
 
 } // anonymous namespace
 
-template <typename T, typename... Ts>
-// Use sendY()/sendX() and wait() instead of Mesh::communicate() to ensure we
-// don't try to calculate parallel slices as Coordinates are not constructed yet
-void Coordinates::communicate(T& t, Ts... ts) const {
-    localmesh->communicate(ts...);
+void Coordinates::communicate(FieldMetric f) const {
+    localmesh->communicate(f);
 }
 
 /// Interpolate a Field2D to a new CELL_LOC with interp_to.
