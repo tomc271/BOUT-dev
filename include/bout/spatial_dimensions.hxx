@@ -2,20 +2,19 @@
 #define BOUT_SPATIAL_DIMENSIONS_HXX
 
 #if BOUT_USE_METRIC_3D
-    #include "field3d.hxx"
+#include "field3d.hxx"
 #else
-    #include "field2d.hxx"
+#include "field2d.hxx"
 #endif
 
-class SpatialDimensions {
+namespace SpatialDimensions {
 
-  public:
 #if BOUT_USE_METRIC_3D
-    using FieldMetric = Field3D;
+using FieldMetric = Field3D;
 #else
-    using FieldMetric = Field2D;
+using FieldMetric = Field2D;
 #endif
 
-};
+}; // namespace SpatialDimensions
 
 #endif //BOUT_SPATIAL_DIMENSIONS_HXX
