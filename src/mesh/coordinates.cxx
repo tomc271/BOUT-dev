@@ -66,13 +66,22 @@ std::string getLocationSuffix(CELL_LOC location) {
 
 // Use sendY()/sendX() and wait() instead of Mesh::communicate() to ensure we
 // don't try to calculate parallel slices as Coordinates are not constructed yet
-void Coordinates::communicate(FieldMetric& f) const {
+void Coordinates::communicate(Field2D& f) const {
   FieldGroup g(f);
   auto h = f.getMesh()->sendY(g);
   f.getMesh()->wait(h);
   h = f.getMesh()->sendX(g);
   f.getMesh()->wait(h);
 }
+#if BOUT_USE_METRIC_3D
+void Coordinates::communicate(Field3D& f) const {
+  FieldGroup g(f);
+  auto h = f.getMesh()->sendY(g);
+  f.getMesh()->wait(h);
+  h = f.getMesh()->sendX(g);
+  f.getMesh()->wait(h);
+}
+#endif
 
 /// Interpolate a Field2D to a new CELL_LOC with interp_to.
 /// Communicates to set internal guard cells.
@@ -753,7 +762,7 @@ const Field2D& Coordinates::zlength() {
 int Coordinates::communicateAndCheckMeshSpacing() {
   TRACE("Coordinates::communicateAndCheckMeshSpacing");
 
-  communicate(dx(), dy(), dz(), g11(), g22(), g33(), g12(), g13(), g23(), g_11(), g_22(),
+  localmesh->communicate(dx(), dy(), dz(), g11(), g22(), g33(), g12(), g13(), g23(), g_11(), g_22(),
               g_33(), g_12(), g_13(), g_23(), J(), Bxy());
 
   output_progress.write("Calculating differential geometry terms\n");
@@ -871,7 +880,7 @@ void Coordinates::correctionForNonUniformMeshes(bool force_interpolate_from_cent
 #endif
 
   auto tmp = d1_dx(); // TODO: There must be a better way than this!
-  communicate(tmp, d1_dy(), d1_dz());
+  localmesh->communicate(tmp, d1_dy(), d1_dz());
 }
 
 void Coordinates::extrapolateChristoffelSymbols() {
@@ -898,7 +907,7 @@ void Coordinates::extrapolateChristoffelSymbols() {
 
 void Coordinates::communicateGValues() {
   auto temp = G1(); // TODO: There must be a better way than this!
-  communicate(temp, G2(), G3());
+  localmesh->communicate(temp, G2(), G3());
 }
 
 void Coordinates::extrapolateGValues() {
@@ -1574,7 +1583,7 @@ void Coordinates::communicateChristoffelSymbolTerms() {
   output_progress.write("\tCommunicating connection terms\n");
 
   auto tmp = G1_11(); // TODO: There must be a better way than this!
-  communicate(tmp, G1_22(), G1_33(), G1_12(), G1_13(), G1_23(), G2_11(), G2_22(), G2_33(),
+  localmesh->communicate(tmp, G1_22(), G1_33(), G1_12(), G1_13(), G1_23(), G2_11(), G2_22(), G2_33(),
               G2_12(), G2_13(), G2_23(), G3_11(), G3_22(), G3_33(), G3_12(), G3_13(),
               G3_23());
 }

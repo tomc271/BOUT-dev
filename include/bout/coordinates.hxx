@@ -288,7 +288,11 @@ public:
 
   int communicateAndCheckMeshSpacing();
 
-  void communicate(FieldMetric& f) const;
+  void communicate(Field2D& f) const;
+#if BOUT_USE_METRIC_3D
+  // In this case we also need to be able to call with a Field3D
+  void communicate(Field3D& f) const;
+#endif
 
   FieldMetric recalculateJacobian();
 
