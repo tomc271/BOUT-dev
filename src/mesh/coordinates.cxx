@@ -64,8 +64,14 @@ std::string getLocationSuffix(CELL_LOC location) {
 
 } // anonymous namespace
 
+// Use sendY()/sendX() and wait() instead of Mesh::communicate() to ensure we
+// don't try to calculate parallel slices as Coordinates are not constructed yet
 void Coordinates::communicate(FieldMetric f) const {
-    localmesh->communicate(f);
+  FieldGroup g(f);
+  auto h = f.getMesh()->sendY(g);
+  f.getMesh()->wait(h);
+  h = f.getMesh()->sendX(g);
+  f.getMesh()->wait(h);
 }
 
 /// Interpolate a Field2D to a new CELL_LOC with interp_to.
@@ -238,7 +244,7 @@ Field3D Coordinates::interpolateAndExtrapolate(const Field3D& f_, CELL_LOC locat
   // communicate f. We will sort out result's boundary guard cells below, but
   // not f's so we don't want to change f.
   result.allocate();
-  localmesh->communicate(result);
+  communicate(result);
 
   // Extrapolate into boundaries (if requested) so that differential geometry
   // terms can be interpolated if necessary
