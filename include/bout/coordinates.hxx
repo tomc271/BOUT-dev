@@ -288,7 +288,7 @@ public:
 
   int communicateAndCheckMeshSpacing();
 
-  void communicate(FieldMetric f) const;
+  void communicate(FieldMetric& f) const;
 
   FieldMetric recalculateJacobian();
 

@@ -66,7 +66,7 @@ std::string getLocationSuffix(CELL_LOC location) {
 
 // Use sendY()/sendX() and wait() instead of Mesh::communicate() to ensure we
 // don't try to calculate parallel slices as Coordinates are not constructed yet
-void Coordinates::communicate(FieldMetric f) const {
+void Coordinates::communicate(FieldMetric& f) const {
   FieldGroup g(f);
   auto h = f.getMesh()->sendY(g);
   f.getMesh()->wait(h);
