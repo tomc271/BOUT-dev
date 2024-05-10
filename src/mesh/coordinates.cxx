@@ -94,7 +94,7 @@ Field2D Coordinates::interpolateAndExtrapolate(
   // communicate f. We will sort out result's boundary guard cells below, but
   // not f's so we don't want to change f.
   result.allocate();
-  localmesh->communicate(result);
+  communicate(result);
 
   // Extrapolate into boundaries (if requested) so that differential geometry
   // terms can be interpolated if necessary
@@ -364,7 +364,7 @@ void Coordinates::fixZShiftGuards(Field2D& zShift) const {
                                      not localmesh->sourceHasYBoundaryGuards(), false);
 
   // make sure zShift has been communicated
-  localmesh->communicate(zShift);
+  communicate(zShift);
 
   // Correct guard cells for discontinuity of zShift at poloidal branch cut
   for (int x = 0; x < localmesh->LocalNx; x++) {
@@ -548,7 +548,7 @@ void Coordinates::setBoundaryCells(Options* mesh_options, const std::string& suf
                                   transform.get());
 
   if (localmesh->periodicX) {
-    localmesh->communicate(dx_);
+    communicate(dx_);
   }
 
   dy_ = getAtLocOrUnaligned(localmesh, "dy", 1.0, suffix, location);
@@ -629,7 +629,7 @@ void Coordinates::setBoundaryCells(Options* mesh_options, const std::string& suf
     setJ(J_from_file);
 
     auto J_value = J(); // TODO: There may be a better way
-    localmesh->communicate(J_value);
+    communicate(J_value);
   }
 
   // More robust to extrapolate derived quantities directly, rather than
@@ -753,7 +753,7 @@ const Field2D& Coordinates::zlength() {
 int Coordinates::communicateAndCheckMeshSpacing() {
   TRACE("Coordinates::communicateAndCheckMeshSpacing");
 
-  localmesh->communicate(dx(), dy(), dz(), g11(), g22(), g33(), g12(), g13(), g23(), g_11(), g_22(),
+  communicate(dx(), dy(), dz(), g11(), g22(), g33(), g12(), g13(), g23(), g_11(), g_22(),
               g_33(), g_12(), g_13(), g_23(), J(), Bxy());
 
   output_progress.write("Calculating differential geometry terms\n");
@@ -821,7 +821,7 @@ void Coordinates::correctionForNonUniformMeshes(bool force_interpolate_from_cent
                       "Calculating from dx\n");
     d1_dx_ = bout::derivatives::index::DDX(1. / dx()); // d/di(1/dx)
 
-    localmesh->communicate(d1_dx_);
+    communicate(d1_dx_);
     d1_dx_ =
         interpolateAndExtrapolate(d1_dx_, location, true, true, true, transform.get());
   } else {
@@ -838,7 +838,7 @@ void Coordinates::correctionForNonUniformMeshes(bool force_interpolate_from_cent
                       "Calculating from dy\n");
     d1_dy_ = bout::derivatives::index::DDY(1. / dy()); // d/di(1/dy)
 
-    localmesh->communicate(d1_dy_);
+    communicate(d1_dy_);
     d1_dy_ =
         interpolateAndExtrapolate(d1_dy_, location, true, true, true, transform.get());
   } else {
@@ -855,7 +855,7 @@ void Coordinates::correctionForNonUniformMeshes(bool force_interpolate_from_cent
     output_warn.write("\tWARNING: differencing quantity 'd2z' not found. "
                       "Calculating from dz\n");
     d1_dz_ = bout::derivatives::index::DDZ(1. / dz());
-    localmesh->communicate(d1_dz_);
+    communicate(d1_dz_);
     d1_dz_ =
         interpolateAndExtrapolate(d1_dz_, location, true, true, true, transform.get());
   } else {
@@ -871,7 +871,7 @@ void Coordinates::correctionForNonUniformMeshes(bool force_interpolate_from_cent
 #endif
 
   auto tmp = d1_dx(); // TODO: There must be a better way than this!
-  localmesh->communicate(tmp, d1_dy(), d1_dz());
+  communicate(tmp, d1_dy(), d1_dz());
 }
 
 void Coordinates::extrapolateChristoffelSymbols() {
@@ -898,7 +898,7 @@ void Coordinates::extrapolateChristoffelSymbols() {
 
 void Coordinates::communicateGValues() {
   auto temp = G1(); // TODO: There must be a better way than this!
-  localmesh->communicate(temp, G2(), G3());
+  communicate(temp, G2(), G3());
 }
 
 void Coordinates::extrapolateGValues() {
@@ -1574,7 +1574,7 @@ void Coordinates::communicateChristoffelSymbolTerms() {
   output_progress.write("\tCommunicating connection terms\n");
 
   auto tmp = G1_11(); // TODO: There must be a better way than this!
-  localmesh->communicate(tmp, G1_22(), G1_33(), G1_12(), G1_13(), G1_23(), G2_11(), G2_22(), G2_33(),
+  communicate(tmp, G1_22(), G1_33(), G1_12(), G1_13(), G1_23(), G2_11(), G2_22(), G2_33(),
               G2_12(), G2_13(), G2_23(), G3_11(), G3_22(), G3_33(), G3_12(), G3_13(),
               G3_23());
 }
