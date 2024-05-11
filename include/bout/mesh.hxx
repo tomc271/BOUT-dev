@@ -301,7 +301,7 @@ public:
   /*!
    * Communicate a group of fields
    */
-  void communicate(FieldGroup& g);
+  void communicate(FieldGroup& g, bool calcParallelSlices = true);
 
   /// Communcate guard cells in XZ only
   /// i.e. no Y communication
