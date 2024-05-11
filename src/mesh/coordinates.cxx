@@ -483,7 +483,7 @@ void Coordinates::interpolateFieldsFromOtherCoordinates(Options* mesh_options,
 
   setParallelTransform(mesh_options);
 
-  setContravariantMetricTensor(coords_in->getContravariantMetricTensor());
+  setMetricTensor(coords_in->getContravariantMetricTensor(), coords_in->getCovariantMetricTensor());
 
   std::function<const FieldMetric(const FieldMetric)> const
       interpolateAndExtrapolate_function = [this](const FieldMetric& component) {
@@ -763,7 +763,7 @@ int Coordinates::communicateAndCheckMeshSpacing() {
   TRACE("Coordinates::communicateAndCheckMeshSpacing");
 
   localmesh->communicate(dx(), dy(), dz(), g11(), g22(), g33(), g12(), g13(), g23(), g_11(), g_22(),
-              g_33(), g_12(), g_13(), g_23(), J(), Bxy());
+                               g_33(), g_12(), g_13(), g_23(), J(), Bxy());
 
   output_progress.write("Calculating differential geometry terms\n");
 
@@ -1566,6 +1566,12 @@ void Coordinates::setCovariantMetricTensor(CovariantMetricTensor metric_tensor,
   const auto& tmp = covariantMetricTensor.inverse(region);
   contravariantMetricTensor.setMetricTensor((MetricTensor&)tmp);
   recalculateAndReset(recalculate_staggered, force_interpolate_from_centre);
+}
+
+void Coordinates::setMetricTensor(ContravariantMetricTensor contravariant_metric_tensor,
+                                  CovariantMetricTensor covariant_metric_tensor) {
+    contravariantMetricTensor.setMetricTensor(contravariant_metric_tensor);
+    covariantMetricTensor.setMetricTensor(covariant_metric_tensor);
 }
 
 void Coordinates::applyToContravariantMetricTensor(
