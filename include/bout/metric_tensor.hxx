@@ -14,8 +14,8 @@ class MetricTensor {
 
 protected:
   
-  MetricTensor(FieldMetric g11, FieldMetric g22, FieldMetric g33, FieldMetric g12,
-               FieldMetric g13, FieldMetric g23);
+  MetricTensor(FieldMetric& g11, FieldMetric& g22, FieldMetric& g33, FieldMetric& g12,
+               FieldMetric& g13, FieldMetric& g23);
 
   MetricTensor(BoutReal g11, BoutReal g22, BoutReal g33, BoutReal g12, BoutReal g13,
                BoutReal g23, Mesh* mesh);
@@ -67,10 +67,9 @@ private:
 class CovariantMetricTensor : public MetricTensor {
 
 public:
-  CovariantMetricTensor(FieldMetric g11, FieldMetric g22, FieldMetric g33,
-                        FieldMetric g12, FieldMetric g13, FieldMetric g23)
-      : MetricTensor(std::move(g11), std::move(g22), std::move(g33), std::move(g12),
-                     std::move(g13), std::move(g23)){};
+  CovariantMetricTensor(FieldMetric& g11, FieldMetric& g22, FieldMetric& g33,
+                        FieldMetric& g12, FieldMetric& g13, FieldMetric& g23)
+      : MetricTensor(g11, g22, g33, g12, g13, g23){};
 
   CovariantMetricTensor(const BoutReal g11, const BoutReal g22, const BoutReal g33,
                         const BoutReal g12, const BoutReal g13, const BoutReal g23,
@@ -81,10 +80,9 @@ public:
 class ContravariantMetricTensor : public MetricTensor {
 
 public:
-  ContravariantMetricTensor(FieldMetric g_11, FieldMetric g_22, FieldMetric g_33,
-                            FieldMetric g_12, FieldMetric g_13, FieldMetric g_23)
-      : MetricTensor(std::move(g_11), std::move(g_22), std::move(g_33), std::move(g_12),
-                     std::move(g_13), std::move(g_23)){};
+  ContravariantMetricTensor(FieldMetric& g_11, FieldMetric& g_22, FieldMetric& g_33,
+                            FieldMetric& g_12, FieldMetric& g_13, FieldMetric& g_23)
+      : MetricTensor(g_11, g_22, g_33, g_12, g_13, g_23){};
 
   ContravariantMetricTensor(const BoutReal g_11, const BoutReal g_22, const BoutReal g_33,
                             const BoutReal g_12, const BoutReal g_13, const BoutReal g_23,

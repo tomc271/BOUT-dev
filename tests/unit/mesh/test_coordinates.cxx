@@ -135,9 +135,15 @@ TEST_F(CoordinatesTest, CalcContravariant) {
                      FieldMetric{0.0},  // ShiftTorsion
                      FieldMetric{0.0}}; // IntShiftTorsion
 
-  coords.setContravariantMetricTensor(
-      ContravariantMetricTensor(1.0, 1.0, 1.0, 0.0, 0.0, 0.0));
-
+  auto g_11 = FieldMetric{1.0};
+  auto g_22 = FieldMetric{1.0};
+  auto g_33 = FieldMetric{1.0};
+  auto g_12 = FieldMetric{1.0};
+  auto g_13 = FieldMetric{1.0};
+  auto g_23 = FieldMetric{1.0};
+  auto contravariantMetricTensor = ContravariantMetricTensor(g_11, g_22, g_33, g_12, g_13, g_23);
+  coords.setContravariantMetricTensor(contravariantMetricTensor);
+    
   EXPECT_TRUE(IsFieldEqual(coords.g_11(), 1.0));
   EXPECT_TRUE(IsFieldEqual(coords.g_22(), 1.0));
   EXPECT_TRUE(IsFieldEqual(coords.g_33(), 1.0));
@@ -168,7 +174,13 @@ TEST_F(CoordinatesTest, CalcCovariant) {
                      FieldMetric{0.0},  // ShiftTorsion
                      FieldMetric{0.0}}; // IntShiftTorsion
 
-  coords.setCovariantMetricTensor(CovariantMetricTensor(1.0, 1.0, 1.0, 0.0, 0.0, 0.0));
+  auto g11 = FieldMetric{1.0};
+  auto g22 = FieldMetric{1.0};
+  auto g33 = FieldMetric{1.0};
+  auto g12 = FieldMetric{0.0};
+  auto g13 = FieldMetric{0.0};
+  auto g23 = FieldMetric{0.0};
+  coords.setCovariantMetricTensor(CovariantMetricTensor(g11, g22, g33, g12, g13, g23));
 
   EXPECT_TRUE(IsFieldEqual(coords.g11(), 1.0));
   EXPECT_TRUE(IsFieldEqual(coords.g22(), 1.0));
@@ -349,8 +361,15 @@ TEST_F(CoordinatesTest, SetContravariantMetricTensor) {
                      FieldMetric{0.0},  // ShiftTorsion
                      FieldMetric{0.0}}; // IntShiftTorsion
 
+  auto g_11 = FieldMetric{1.0};
+  auto g_22 = FieldMetric{2.0};
+  auto g_33 = FieldMetric{0.4};
+  auto g_12 = FieldMetric{1.0};
+  auto g_13 = FieldMetric{0.0};
+  auto g_23 = FieldMetric{0.2};
+
   //  Modify with setter
-  auto updated_metric_tensor = ContravariantMetricTensor(1.0, 2.0, 0.4, 1.0, 0.0, 0.2);
+  auto updated_metric_tensor = ContravariantMetricTensor(g_11, g_22, g_33, g_12, g_13, g_23);
   coords.setContravariantMetricTensor(updated_metric_tensor);
 
   //  Get values with getter and check they have been modified as expected
@@ -416,8 +435,15 @@ TEST_F(CoordinatesTest, SetCovariantMetricTensor) {
                        FieldMetric{0.0},  // ShiftTorsion
                        FieldMetric{0.0}}; // IntShiftTorsion
 
+    auto g11 = FieldMetric{1.0};
+    auto g22 = FieldMetric{2.0};
+    auto g33 = FieldMetric{0.4};
+    auto g12 = FieldMetric{1.0};
+    auto g13 = FieldMetric{0.0};
+    auto g23 = FieldMetric{0.2};
+
     //  Modify with setter
-    auto updated_metric_tensor = CovariantMetricTensor(1.0, 2.0, 0.4, 1.0, 0.0, 0.2);
+    auto updated_metric_tensor = CovariantMetricTensor(g11, g22, g33, g12, g13, g23);
     coords.setCovariantMetricTensor(updated_metric_tensor);
 
     //  Get values with getter and check they have been modified as expected

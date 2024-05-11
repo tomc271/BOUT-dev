@@ -3,8 +3,8 @@
 #include "bout/output.hxx"
 #include <utility>
 
-MetricTensor::MetricTensor(FieldMetric g11, FieldMetric g22, FieldMetric g33,
-                           FieldMetric g12, FieldMetric g13, FieldMetric g23)
+MetricTensor::MetricTensor(FieldMetric& g11, FieldMetric& g22, FieldMetric& g33,
+                           FieldMetric& g12, FieldMetric& g13, FieldMetric& g23)
     : g11_(std::move(g11)), g22_(std::move(g22)), g33_(std::move(g33)),
       g12_(std::move(g12)), g13_(std::move(g13)), g23_(std::move(g23)) {}
 
@@ -127,7 +127,7 @@ MetricTensor MetricTensor::inverse(const std::string& region) {
 void MetricTensor::map(
     const std::function<const FieldMetric(const FieldMetric)>& function) {
 
-  const MetricTensor updated_metric_tensor = applyToComponents(function);
+  MetricTensor updated_metric_tensor = applyToComponents(function);
 
   const auto& tmp = MetricTensor(updated_metric_tensor.g11_, updated_metric_tensor.g22_,
                                updated_metric_tensor.g33_, updated_metric_tensor.g12_,

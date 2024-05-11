@@ -61,11 +61,11 @@ public:
   /// from Coordinates. If \p calculate_geometry is true (default),
   /// calculate the non-uniform variables, Christoffel symbols
   Coordinates(Mesh* mesh, FieldMetric dx, FieldMetric dy, FieldMetric dz,
-              [[maybe_unused]] const FieldMetric& J, FieldMetric Bxy,
-              const FieldMetric& g11, const FieldMetric& g22, const FieldMetric& g33,
-              const FieldMetric& g12, const FieldMetric& g13, const FieldMetric& g23,
-              const FieldMetric& g_11, const FieldMetric& g_22, const FieldMetric& g_33,
-              const FieldMetric& g_12, const FieldMetric& g_13, const FieldMetric& g_23,
+              [[maybe_unused]] const FieldMetric J, FieldMetric Bxy,
+              FieldMetric g11, FieldMetric g22, FieldMetric g33,
+              FieldMetric g12, FieldMetric g13, FieldMetric g23,
+              FieldMetric g_11, FieldMetric g_22, FieldMetric g_33,
+              FieldMetric g_12, FieldMetric g_13, FieldMetric g_23,
               FieldMetric ShiftTorsion, FieldMetric IntShiftTorsion);
 
   /// Add variables to \p output_options, for post-processing
