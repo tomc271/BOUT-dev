@@ -345,7 +345,7 @@ void Mesh::communicateYZ(FieldGroup& g) {
   }
 }
 
-void Mesh::communicate(FieldGroup& g) {
+void Mesh::communicate(FieldGroup& g, bool calcParallelSlices) {
   TRACE("Mesh::communicate(FieldGroup&)");
 
   if (include_corner_cells) {
@@ -369,7 +369,7 @@ void Mesh::communicate(FieldGroup& g) {
   }
 
   // Calculate yup and ydown fields for 3D fields
-  if (calcParallelSlices_on_communicate) {
+  if (calcParallelSlices_on_communicate && calcParallelSlices) {
     for (const auto& fptr : g.field3d()) {
       fptr->calcParallelSlices();
     }
