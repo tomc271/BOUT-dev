@@ -13,7 +13,7 @@ using FieldMetric = SpatialDimensions::FieldMetric;
 class MetricTensor {
 
 protected:
-
+  
   MetricTensor(FieldMetric g11, FieldMetric g22, FieldMetric g33, FieldMetric g12,
                FieldMetric g13, FieldMetric g23);
 
@@ -21,6 +21,9 @@ protected:
                BoutReal g23, Mesh* mesh);
 
 public:
+  
+  // check that tensors are positive (if expected) and finite (always)
+  void check(int ystart);
 
   FieldMetric& g11() { return g11_; }
   FieldMetric& g22() { return g22_; }
@@ -49,9 +52,6 @@ public:
   }
 
   MetricTensor inverse(const std::string& region = "RGN_ALL");
-
-  // check that tensors are positive (if expected) and finite (always)
-  void check(int ystart);
 
   // Transforms the MetricTensor by applying the given function to every component
   void map(const std::function<const FieldMetric(const FieldMetric)>& function);
