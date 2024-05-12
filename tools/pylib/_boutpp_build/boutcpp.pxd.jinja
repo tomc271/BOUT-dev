@@ -53,7 +53,7 @@ cdef extern from "bout/mesh.hxx":
         @staticmethod
         Mesh * create(Options * option)
         void load()
-        void communicate(FieldGroup&)
+        void communicate(FieldGroup&, bool calcParallelSlices = true)
         int getNXPE()
         int getNYPE()
         int getXProcIndex()
