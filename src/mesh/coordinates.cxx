@@ -872,8 +872,7 @@ void Coordinates::correctionForNonUniformMeshes(bool force_interpolate_from_cent
   d1_dz_ = 0;
 #endif
 
-  auto tmp = d1_dx(); // TODO: There must be a better way than this!
-  communicate(tmp, d1_dy(), d1_dz());
+  localmesh->communicate(d1_dx(), d1_dy(), d1_dz());
 }
 
 void Coordinates::extrapolateChristoffelSymbols() {
@@ -900,7 +899,7 @@ void Coordinates::extrapolateChristoffelSymbols() {
 
 void Coordinates::communicateGValues() const {
   auto temp = G1(); // TODO: There must be a better way than this!
-  communicate(temp, G2(), G3());
+  localmesh->communicate(temp, G2(), G3());
 }
 
 void Coordinates::extrapolateGValues() {
@@ -1580,7 +1579,7 @@ void Coordinates::communicateChristoffelSymbolTerms() const {
   output_progress.write("\tCommunicating connection terms\n");
 
   auto tmp = G1_11(); // TODO: There must be a better way than this!
-  communicate(tmp, G1_22(), G1_33(), G1_12(), G1_13(), G1_23(), G2_11(), G2_22(), G2_33(),
+  localmesh->communicate(tmp, G1_22(), G1_33(), G1_12(), G1_13(), G1_23(), G2_11(), G2_22(), G2_33(),
               G2_12(), G2_13(), G2_23(), G3_11(), G3_22(), G3_33(), G3_12(), G3_13(),
               G3_23());
 }
