@@ -345,7 +345,7 @@ void Mesh::communicateYZ(FieldGroup& g) {
   }
 }
 
-void Mesh::communicate(FieldGroup& g) {
+void Mesh::communicateGroup(FieldGroup& g) {
   TRACE("Mesh::communicate(FieldGroup&)");
 
   if (include_corner_cells) {

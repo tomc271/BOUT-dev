@@ -244,7 +244,7 @@ protected:
     phi = phiSolver->solve(rho / Ni0);
 
     if (ZeroElMass) {
-      mesh->communicate(comms);
+        mesh->communicateGroup(comms);
 
       Apar = -Ajpar;
       jpar = -Delp2(Apar);
@@ -255,7 +255,7 @@ protected:
       Apar = aparSolver->solve((0.5 * beta_p / fmei) * Ni0 * Ajpar);
 
       // Communicate variables
-      mesh->communicate(comms);
+        mesh->communicateGroup(comms);
 
       jpar = -Ni0 * (Ajpar + Apar);
     }

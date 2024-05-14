@@ -376,14 +376,14 @@ protected:
       } else {
         jpar = Ajpar / mu_hat;
       }
-      mesh->communicate(comms);
+        mesh->communicateGroup(comms);
     } else {
       // Electromagnetic
       if (ZeroElMass) {
         // Ignore electron inertia term
         apar = Ajpar / beta_hat;
 
-        mesh->communicate(comms);
+          mesh->communicateGroup(comms);
         jpar = -Delp2(apar);
         jpar.applyBoundary();
         mesh->communicate(jpar);
@@ -393,7 +393,7 @@ protected:
         apar = aparSolver->solve(Ajpar);
         apar.applyBoundary();
 
-        mesh->communicate(comms);
+          mesh->communicateGroup(comms);
         if (jpar_noderiv) {
           // Already applied boundaries on Ajpar and apar
           jpar = (Ajpar - beta_hat * apar) / mu_hat;

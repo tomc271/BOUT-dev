@@ -1231,7 +1231,7 @@ protected:
     Coordinates* coord = mesh->getCoordinates();
 
     // Perform communications
-    mesh->communicate(comms);
+      mesh->communicateGroup(comms);
 
     // Inversion
     Pi = Ni * Ti0 + N0 * Ti;

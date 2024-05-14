@@ -458,7 +458,7 @@ protected:
     }
 
     // Communicate variables
-    mesh->communicate(comms);
+      mesh->communicateGroup(comms);
 
     // Update profiles
     if (nonlinear) {

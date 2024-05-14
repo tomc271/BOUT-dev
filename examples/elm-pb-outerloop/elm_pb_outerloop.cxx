@@ -1279,7 +1279,7 @@ public:
 
   int rhs(BoutReal t) override {
     // Perform communications
-    mesh->communicate(comms);
+      mesh->communicateGroup(comms);
 
     Coordinates* metric = mesh->getCoordinates();
 

@@ -574,7 +574,7 @@ private:
 
     ////////////////////////////////////////////////////////
     // Communicate variables
-    mesh->communicate(comms);
+      mesh->communicateGroup(comms);
 
     ////////////////////////////////////////////////////////
     // Update profiles for calculating nu, mu_i, kapa_Te,i

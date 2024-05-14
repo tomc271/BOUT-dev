@@ -415,7 +415,7 @@ private:
     phi.applyBoundary();
 
     // Communicate variables
-    mesh->communicate(comms);
+      mesh->communicateGroup(comms);
 
     // Get J from Psi
     Jpar = -Delp2(Apar);

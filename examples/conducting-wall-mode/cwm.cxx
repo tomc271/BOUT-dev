@@ -259,7 +259,7 @@ private:
     phi = phiSolver->solve(rho / Ni0);
 
     // Communicate variables
-    mesh->communicate(comms);
+      mesh->communicateGroup(comms);
 
     // 'initial guess' for phi boundary values, before applying sheath boundary conditions
     // to set the parallel current.

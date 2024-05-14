@@ -269,7 +269,7 @@ private:
     }
 
     // Communicate variables
-    mesh->communicate(comms);
+      mesh->communicateGroup(comms);
 
     // Update non-linear coefficients on the mesh
     nu = nu_hat * Ni0 / pow(Te0, 1.5);

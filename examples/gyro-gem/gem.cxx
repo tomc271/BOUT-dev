@@ -561,7 +561,7 @@ class GEM : public PhysicsModel {
     dump.add(Jpar, "Jpar", 1);
 
     // To ensure X periodicity
-    mesh->communicate(comms);
+      mesh->communicateGroup(comms);
 
     comms.add(phi, Apar, Ui, Ue, Jpar);
 
@@ -676,7 +676,7 @@ class GEM : public PhysicsModel {
     ////////////////////////////////////////////
     // Communicate
 
-    mesh->communicate(comms);
+      mesh->communicateGroup(comms);
 
     ////////////////////////////////////////////
     // Electron equations
@@ -1038,7 +1038,7 @@ class GEM : public PhysicsModel {
     ////////////////////////////////////////////
     // Communicate
 
-    mesh->communicate(comms);
+      mesh->communicateGroup(comms);
 
     ////////////////////////////////////////////
     // Resistivity

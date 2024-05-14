@@ -283,7 +283,7 @@ public:
   template <typename... Ts>
   void communicate(Ts&... ts) {
     FieldGroup g(ts...);
-    communicate(g);
+    communicateGroup(g);
   }
 
   template <typename... Ts>
@@ -301,7 +301,7 @@ public:
   /*!
    * Communicate a group of fields
    */
-  void communicate(FieldGroup& g);
+  void communicateGroup(FieldGroup& g);
 
   /// Communcate guard cells in XZ only
   /// i.e. no Y communication

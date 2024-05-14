@@ -167,7 +167,7 @@ private:
     phi = phiSolver->solve(U); // Invert Laplacian
     phi.applyBoundary();       // Apply boundary condition in Y
 
-    mesh->communicate(comms);
+      mesh->communicateGroup(comms);
 
     Jpar = -(B0 / mu_0) * Delp2(Psi);
     Jpar.applyBoundary();
