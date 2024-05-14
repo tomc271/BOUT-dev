@@ -282,9 +282,20 @@ public:
    */
   template <typename... Ts>
   void communicate(Ts&... ts) {
-    FieldGroup g(ts...);
-    communicateGroup(g);
+      FieldGroup g(ts...);
+      communicateGroup(g);
   }
+  template <typename... Ts>
+  void communicate(const Ts&... ts) {
+      FieldGroup g(ts...);
+      communicateGroup(g);
+  }
+
+//  template <typename T, typename... Ts>
+//  void communicate(const T& t, const Ts... ts) {
+//      FieldGroup g(t, ts...);
+//      communicateGroup(g);
+//  }
 
   template <typename... Ts>
   void communicateXZ(Ts&... ts) {

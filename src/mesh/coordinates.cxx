@@ -65,15 +65,30 @@ std::string getLocationSuffix(CELL_LOC location) {
 
 } // anonymous namespace
 
-template <typename T, typename... Ts>
+template <typename... T>
 // Use sendY()/sendX() and wait() instead of Mesh::communicate() to ensure we
 // don't try to calculate parallel slices as Coordinates are not constructed yet
-void Coordinates::communicate(T& t, Ts... ts) const {
-  FieldGroup g(t, ts...);
-  auto h = t.getMesh()->sendY(g);
-  t.getMesh()->wait(h);
-  h = t.getMesh()->sendX(g);
-  t.getMesh()->wait(h);
+void Coordinates::communicate(T&... t) const {
+  FieldGroup g(t...);
+  auto& first = [](auto& first, auto&...) -> auto& { return first; }(t...);
+  const auto mesh = first.getMesh();
+  auto h = mesh->sendY(g);
+  mesh->wait(h);
+  h = mesh->sendX(g);
+  mesh->wait(h);
+}
+
+template <typename... T>
+// Use sendY()/sendX() and wait() instead of Mesh::communicate() to ensure we
+// don't try to calculate parallel slices as Coordinates are not constructed yet
+void Coordinates::communicate(const T&... t) const {
+  FieldGroup g(t...);
+  auto& first = [](auto& first, auto&...) -> auto& { return first; }(t...);
+  const auto mesh = first.getMesh();
+  auto h = mesh->sendY(g);
+  mesh->wait(h);
+  h = mesh->sendX(g);
+  mesh->wait(h);
 }
 
 /// Interpolate a Field2D to a new CELL_LOC with interp_to.
