@@ -65,31 +65,24 @@ std::string getLocationSuffix(CELL_LOC location) {
 
 } // anonymous namespace
 
-template <typename... T>
 // Use sendY()/sendX() and wait() instead of Mesh::communicate() to ensure we
 // don't try to calculate parallel slices as Coordinates are not constructed yet
-void Coordinates::communicate(T&... t) const {
-  FieldGroup g(t...);
-  auto& first = [](auto& first, auto&...) -> auto& { return first; }(t...);
-  const auto mesh = first.getMesh();
-  auto h = mesh->sendY(g);
-  mesh->wait(h);
-  h = mesh->sendX(g);
-  mesh->wait(h);
+void Coordinates::communicate(Field2D& f) const {
+    FieldGroup g(f);
+    auto h = f.getMesh()->sendY(g);
+    f.getMesh()->wait(h);
+    h = f.getMesh()->sendX(g);
+    f.getMesh()->wait(h);
 }
-
-template <typename... T>
-// Use sendY()/sendX() and wait() instead of Mesh::communicate() to ensure we
-// don't try to calculate parallel slices as Coordinates are not constructed yet
-void Coordinates::communicate(const T&... t) const {
-  FieldGroup g(t...);
-  auto& first = [](auto& first, auto&...) -> auto& { return first; }(t...);
-  const auto mesh = first.getMesh();
-  auto h = mesh->sendY(g);
-  mesh->wait(h);
-  h = mesh->sendX(g);
-  mesh->wait(h);
+#if BOUT_USE_METRIC_3D
+void Coordinates::communicate(Field3D& f) const {
+    FieldGroup g(f);
+    auto h = f.getMesh()->sendY(g);
+    f.getMesh()->wait(h);
+    h = f.getMesh()->sendX(g);
+    f.getMesh()->wait(h);
 }
+#endif
 
 /// Interpolate a Field2D to a new CELL_LOC with interp_to.
 /// Communicates to set internal guard cells.
@@ -769,9 +762,9 @@ const Field2D& Coordinates::zlength() const {
 int Coordinates::communicateAndCheckMeshSpacing() const {
   TRACE("Coordinates::communicateAndCheckMeshSpacing");
 
-  auto tmp = dx(); // TODO: There must be a better way than this!
-  communicate(tmp, dy(), dz(), g11(), g22(), g33(), g12(), g13(), g23(), g_11(), g_22(),
-              g_33(), g_12(), g_13(), g_23(), J(), Bxy());
+  localmesh->communicate(dx(), dy(), dz(), g11(), g22(), g33(), g12(), g13(), g23(), g_11(), g_22(), g_33(),
+                         g_12(), g_13(), g_23(), J(), Bxy());
+
 
   output_progress.write("Calculating differential geometry terms\n");
 

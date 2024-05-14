@@ -310,11 +310,11 @@ public:
 
   FieldMetric recalculateJacobian() const;
 
-  template <typename... T>
-  void communicate(T&... t) const;
-
-  template <typename... T>
-  void communicate(const T&... t) const;
+    void communicate(Field2D& f) const;
+#if BOUT_USE_METRIC_3D
+    // In this case we also need to be able to call with a Field3D
+    void communicate(Field3D& f) const;
+#endif
 
 private:
   int nz; // Size of mesh in Z. This is mesh->ngz-1
