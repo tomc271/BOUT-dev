@@ -168,29 +168,6 @@ private:
 
     viscos_coll = options["viscos_coll"].withDefault(-1.0);
 
-    // Load curvature term
-    b0xcv.covariant = false;  // Read contravariant components
-    mesh->get(b0xcv, "bxcv"); // mixed units x: T y: m^-2 z: m^-2
-
-    // Metric coefficients
-    Field2D Rxy, Bpxy, Btxy, hthe;
-    Field2D I; // Shear factor
-
-    coord = mesh->getCoordinates();
-
-    if (mesh->get(Rxy, "Rxy")) { // m
-      output_error.write("Error: Cannot read Rxy from grid\n");
-      return 1;
-    }
-    if (mesh->get(Bpxy, "Bpxy")) { // T
-      output_error.write("Error: Cannot read Bpxy from grid\n");
-      return 1;
-    }
-    mesh->get(Btxy, "Btxy"); // T
-    mesh->get(B0, "Bxy");    // T
-    mesh->get(hthe, "hthe"); // m
-    mesh->get(I, "sinty");   // m^-2 T^-1
-
     nonlinear = options["nonlinear"].withDefault(false);
     full_bfield = options["full_bfield"].withDefault(false);
     flux_method = options["flux_method"].withDefault(false);
@@ -233,20 +210,6 @@ private:
     default:
       output << "ERROR: Invalid choice of bracket method. Must be 0 - 3\n";
       return 1;
-    }
-
-    //////////////////////////////////////////////////////////////
-    // SHIFTED RADIAL COORDINATES
-
-    // Check type of parallel transform
-    std::string ptstr =
-        Options::root()["mesh"]["paralleltransform"]["type"].withDefault<std::string>(
-            "identity");
-
-    if (lowercase(ptstr) == "shifted") {
-      // Dimits style, using local coordinate system
-      b0xcv.z += I * b0xcv.x;
-      I = 0.0; // I disappears from metric
     }
 
     //////////////////////////////////////////////////////////////
@@ -296,28 +259,18 @@ private:
       eta0 *= sqrt(rhonorm / MU0); // Normalise
     }
 
-    //////////////////////////////////////////////////////////////
-    // CALCULATE METRICS
+    // Load curvature term
+    b0xcv.covariant = false;  // Read contravariant components
+    mesh->get(b0xcv, "bxcv"); // mixed units x: T y: m^-2 z: m^-2
 
-    const auto g11 = SQ(Rxy * Bpxy);
-    const auto g22 = 1.0 / SQ(hthe);
-    const auto g33 = SQ(I) * g11 + SQ(B0) / g11;
-    const auto g12 = 0.0;
-    const auto g13 = -I * g11;
-    const auto g23 = -Btxy / (hthe * Bpxy * Rxy);
+    Field2D hthe;
+    Field2D Bpxy;
 
-    coord->setJ(hthe / Bpxy);
-    coord->setBxy(B0);
-
-    const auto g_11 = 1.0 / g11 + SQ(I * Rxy);
-    const auto g_22 = SQ(B0 * hthe / Bpxy);
-    const auto g_33 = Rxy * Rxy;
-    const auto g_12 = Btxy * hthe * I * Rxy / Bpxy;
-    const auto g_13 = I * Rxy * Rxy;
-    const auto g_23 = Btxy * hthe * Rxy / Bpxy;
-
-    coord->setMetricTensor(ContravariantMetricTensor(g11, g22, g33, g12, g13, g23),
-                           CovariantMetricTensor(g_11, g_22, g_33, g_12, g_13, g_23));
+    coord = mesh->getCoordinates();
+    int return_code = SetupTokamakGeometry(*coord, hthe, Bpxy);
+    if (return_code != 0) {
+      return return_code;
+    }
 
     // Set B field vector
     B0vec.covariant = false;
