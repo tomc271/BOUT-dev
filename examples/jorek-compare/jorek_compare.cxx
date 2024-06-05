@@ -266,8 +266,9 @@ private:
     Field2D hthe;
     Field2D Bpxy;
 
-    coord = mesh->getCoordinates();
-    int return_code = SetupTokamakGeometry(*coord, hthe, Bpxy);
+    mesh->get(B0, "Bxy");    // T
+
+    int return_code = mesh->SetupTokamakGeometry(hthe, Bpxy, B0, b0xcv);
     if (return_code != 0) {
       return return_code;
     }

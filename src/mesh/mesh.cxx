@@ -885,6 +885,67 @@ std::optional<size_t> Mesh::getCommonRegion(std::optional<size_t> lhs,
   return region3Dintersect[pos];
 }
 
+/// N.B. b0xcv is modified by this method // TODO: Avoid side-effects (CQS principle)
+int Mesh::SetupTokamakGeometry(Field2D& hthe, Field2D& Bpxy, Field2D& B0,
+                               Vector2D& b0xcv) {
+
+  auto* coordinates = getCoordinates();
+
+  // Metric coefficients
+  Field2D Rxy;
+  Field2D Btxy;
+  Field2D I; // Shear factor
+
+  //////////////////////////////////////////////////////////////
+  // SHIFTED RADIAL COORDINATES
+
+  // Check type of parallel transform
+  std::string ptstr =
+      Options::root()["mesh"]["paralleltransform"]["type"].withDefault<std::string>(
+          "identity");
+  if (lowercase(ptstr) == "shifted") {
+    // Dimits style, using local coordinate system
+    b0xcv.z += I * b0xcv.x;
+    I = 0.0; // I disappears from metric
+  }
+
+  if (get(Rxy, "Rxy")) { // m
+    output_error.write("Error: Cannot read Rxy from grid\n");
+    return 1;
+  }
+  if (get(Bpxy, "Bpxy")) { // T
+    output_error.write("Error: Cannot read Bpxy from grid\n");
+    return 1;
+  }
+  get(Btxy, "Btxy"); // T
+  get(hthe, "hthe"); // m
+  get(I, "sinty");   // m^-2 T^-1
+
+  //////////////////////////////////////////////////////////////
+  // CALCULATE METRICS
+
+  const auto g11 = SQ(Rxy * Bpxy);
+  const auto g22 = 1.0 / SQ(hthe);
+  const auto g33 = SQ(I) * g11 + SQ(B0) / g11;
+  const auto g12 = 0.0;
+  const auto g13 = -I * g11;
+  const auto g23 = -Btxy / (hthe * Bpxy * Rxy);
+
+  coordinates->setJ(hthe / Bpxy);
+  coordinates->setBxy(B0);
+
+  const auto g_11 = 1.0 / g11 + SQ(I * Rxy);
+  const auto g_22 = SQ(B0 * hthe / Bpxy);
+  const auto g_33 = Rxy * Rxy;
+  const auto g_12 = Btxy * hthe * I * Rxy / Bpxy;
+  const auto g_13 = I * Rxy * Rxy;
+  const auto g_23 = Btxy * hthe * Rxy / Bpxy;
+
+  coordinates->setMetricTensor(ContravariantMetricTensor(g11, g22, g33, g12, g13, g23),
+                               CovariantMetricTensor(g_11, g_22, g_33, g_12, g_13, g_23));
+  return 0;
+}
+
 constexpr decltype(MeshFactory::type_name) MeshFactory::type_name;
 constexpr decltype(MeshFactory::section_name) MeshFactory::section_name;
 constexpr decltype(MeshFactory::option_name) MeshFactory::option_name;

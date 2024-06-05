@@ -801,6 +801,8 @@ public:
   /// Creates RGN_{ALL,NOBNDRY,NOX,NOY}
   void createDefaultRegions();
 
+  int SetupTokamakGeometry(Field2D& hthe, Field2D& Bpxy, Field2D& B0, Vector2D& b0xcv);
+
 protected:
   /// Source for grid data
   GridDataSource* source{nullptr};
