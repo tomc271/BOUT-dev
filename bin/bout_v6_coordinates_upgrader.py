@@ -10,23 +10,6 @@ import pathlib
 import re
 import textwrap
 
-# # Regular expression dx, dy, or dz
-# dx_dy_or_dz_regex = re.compile(
-#     r"""(\.d\w)
-#     """,
-#     re.VERBOSE | re.MULTILINE,
-# )
-
-RHS_RE = re.compile(r"solver\s*->\s*setRHS\(\s*([a-zA-Z0-9_]+)\s*\)")
-
-PRECON_RE = re.compile(r"solver\s*->\s*setPrecon\(\s*([a-zA-Z0-9_]+)\s*\)")
-
-JACOBIAN_RE = re.compile(r"solver\s*->\s*setJacobian\(\s*([a-zA-Z0-9_]+)\s*\)")
-
-SPLIT_OPERATOR_RE = re.compile(
-    r"solver\s*->\s*setSplitOperator\(\s*([a-zA-Z0-9_]+),\s*([a-zA-Z0-9_]+)\s*\)"
-)
-
 
 def main(*args, **kwargs):
 
@@ -41,24 +24,18 @@ def main(*args, **kwargs):
         ),
     )
     parser = boutupgrader.default_args(parser)
-    # parser.add_argument(
-    # )
     args = parser.parse_args(args=args)
 
     path = pathlib.Path(args.files[0])
     if pathlib.Path.is_dir(path):
-
         filepaths = [os.path.join(dir_path, f)
                      for (dir_path, dir_names, filenames) in os.walk(path)
                      for f in filenames]
-        # files = os.listdir(args.files[0], )
-        # filepaths = [file]
     else:
         filepaths = args.files
 
     for filename in filepaths:
         try:
-            # with open(filename, "r") as f:
             with pathlib.Path(filename).open() as f:
                 contents = f.read()
         except Exception as e:
@@ -75,27 +52,6 @@ def main(*args, **kwargs):
         modified = contents
         for pattern, replacement in patterns_with_replacements.items():
             modified = re.sub(pattern, replacement, modified)
-
-        # match = dx_dy_or_dz_regex.search(original)
-        # if match is not None:
-        #     new_name = match.group("name")
-        # else:
-        #     new_name = args.name or pathlib.Path(filename).stem.capitalize().replace(
-        #         " ", "_"
-        #     )
-
-        # try:
-        #     if re.match(r"^[0-9]+.*", new_name) and not args.force:
-        #         raise ValueError(
-        #             f"Invalid name: '{new_name}'. Use --name to specify a valid C++ identifier"
-        #         )
-        #     modified = re.sub(dx_dy_or_dz_regex, r"\1", original)
-        # except (RuntimeError, ValueError) as e:
-        #     error_message = textwrap.indent(f"{e}", " ")
-        #     print(
-        #         f"There was a problem applying automatic fixes to {filename}:\n\n{error_message}"
-        #     )
-        #     continue
 
         boutupgrader.apply_or_display_patch(
             filename, original, modified, args.patch_only, args.quiet, args.force
