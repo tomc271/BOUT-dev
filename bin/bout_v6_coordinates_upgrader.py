@@ -45,9 +45,13 @@ def main(*args, **kwargs):
         original = copy.deepcopy(contents)
 
         patterns_with_replacements = {
-            r"(\-\>|\.)d(\w)\s?\=\s?(.+?\b)": r"\1setD\2(\3)",  # Replace `->dx =` with `->setDx()`
-            r"(\b.+\-\>|\.)d(\w)\s?\/\=\s?(.+)(?=;)": r"\1setD\2(\1d\2() / (\3))",  # Replace `foo->dx /= bar` with `foo->setDx(foo->dx() / (bar))`
+            r"(\-\>|\.)d(\w)\s?\=\s?(.+?\b)": r"\1setD\2(\3)",  # Replace `->dx =` with `->setDx()`, etc
+            r"(\b.+\-\>|\.)d(\w)\s?\/\=\s?(.+)(?=;)": r"\1setD\2(\1d\2  / (\3))",  # Replace `foo->dx /= bar` with `foo->setDx(foo->dx() / (bar))`
             r"(\-\>|\.)(d\w)\s?(?!=)": r"\1\2()",  # Replace `c->dx` with `c->dx()` but not if is assignment
+
+            r"(\-\>|\.)Bxy\s?\=\s?(.+?\b)": r"\1setBxy(\2)",  # Replace `->Bxy =` with `->setBxy()`, etc
+            r"(\b.+\-\>|\.)Bxy\s?\/\=\s?(.+)(?=;)": r"\1setBxy(\1Bxy  / \2)",  # Replace `foo->Bxy /= bar` with `foo->setBxy(foo->Bxy() / (bar))`
+            r"(\-\>|\.)Bxy\s?(?!=)": r"\1Bxy()",  # Replace `c->Bxy` with `c->Bxy()` but not if is assignment
         }
 
         modified = contents
