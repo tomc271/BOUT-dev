@@ -57,6 +57,7 @@ def main(*args, **kwargs):
         boutupgrader.apply_or_display_patch(
             filename, original, modified, args.patch_only, args.quiet, args.force
         )
+        return modified
 
 
 if __name__ == "__main__":
