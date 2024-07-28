@@ -91,25 +91,34 @@ def get_modified_contents(contents):
     g_13 = metric_components.get("g_13", None)
     g_23 = metric_components.get("g_23", None)
 
-    new_metric_setter = (
+    # metric_components_with_value = {key: value for key, value in metric_components.items() if value is not None}
+    for key, value in metric_components.items():
+        new_value = replace_metric_tensor_cases(value)
+        print(rf"    const auto {key} = {new_value};")
+
+    new_metric_tensor_setter = (
         f"    coord->setMetricTensor(ContravariantMetricTensor({g11}, {g22}, {g33}, {g12}, {g13}, {g23}), "
         f"CovariantMetricTensor({g_11}, {g_22}, {g_33}, {g_12}, {g_13}, {g_23}));")
 
-    metric_components_with_value = [c for c in metric_components if c is not None]
-    last_metric_component_with_value = metric_components_with_value[-1]
-    last_component_pattern = rf"(\b.+\-\>|\.){last_metric_component_with_value}\s?\=\s?(.+)(?=;)"
-    line_index = index_of_first_matching_line(last_component_pattern, lines)
-
-    lines.insert(line_index, new_metric_setter)
+    # last_metric_component = "g" + (metric_tensor_components[-1])[1]
+    # last_component_pattern = rf"(\b.+\-\>|\.){last_metric_component}\s?\=\s?(.+)(?=;)"
+    # line_index = index_of_first_matching_line(last_component_pattern, lines)
 
     lines_to_remove = indices_of_matching_lines(setting_metric_component, lines)
-    for line in lines_to_remove:
-        del (lines[line])
+    for _i in range(len(lines_to_remove)):
+        del (lines[lines_to_remove[0]])
+    lines.insert(lines_to_remove[-1], new_metric_tensor_setter)
 
     # modified = contents
     # modified += "\n".join(lines)
     modified = "\n".join(lines)
 
+    modified = replace_one_line_cases(modified)
+
+    return modified
+
+
+def replace_one_line_cases(modified):
     patterns_with_replacements = {
         r"(\-\>|\.)d(\w)\s?\=\s?(.+?\b)": r"\1setD\2(\3)",  # Replace `->dx =` with `->setDx()`, etc
         r"(\b.+\-\>|\.)d(\w)\s?\/\=\s?(.+)(?=;)": r"\1setD\2(\1d\2  / (\3))",
@@ -123,7 +132,14 @@ def get_modified_contents(contents):
     }
     for pattern, replacement in patterns_with_replacements.items():
         modified = re.sub(pattern, replacement, modified)
+    return modified
 
+
+def replace_metric_tensor_cases(input_text):
+    # Replace `c->g11` with `c->g11()`, etc, but not if is assignment
+    pattern = r"(\-\>|\.)(g\d\d)\s?(?!=)"
+    replacement = r"\1\2()"
+    modified = re.sub(pattern, replacement, input_text)
     return modified
 
 
