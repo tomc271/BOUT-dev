@@ -12,7 +12,6 @@ import textwrap
 
 
 def main(*args, **kwargs):
-
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=textwrap.dedent(
@@ -53,7 +52,6 @@ def main(*args, **kwargs):
 
 
 def get_modified_contents(contents):
-
     # Replace
     # `c->g11 = bar;`
     # with
@@ -61,16 +59,24 @@ def get_modified_contents(contents):
     # coord->setMetricTensor(ContravariantMetricTensor(g11, g22, g33, g12, g13, g23),
     #                CovariantMetricTensor(g_11, g_22, g_33, g_12, g_13, g_23));`
     # etc
-    g11_pattern = r"(\b.+\-\>|\.)g11\s?\=\s?(.+)(?=;)"
-    first_g11_match = re.search(g11_pattern, contents)
+
+    lines = contents.splitlines()
+
+    # g11_pattern = r"(\b.+\-\>|\.)g11\s?\=\s?(.+)(?=;)"
+    # first_g11_match = re.search(g11_pattern, contents)
+    # remove_matching_line(g11_pattern, lines)
+    # # line_index = index_of_first_matching_line(g11_pattern, lines)
+    # # lines.__delitem__(line_index)
+
     # TODO:
     # g11_matches = re.findall(g11_pattern, contents)
     # if len(g11_matches) > 1:
-    regex_2 = r"(\b.+\-\>|\.)g(\d\d)\s?\=\s?(.+)(?=;)"
-    remaining_metric_components = re.findall(regex_2, contents[first_g11_match.end():])
+
+    setting_metric_component = r"(\b.+\-\>|\.)g(\d\d)\s?\=\s?(.+)(?=;)"
+    metric_tensor_components = re.findall(setting_metric_component, contents)
     metric_components = {
         "g" + component[1]: component[2]
-        for component in remaining_metric_components
+        for component in metric_tensor_components
     }
     g11 = metric_components.get("g11", None)
     g22 = metric_components.get("g22", None)
@@ -84,9 +90,6 @@ def get_modified_contents(contents):
     g_12 = metric_components.get("g_12", None)
     g_13 = metric_components.get("g_13", None)
     g_23 = metric_components.get("g_23", None)
-    
-    modified = contents
-    lines = contents.splitlines()
 
     new_metric_setter = (
         f"    coord->setMetricTensor(ContravariantMetricTensor({g11}, {g22}, {g33}, {g12}, {g13}, {g23}), "
@@ -96,8 +99,16 @@ def get_modified_contents(contents):
     last_metric_component_with_value = metric_components_with_value[-1]
     last_component_pattern = rf"(\b.+\-\>|\.){last_metric_component_with_value}\s?\=\s?(.+)(?=;)"
     line_index = index_of_first_matching_line(last_component_pattern, lines)
+
     lines.insert(line_index, new_metric_setter)
-    modified += "\n".join(lines)
+
+    lines_to_remove = indices_of_matching_lines(setting_metric_component, lines)
+    for line in lines_to_remove:
+        del (lines[line])
+
+    # modified = contents
+    # modified += "\n".join(lines)
+    modified = "\n".join(lines)
 
     patterns_with_replacements = {
         r"(\-\>|\.)d(\w)\s?\=\s?(.+?\b)": r"\1setD\2(\3)",  # Replace `->dx =` with `->setDx()`, etc
@@ -116,10 +127,22 @@ def get_modified_contents(contents):
     return modified
 
 
+# def remove_matching_line(regex_pattern, lines):
+#     search_result_for_all_lines = [re.search(regex_pattern, line) for line in lines]
+#     first_matching_line = [x for x in search_result_for_all_lines if x is not None][0].string
+#     lines.remove(first_matching_line)
+#     return lines
+
+
+def indices_of_matching_lines(last_component_pattern, lines):
+    search_result_for_all_lines = [re.search(last_component_pattern, line) for line in lines]
+    matches = [x for x in search_result_for_all_lines if x is not None]
+    return [lines.index(match.string) for match in matches]
+
+
 def index_of_first_matching_line(last_component_pattern, lines):
     search_result_for_all_lines = [re.search(last_component_pattern, line) for line in lines]
     first_matching_line = [x for x in search_result_for_all_lines if x is not None][0].string
-    # first_matching_line = [re.findall(last_component_pattern, line) for line in lines][0]
     return lines.index(first_matching_line)
 
 
