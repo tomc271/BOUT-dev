@@ -52,14 +52,6 @@ def main(*args, **kwargs):
         #                CovariantMetricTensor(g_11, g_22, g_33, g_12, g_13, g_23));`
         # etc
 
-        # regex_1 = r"(\b.+\-\>|\.)g(\d\d)\s?\=\s?((.+)\1g(\d\d)(.+))+(?=;)"
-        # regex_2 = r"(\b.+\-\>|\.)g(\d\d)\s?\=\s?(.+)(?=;)"
-        #
-        # matches_1 = re.findall(regex_1, contents)
-        # matches_2 = re.findall(regex_2, contents)
-
-        # metric_component = namedtuple("MetricComponent", ["indices", "value"])
-
         g11_pattern = r"(\b.+\-\>|\.)g11\s?\=\s?(.+)(?=;)"
         first_g11_match = re.search(g11_pattern, contents)
         # TODO:
@@ -68,11 +60,6 @@ def main(*args, **kwargs):
 
         regex_2 = r"(\b.+\-\>|\.)g(\d\d)\s?\=\s?(.+)(?=;)"
         remaining_metric_components = re.findall(regex_2, contents[first_g11_match.end():])
-        # matches_after_g11 = [x for x in matches_2 if x.start() > first_g11_match.start()]
-        # metric_components = {
-        #     metric_component(component[1], component[2])
-        #     for component in remaining_metric_components
-        # }
         metric_components = {
             "g" + component[1]: component[2]
             for component in remaining_metric_components
