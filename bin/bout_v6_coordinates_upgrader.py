@@ -12,6 +12,7 @@ import textwrap
 
 
 def main(*args, **kwargs):
+
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=textwrap.dedent(
@@ -72,11 +73,11 @@ def get_modified_contents(contents):
     # g11_matches = re.findall(g11_pattern, contents)
     # if len(g11_matches) > 1:
 
-    setting_metric_component = r"(\b.+\-\>|\.)g(\d\d)\s?\=\s?(.+)(?=;)"
-    metric_tensor_components = re.findall(setting_metric_component, contents)
+    pattern_setting_metric_component = r"(\b.+\-\>|\.)(g_?)(\d\d)\s?\=\s?(.+)(?=;)"
+    line_matches = re.findall(pattern_setting_metric_component, contents)
     metric_components = {
-        "g" + component[1]: component[2]
-        for component in metric_tensor_components
+        match[1] + match[2]: match[3]
+        for match in line_matches
     }
     g11 = metric_components.get("g11", None)
     g22 = metric_components.get("g22", None)
@@ -91,23 +92,32 @@ def get_modified_contents(contents):
     g_13 = metric_components.get("g_13", None)
     g_23 = metric_components.get("g_23", None)
 
-    # metric_components_with_value = {key: value for key, value in metric_components.items() if value is not None}
-    for key, value in metric_components.items():
+    lines_to_remove = indices_of_matching_lines(pattern_setting_metric_component, lines)
+    lines_removed_count = 0
+    for line_index in lines_to_remove:
+        del (lines[line_index - lines_removed_count])
+        lines_removed_count += 1
+
+    metric_components_with_value = {key: value for key, value in metric_components.items() if value is not None}
+    for key, value in metric_components_with_value.items().__reversed__():
         new_value = replace_metric_tensor_cases(value)
         print(rf"    const auto {key} = {new_value};")
+        local_variable_line = rf"    const auto {key} = {new_value};"
+        lines.insert(lines_to_remove[0], local_variable_line)
+
+    lines.insert(lines_to_remove[0] + len(metric_components_with_value), "\n")
+    lines.insert(lines_to_remove[0] + len(metric_components_with_value), "\n")
 
     new_metric_tensor_setter = (
-        f"    coord->setMetricTensor(ContravariantMetricTensor({g11}, {g22}, {g33}, {g12}, {g13}, {g23}), "
-        f"CovariantMetricTensor({g_11}, {g_22}, {g_33}, {g_12}, {g_13}, {g_23}));")
+        f"    coord->setMetricTensor(ContravariantMetricTensor(g11, g22, g33, g12, g13, g23), \n"
+        f"                           CovariantMetricTensor(g_11, g_22, g_33, g_12, g_13, g_23));")
 
     # last_metric_component = "g" + (metric_tensor_components[-1])[1]
     # last_component_pattern = rf"(\b.+\-\>|\.){last_metric_component}\s?\=\s?(.+)(?=;)"
     # line_index = index_of_first_matching_line(last_component_pattern, lines)
 
-    lines_to_remove = indices_of_matching_lines(setting_metric_component, lines)
-    for _i in range(len(lines_to_remove)):
-        del (lines[lines_to_remove[0]])
-    lines.insert(lines_to_remove[-1], new_metric_tensor_setter)
+    lines.insert(lines_to_remove[0] + len(metric_components_with_value) + 1, new_metric_tensor_setter)
+    # lines.insert(lines_to_remove[0] + len(metric_components_with_value) + 2, "\n")
 
     # modified = contents
     # modified += "\n".join(lines)
@@ -121,14 +131,16 @@ def get_modified_contents(contents):
 def replace_one_line_cases(modified):
     patterns_with_replacements = {
         r"(\-\>|\.)d(\w)\s?\=\s?(.+?\b)": r"\1setD\2(\3)",  # Replace `->dx =` with `->setDx()`, etc
-        r"(\b.+\-\>|\.)d(\w)\s?\/\=\s?(.+)(?=;)": r"\1setD\2(\1d\2  / (\3))",
-        # Replace `foo->dx /= bar` with `foo->setDx(foo->dx() / (bar))`
+        r"(\b.+\-\>|\.)d(\w)\s?\/\=\s?(.+)(?=;)": r"\1setD\2(\1d\2  / (\3))",  # Replace `foo->dx /= bar` with `foo->setDx(foo->dx() / (bar))`
         r"(\-\>|\.)(d\w)\s?(?!=)": r"\1\2()",  # Replace `c->dx` with `c->dx()` but not if is assignment
 
         r"(\-\>|\.)Bxy\s?\=\s?(.+?\b)": r"\1setBxy(\2)",  # Replace `->Bxy =` with `->setBxy()`, etc
-        r"(\b.+\-\>|\.)Bxy\s?\/\=\s?(.+)(?=;)": r"\1setBxy(\1Bxy  / \2)",
-        # Replace `foo->Bxy /= bar` with `foo->setBxy(foo->Bxy() / (bar))`
+        r"(\b.+\-\>|\.)Bxy\s?\/\=\s?(.+)(?=;)": r"\1setBxy(\1Bxy  / \2)",  # Replace `foo->Bxy /= bar` with `foo->setBxy(foo->Bxy() / (bar))`
         r"(\-\>|\.)Bxy\s?(?!=)": r"\1Bxy()",  # Replace `c->Bxy` with `c->Bxy()` but not if is assignment
+
+        r"(\-\>|\.)J\s?\=\s?(.+?)(?=;)": r"\1setJ(\2)",  # Replace `->J =` with `->setJ()`, etc
+        r"(\b.+\-\>|\.)J\s?\/\=\s?(.+)(?=;)": r"\1setJ(\1J  / \2)",  # Replace `foo->J /= bar` with `foo->setJ(foo->J() / (bar))`
+        r"(\-\>|\.)J\s?(?!=)": r"\1J()",  # Replace `c->J` with `c->J()` but not if is assignment
     }
     for pattern, replacement in patterns_with_replacements.items():
         modified = re.sub(pattern, replacement, modified)
@@ -137,8 +149,8 @@ def replace_one_line_cases(modified):
 
 def replace_metric_tensor_cases(input_text):
     # Replace `c->g11` with `c->g11()`, etc, but not if is assignment
-    pattern = r"(\-\>|\.)(g\d\d)\s?(?!=)"
-    replacement = r"\1\2()"
+    pattern = r"(\b\w+\-\>|\.)(g_?\d\d)"
+    replacement = r"\2"
     modified = re.sub(pattern, replacement, input_text)
     return modified
 
