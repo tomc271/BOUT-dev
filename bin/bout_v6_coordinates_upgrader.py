@@ -53,25 +53,8 @@ def main(*args, **kwargs):
 
 
 def get_modified_contents(contents):
-    # Replace
-    # `c->g11 = bar;`
-    # with
-    # `const auto g11 = bar;
-    # coord->setMetricTensor(ContravariantMetricTensor(g11, g22, g33, g12, g13, g23),
-    #                CovariantMetricTensor(g_11, g_22, g_33, g_12, g_13, g_23));`
-    # etc
 
     lines = contents.splitlines()
-
-    # g11_pattern = r"(\b.+\-\>|\.)g11\s?\=\s?(.+)(?=;)"
-    # first_g11_match = re.search(g11_pattern, contents)
-    # remove_matching_line(g11_pattern, lines)
-    # # line_index = index_of_first_matching_line(g11_pattern, lines)
-    # # lines.__delitem__(line_index)
-
-    # TODO:
-    # g11_matches = re.findall(g11_pattern, contents)
-    # if len(g11_matches) > 1:
 
     pattern_setting_metric_component = r"(\b.+\-\>|\.)(g_?)(\d\d)\s?\=\s?(.+)(?=;)"
     line_matches = re.findall(pattern_setting_metric_component, contents)
@@ -79,18 +62,6 @@ def get_modified_contents(contents):
         match[1] + match[2]: match[3]
         for match in line_matches
     }
-    g11 = metric_components.get("g11", None)
-    g22 = metric_components.get("g22", None)
-    g33 = metric_components.get("g33", None)
-    g12 = metric_components.get("g12", None)
-    g13 = metric_components.get("g13", None)
-    g23 = metric_components.get("g23", None)
-    g_11 = metric_components.get("g_11", None)
-    g_22 = metric_components.get("g_22", None)
-    g_33 = metric_components.get("g_33", None)
-    g_12 = metric_components.get("g_12", None)
-    g_13 = metric_components.get("g_13", None)
-    g_23 = metric_components.get("g_23", None)
 
     lines_to_remove = indices_of_matching_lines(pattern_setting_metric_component, lines)
     lines_removed_count = 0
@@ -102,29 +73,23 @@ def get_modified_contents(contents):
     newline_inserted = False
     for key, value in metric_components_with_value.items().__reversed__():
         new_value = replace_metric_tensor_cases(value)
-        print(rf"    const auto {key} = {new_value};")
         if not key.startswith("g_") and not newline_inserted:
             lines.insert(lines_to_remove[0], "")
             newline_inserted = True
         local_variable_line = rf"    const auto {key} = {new_value};"
         lines.insert(lines_to_remove[0], local_variable_line)
 
-    lines.insert(lines_to_remove[0] + len(metric_components_with_value) + 1, "")
+    lines.insert(lines_to_remove[0] + len(metric_components_with_value) + 1, "")  # insert a blank line
 
     new_metric_tensor_setter = (
         f"    coord->setMetricTensor(ContravariantMetricTensor(g11, g22, g33, g12, g13, g23),\n"
         f"                           CovariantMetricTensor(g_11, g_22, g_33, g_12, g_13, g_23));")
 
-    # last_metric_component = "g" + (metric_tensor_components[-1])[1]
-    # last_component_pattern = rf"(\b.+\-\>|\.){last_metric_component}\s?\=\s?(.+)(?=;)"
-    # line_index = index_of_first_matching_line(last_component_pattern, lines)
-
     lines.insert(lines_to_remove[0] + len(metric_components_with_value) + 2, new_metric_tensor_setter)
-    # lines.insert(lines_to_remove[0] + len(metric_components_with_value) + 2, "\n")
     del (lines[lines_to_remove[-1] + 3])
-    lines.append("")
-    # modified = contents
-    # modified += "\n".join(lines)
+
+    lines.append("")  # insert a blank line
+
     modified = "\n".join(lines)
 
     modified = replace_one_line_cases(modified)
@@ -132,6 +97,7 @@ def get_modified_contents(contents):
     return modified
 
 
+# Deal with the basic find-and-replace cases that do not involve multiple lines
 def replace_one_line_cases(modified):
     patterns_with_replacements = {
         r"(\-\>|\.)d(\w)\s?\=\s?(.+?)(?=;)": r"\1setD\2(\3)",  # Replace `->dx =` with `->setDx()`, etc
@@ -157,13 +123,6 @@ def replace_metric_tensor_cases(input_text):
     replacement = r"\2"
     modified = re.sub(pattern, replacement, input_text)
     return modified
-
-
-# def remove_matching_line(regex_pattern, lines):
-#     search_result_for_all_lines = [re.search(regex_pattern, line) for line in lines]
-#     first_matching_line = [x for x in search_result_for_all_lines if x is not None][0].string
-#     lines.remove(first_matching_line)
-#     return lines
 
 
 def indices_of_matching_lines(last_component_pattern, lines):
