@@ -72,7 +72,7 @@ def get_modified_contents(contents):
     metric_components_with_value = {key: value for key, value in metric_components.items() if value is not None}
     newline_inserted = False
     for key, value in metric_components_with_value.items().__reversed__():
-        new_value = re.sub(r"(\b\w+\-\>|\.)(g_?\d\d)", r"\2", value)  # Replace `c->g11` with `g11`, etc
+        new_value = re.sub(r"(\b\w+->|\.)(g_?\d\d)", r"\2", value)  # Replace `c->g11` with `g11`, etc
         if not key.startswith("g_") and not newline_inserted:
             lines.insert(lines_to_remove[0], "")
             newline_inserted = True
