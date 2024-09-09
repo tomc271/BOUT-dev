@@ -146,11 +146,5 @@ def indices_of_matching_lines(pattern, lines):
     return [lines.index(match.string) for match in matches]
 
 
-def index_of_first_matching_line(last_component_pattern, lines):
-    search_result_for_all_lines = [re.search(last_component_pattern, line) for line in lines]
-    first_matching_line = [x for x in search_result_for_all_lines if x is not None][0].string
-    return lines.index(first_matching_line)
-
-
 if __name__ == "__main__":
     main()
