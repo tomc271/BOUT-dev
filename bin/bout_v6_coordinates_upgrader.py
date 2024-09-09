@@ -138,7 +138,7 @@ def pattern_with_replacement(var):
 
     return {
         # Replace `->var =` with `->setVar()`, etc
-        fr"({arrow_or_dot})({var})\s?\=\s?(.+)(?=;)":
+        fr"({arrow_or_dot})({var})\s?{equals_something}":
         replacement_for_assignment,
 
         # Replace `foo->var /= bar` with `foo->setVar(foo->var() / (bar))`
