@@ -43,7 +43,7 @@ def main(*args, **kwargs):
             print(e, file=sys.stderr)
 
         original = copy.deepcopy(contents)
-        modified_contents = get_modified_contents(contents)
+        modified_contents = modify(contents)
 
         # boutupgrader.apply_or_display_patch(
         #     filename, original, modified_contents, args.patch_only, args.quiet, args.force
@@ -52,23 +52,43 @@ def main(*args, **kwargs):
         return modified_contents
 
 
-def get_modified_contents(contents):
+def modify(original_string):
+    using_new_metric_accessor_methods = use_metric_accessors(original_string)
+    without_geometry_calls = remove_geometry_calls(using_new_metric_accessor_methods)
+    without_geometry_calls.append("")  # insert a blank line at the end of the file
+    lines_as_single_string = "\n".join(without_geometry_calls)
+    modified_contents = replace_one_line_cases(lines_as_single_string)
+    return modified_contents
 
-    lines = contents.splitlines()
 
+def remove_geometry_calls(lines):
+    # Remove lines calling geometry()
+    geometry_method_call_pattern = r"geometry\(\)"
+    lines_to_remove = indices_of_matching_lines(geometry_method_call_pattern, lines)
+    for line_index in lines_to_remove:
+        # If both the lines above and below are blank then remove one of them
+        if lines[line_index - 1].strip() == "" and lines[line_index + 1].strip() == "":
+            del lines[line_index + 1]
+        del (lines[line_index])
+    return lines
+
+
+def use_metric_accessors(original_string):
+
+    lines = original_string.splitlines()
+
+    # find lines like: c->g_11 = x; and c.g_11 = x;
     pattern_setting_metric_component = r"(\b.+\-\>|\.)(g_?)(\d\d)\s?\=\s?(.+)(?=;)"
-    line_matches = re.findall(pattern_setting_metric_component, contents)
+    line_matches = re.findall(pattern_setting_metric_component, original_string)
     metric_components = {
         match[1] + match[2]: match[3]
         for match in line_matches
     }
-
     lines_to_remove = indices_of_matching_lines(pattern_setting_metric_component, lines)
     lines_removed_count = 0
     for line_index in lines_to_remove:
         del (lines[line_index - lines_removed_count])
         lines_removed_count += 1
-
     metric_components_with_value = {key: value for key, value in metric_components.items() if value is not None}
     newline_inserted = False
     for key, value in metric_components_with_value.items().__reversed__():
@@ -78,32 +98,13 @@ def get_modified_contents(contents):
             newline_inserted = True
         local_variable_line = rf"    const auto {key} = {new_value};"
         lines.insert(lines_to_remove[0], local_variable_line)
-
     lines.insert(lines_to_remove[0] + len(metric_components_with_value) + 1, "")  # insert a blank line
-
     new_metric_tensor_setter = (
         f"    coord->setMetricTensor(ContravariantMetricTensor(g11, g22, g33, g12, g13, g23),\n"
         f"                           CovariantMetricTensor(g_11, g_22, g_33, g_12, g_13, g_23));")
-
     lines.insert(lines_to_remove[0] + len(metric_components_with_value) + 2, new_metric_tensor_setter)
     del (lines[lines_to_remove[-1] + 3])
-
-    # Remove lines calling geometry()
-    geometry_method_call_pattern = r"geometry\(\)"
-    lines_to_remove = indices_of_matching_lines(geometry_method_call_pattern, lines)
-    for line_index in lines_to_remove:
-        # If both the lines above and below are blank then remove one of them
-        if lines[line_index - 1].strip() == "" and lines[line_index + 1].strip() == "":
-            del lines[line_index + 1]
-        del (lines[line_index])
-
-    lines.append("")  # insert a blank line at the end of the file
-
-    modified = "\n".join(lines)
-
-    modified = replace_one_line_cases(modified)
-
-    return modified
+    return lines
 
 
 # Deal with the basic find-and-replace cases that do not involve multiple lines
