@@ -61,16 +61,10 @@ def modify(original_string):
     return modified_contents
 
 
-def remove_geometry_calls(lines):
-    # Remove lines calling geometry()
-    geometry_method_call_pattern = r"geometry\(\)"
-    lines_to_remove = indices_of_matching_lines(geometry_method_call_pattern, lines)
-    for line_index in lines_to_remove:
-        # If both the lines above and below are blank then remove one of them
-        if lines[line_index - 1].strip() == "" and lines[line_index + 1].strip() == "":
-            del lines[line_index + 1]
-        del (lines[line_index])
-    return lines
+def indices_of_matching_lines(pattern, lines):
+    search_result_for_all_lines = [re.search(pattern, line) for line in lines]
+    matches = [x for x in search_result_for_all_lines if x is not None]
+    return [lines.index(match.string) for match in matches]
 
 
 def use_metric_accessors(original_string):
@@ -104,6 +98,18 @@ def use_metric_accessors(original_string):
         f"                           CovariantMetricTensor(g_11, g_22, g_33, g_12, g_13, g_23));")
     lines.insert(lines_to_remove[0] + len(metric_components_with_value) + 2, new_metric_tensor_setter)
     del (lines[lines_to_remove[-1] + 3])
+    return lines
+
+
+def remove_geometry_calls(lines):
+    # Remove lines calling geometry()
+    geometry_method_call_pattern = r"geometry\(\)"
+    lines_to_remove = indices_of_matching_lines(geometry_method_call_pattern, lines)
+    for line_index in lines_to_remove:
+        # If both the lines above and below are blank then remove one of them
+        if lines[line_index - 1].strip() == "" and lines[line_index + 1].strip() == "":
+            del lines[line_index + 1]
+        del (lines[line_index])
     return lines
 
 
@@ -160,12 +166,6 @@ def replace_one_line_cases(modified):
     for pattern, replacement in patterns_with_replacements.items():
         modified = re.sub(pattern, replacement, modified)
     return modified
-
-
-def indices_of_matching_lines(pattern, lines):
-    search_result_for_all_lines = [re.search(pattern, line) for line in lines]
-    matches = [x for x in search_result_for_all_lines if x is not None]
-    return [lines.index(match.string) for match in matches]
 
 
 if __name__ == "__main__":
