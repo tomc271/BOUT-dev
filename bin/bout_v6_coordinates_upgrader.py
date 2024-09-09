@@ -113,6 +113,10 @@ def replace_one_line_cases(modified):
         r"(\-\>|\.)J\s?\=\s?(.+?)(?=;)": r"\1setJ(\2)",  # Replace `->J =` with `->setJ()`, etc
         r"(\b.+\-\>|\.)J\s?\/\=\s?(.+)(?=;)": r"\1setJ(\1J / \2)",  # Replace `foo->J /= bar` with `foo->setJ(foo->J() / (bar))`
         r"(\-\>|\.)J(?!\s?=)": r"\1J()",  # Replace `c->J` with `c->J()` etc, but not if is assignment
+
+        r"(\-\>|\.)IntShiftTorsion\s?\=\s?(.+?)(?=;)": r"\1setIntShiftTorsion(\2)",  # Replace `->IntShiftTorsion =` with `->setIntShiftTorsion()`, etc
+        r"(\b.+\-\>|\.)IntShiftTorsion\s?\/\=\s?(.+)(?=;)": r"\1setIntShiftTorsion(\1IntShiftTorsion / \2)",  # Replace `foo->IntShiftTorsion /= bar` with `foo->setIntShiftTorsion(foo->IntShiftTorsion() / (bar))`
+        r"(\-\>|\.)IntShiftTorsion(?!\s?=)": r"\1IntShiftTorsion()",  # Replace `c->IntShiftTorsion` with `c->IntShiftTorsion()` etc, but not if is assignment
     }
     for pattern, replacement in patterns_with_replacements.items():
         modified = re.sub(pattern, replacement, modified)
