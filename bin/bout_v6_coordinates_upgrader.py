@@ -88,7 +88,7 @@ def get_modified_contents(contents):
     lines.insert(lines_to_remove[0] + len(metric_components_with_value) + 2, new_metric_tensor_setter)
     del (lines[lines_to_remove[-1] + 3])
 
-    lines.append("")  # insert a blank line
+    lines.append("")  # insert a blank line at the end of the file
 
     modified = "\n".join(lines)
 
@@ -131,8 +131,8 @@ def replace_metric_tensor_cases(input_text):
     return modified
 
 
-def indices_of_matching_lines(last_component_pattern, lines):
-    search_result_for_all_lines = [re.search(last_component_pattern, line) for line in lines]
+def indices_of_matching_lines(pattern, lines):
+    search_result_for_all_lines = [re.search(pattern, line) for line in lines]
     matches = [x for x in search_result_for_all_lines if x is not None]
     return [lines.index(match.string) for match in matches]
 
