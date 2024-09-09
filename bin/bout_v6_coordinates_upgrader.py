@@ -109,24 +109,30 @@ def use_metric_accessors(original_string):
 
 # Deal with the basic find-and-replace cases that do not involve multiple lines
 def replace_one_line_cases(modified):
+
+    arrow_or_dot = r"(\b.+\-\>|\.)"
+    metric_component = r"(g_?\d\d)"
+    mesh_spacing = r"d([xyz])"
+
     patterns_with_replacements = {
-        r"(\-\>|\.)(g_?\d\d)(?!\s?=)": r"\1\2()",  # Replace `c->g_11` with `c->g_11()` etc, but not if is assignment
 
-        r"(\-\>|\.)d([xyz])\s?\=\s?(.+?)(?=;)": r"\1setD\2(\3)",  # Replace `->dx =` with `->setDx()`, etc
-        r"(\b.+\-\>|\.)d([xyz])\s?\/\=\s?(.+)(?=;)": r"\1setD\2(\1d\2 / (\3))",  # Replace `foo->dx /= bar` with `foo->setDx(foo->dx() / (bar))`
-        r"(\-\>|\.)(d[xyz])(?!\s?=)": r"\1\2()",  # Replace `c->dx` with `c->dx()` etc, but not if is assignment
+        fr"{arrow_or_dot}{metric_component}(?!\s?=)": r"\1\2()",  # Replace `c->g_11` with `c->g_11()` etc, but not if is assignment
 
-        r"(\-\>|\.)Bxy\s?\=\s?(.+?)(?=;)": r"\1setBxy(\2)",  # Replace `->Bxy =` with `->setBxy()`, etc
-        r"(\b.+\-\>|\.)Bxy\s?\/\=\s?(.+)(?=;)": r"\1setBxy(\1Bxy / \2)",  # Replace `foo->Bxy /= bar` with `foo->setBxy(foo->Bxy() / (bar))`
-        r"(\-\>|\.)Bxy(?!\s?=)": r"\1Bxy()",  # Replace `c->Bxy` with `c->Bxy()` etc, but not if is assignment
+        fr"{arrow_or_dot}{mesh_spacing}\s?\=\s?(.+?)(?=;)": r"\1setD\2(\3)",  # Replace `->dx =` with `->setDx()`, etc
+        fr"{arrow_or_dot}{mesh_spacing}\s?\/\=\s?(.+)(?=;)": r"\1setD\2(\1d\2 / (\3))",  # Replace `foo->dx /= bar` with `foo->setDx(foo->dx() / (bar))`
+        fr"{arrow_or_dot}{mesh_spacing}(?!\s?=)": r"\1d\2()",  # Replace `c->dx` with `c->dx()` etc, but not if is assignment
 
-        r"(\-\>|\.)J\s?\=\s?(.+?)(?=;)": r"\1setJ(\2)",  # Replace `->J =` with `->setJ()`, etc
-        r"(\b.+\-\>|\.)J\s?\/\=\s?(.+)(?=;)": r"\1setJ(\1J / \2)",  # Replace `foo->J /= bar` with `foo->setJ(foo->J() / (bar))`
-        r"(\-\>|\.)J(?!\s?=)": r"\1J()",  # Replace `c->J` with `c->J()` etc, but not if is assignment
+        fr"{arrow_or_dot}Bxy\s?\=\s?(.+?)(?=;)": r"\1setBxy(\2)",  # Replace `->Bxy =` with `->setBxy()`, etc
+        fr"{arrow_or_dot}Bxy\s?\/\=\s?(.+)(?=;)": r"\1setBxy(\1Bxy / \2)",  # Replace `foo->Bxy /= bar` with `foo->setBxy(foo->Bxy() / (bar))`
+        fr"{arrow_or_dot}Bxy(?!\s?=)": r"\1Bxy()",  # Replace `c->Bxy` with `c->Bxy()` etc, but not if is assignment
 
-        r"(\-\>|\.)IntShiftTorsion\s?\=\s?(.+?)(?=;)": r"\1setIntShiftTorsion(\2)",  # Replace `->IntShiftTorsion =` with `->setIntShiftTorsion()`, etc
-        r"(\b.+\-\>|\.)IntShiftTorsion\s?\/\=\s?(.+)(?=;)": r"\1setIntShiftTorsion(\1IntShiftTorsion / \2)",  # Replace `foo->IntShiftTorsion /= bar` with `foo->setIntShiftTorsion(foo->IntShiftTorsion() / (bar))`
-        r"(\-\>|\.)IntShiftTorsion(?!\s?=)": r"\1IntShiftTorsion()",  # Replace `c->IntShiftTorsion` with `c->IntShiftTorsion()` etc, but not if is assignment
+        fr"{arrow_or_dot}J\s?\=\s?(.+?)(?=;)": r"\1setJ(\2)",  # Replace `->J =` with `->setJ()`, etc
+        fr"{arrow_or_dot}J\s?\/\=\s?(.+)(?=;)": r"\1setJ(\1J / \2)",  # Replace `foo->J /= bar` with `foo->setJ(foo->J() / (bar))`
+        fr"{arrow_or_dot}J(?!\s?=)": r"\1J()",  # Replace `c->J` with `c->J()` etc, but not if is assignment
+
+        fr"{arrow_or_dot}IntShiftTorsion\s?\=\s?(.+?)(?=;)": r"\1setIntShiftTorsion(\2)",  # Replace `->IntShiftTorsion =` with `->setIntShiftTorsion()`, etc
+        fr"{arrow_or_dot}IntShiftTorsion\s?\/\=\s?(.+)(?=;)": r"\1setIntShiftTorsion(\1IntShiftTorsion / \2)",  # Replace `foo->IntShiftTorsion /= bar` with `foo->setIntShiftTorsion(foo->IntShiftTorsion() / (bar))`
+        fr"{arrow_or_dot}IntShiftTorsion(?!\s?=)": r"\1IntShiftTorsion()",  # Replace `c->IntShiftTorsion` with `c->IntShiftTorsion()` etc, but not if is assignment
     }
     for pattern, replacement in patterns_with_replacements.items():
         modified = re.sub(pattern, replacement, modified)
