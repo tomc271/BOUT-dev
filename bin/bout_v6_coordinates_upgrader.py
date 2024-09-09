@@ -81,7 +81,7 @@ def use_metric_accessors(original_string):
     lines_to_remove = indices_of_matching_lines(pattern_setting_metric_component, lines)
     lines_removed_count = 0
     for line_index in lines_to_remove:
-        del (lines[line_index - lines_removed_count])
+        del lines[line_index - lines_removed_count]
         lines_removed_count += 1
     metric_components_with_value = {key: value for key, value in metric_components.items() if value is not None}
     newline_inserted = False
@@ -97,7 +97,7 @@ def use_metric_accessors(original_string):
         f"    coord->setMetricTensor(ContravariantMetricTensor(g11, g22, g33, g12, g13, g23),\n"
         f"                           CovariantMetricTensor(g_11, g_22, g_33, g_12, g_13, g_23));")
     lines.insert(lines_to_remove[0] + len(metric_components_with_value) + 2, new_metric_tensor_setter)
-    del (lines[lines_to_remove[-1] + 3])
+    del lines[lines_to_remove[-1] + 3]
     return lines
 
 
@@ -109,7 +109,7 @@ def remove_geometry_calls(lines):
         # If both the lines above and below are blank then remove one of them
         if lines[line_index - 1].strip() == "" and lines[line_index + 1].strip() == "":
             del lines[line_index + 1]
-        del (lines[line_index])
+        del lines[line_index]
     return lines
 
 
