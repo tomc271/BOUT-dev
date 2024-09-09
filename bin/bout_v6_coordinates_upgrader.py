@@ -72,7 +72,7 @@ def get_modified_contents(contents):
     metric_components_with_value = {key: value for key, value in metric_components.items() if value is not None}
     newline_inserted = False
     for key, value in metric_components_with_value.items().__reversed__():
-        new_value = replace_metric_tensor_cases(value)
+        new_value = re.sub(r"(\b\w+\-\>|\.)(g_?\d\d)", r"\2", value)  # Replace `c->g11` with `g11`, etc
         if not key.startswith("g_") and not newline_inserted:
             lines.insert(lines_to_remove[0], "")
             newline_inserted = True
@@ -129,14 +129,6 @@ def replace_one_line_cases(modified):
     }
     for pattern, replacement in patterns_with_replacements.items():
         modified = re.sub(pattern, replacement, modified)
-    return modified
-
-
-def replace_metric_tensor_cases(input_text):
-    # Replace `c->g11` with `c->g11()`, etc, but not if is assignment
-    pattern = r"(\b\w+\-\>|\.)(g_?\d\d)"
-    replacement = r"\2"
-    modified = re.sub(pattern, replacement, input_text)
     return modified
 
 
