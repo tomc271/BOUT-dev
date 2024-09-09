@@ -88,6 +88,15 @@ def get_modified_contents(contents):
     lines.insert(lines_to_remove[0] + len(metric_components_with_value) + 2, new_metric_tensor_setter)
     del (lines[lines_to_remove[-1] + 3])
 
+    # Remove lines calling geometry()
+    geometry_method_call_pattern = r"geometry\(\)"
+    lines_to_remove = indices_of_matching_lines(geometry_method_call_pattern, lines)
+    for line_index in lines_to_remove:
+        # If both the lines above and below are blank then remove one of them
+        if lines[line_index - 1].strip() == "" and lines[line_index + 1].strip() == "":
+            del lines[line_index + 1]
+        del (lines[line_index])
+
     lines.append("")  # insert a blank line at the end of the file
 
     modified = "\n".join(lines)
