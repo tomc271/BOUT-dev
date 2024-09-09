@@ -113,26 +113,54 @@ def replace_one_line_cases(modified):
     arrow_or_dot = r"(\b.+\-\>|\.)"
     metric_component = r"(g_?\d\d)"
     mesh_spacing = r"d([xyz])"
-
+    not_followed_by_equals = r"(?!\s?=)"
+    equals_something = r"\=\s?(.+)(?=;)"
+    
     patterns_with_replacements = {
 
-        fr"{arrow_or_dot}{metric_component}(?!\s?=)": r"\1\2()",  # Replace `c->g_11` with `c->g_11()` etc, but not if is assignment
+        # Replace `c->g_11` with `c->g_11()` etc, but not if is assignment
+        fr"{arrow_or_dot}{metric_component}{not_followed_by_equals}":
+            r"\1\2()",
 
-        fr"{arrow_or_dot}{mesh_spacing}\s?\=\s?(.+?)(?=;)": r"\1setD\2(\3)",  # Replace `->dx =` with `->setDx()`, etc
-        fr"{arrow_or_dot}{mesh_spacing}\s?\/\=\s?(.+)(?=;)": r"\1setD\2(\1d\2 / (\3))",  # Replace `foo->dx /= bar` with `foo->setDx(foo->dx() / (bar))`
-        fr"{arrow_or_dot}{mesh_spacing}(?!\s?=)": r"\1d\2()",  # Replace `c->dx` with `c->dx()` etc, but not if is assignment
+        # Replace `->dx =` with `->setDx()`, etc
+        fr"{arrow_or_dot}{mesh_spacing}\s?{equals_something}":
+            r"\1setD\2(\3)",
+        # Replace `foo->dx /= bar` with `foo->setDx(foo->dx() / (bar))`
+        fr"{arrow_or_dot}{mesh_spacing}\s?\/{equals_something}":
+            r"\1setD\2(\1d\2 / (\3))",
+        # Replace `c->dx` with `c->dx()` etc, but not if is assignment
+        fr"{arrow_or_dot}{mesh_spacing}{not_followed_by_equals}":
+            r"\1d\2()",
 
-        fr"{arrow_or_dot}Bxy\s?\=\s?(.+?)(?=;)": r"\1setBxy(\2)",  # Replace `->Bxy =` with `->setBxy()`, etc
-        fr"{arrow_or_dot}Bxy\s?\/\=\s?(.+)(?=;)": r"\1setBxy(\1Bxy / \2)",  # Replace `foo->Bxy /= bar` with `foo->setBxy(foo->Bxy() / (bar))`
-        fr"{arrow_or_dot}Bxy(?!\s?=)": r"\1Bxy()",  # Replace `c->Bxy` with `c->Bxy()` etc, but not if is assignment
+        # Replace `->Bxy =` with `->setBxy()`, etc
+        fr"{arrow_or_dot}Bxy\s?{equals_something}":
+            r"\1setBxy(\2)",
+        # Replace `foo->Bxy /= bar` with `foo->setBxy(foo->Bxy() / (bar))`
+        fr"{arrow_or_dot}Bxy\s?\/{equals_something}":
+            r"\1setBxy(\1Bxy / \2)",
+        # Replace `c->Bxy` with `c->Bxy()` etc, but not if is assignment
+        fr"{arrow_or_dot}Bxy{not_followed_by_equals}":
+            r"\1Bxy()",
 
-        fr"{arrow_or_dot}J\s?\=\s?(.+?)(?=;)": r"\1setJ(\2)",  # Replace `->J =` with `->setJ()`, etc
-        fr"{arrow_or_dot}J\s?\/\=\s?(.+)(?=;)": r"\1setJ(\1J / \2)",  # Replace `foo->J /= bar` with `foo->setJ(foo->J() / (bar))`
-        fr"{arrow_or_dot}J(?!\s?=)": r"\1J()",  # Replace `c->J` with `c->J()` etc, but not if is assignment
+        # Replace `->J =` with `->setJ()`, etc
+        fr"{arrow_or_dot}J\s?{equals_something}":
+            r"\1setJ(\2)",
+        # Replace `foo->J /= bar` with `foo->setJ(foo->J() / (bar))`
+        fr"{arrow_or_dot}J\s?\/{equals_something}":
+            r"\1setJ(\1J / \2)",
+        # Replace `c->J` with `c->J()` etc, but not if is assignment
+        fr"{arrow_or_dot}J{not_followed_by_equals}":
+            r"\1J()",
 
-        fr"{arrow_or_dot}IntShiftTorsion\s?\=\s?(.+?)(?=;)": r"\1setIntShiftTorsion(\2)",  # Replace `->IntShiftTorsion =` with `->setIntShiftTorsion()`, etc
-        fr"{arrow_or_dot}IntShiftTorsion\s?\/\=\s?(.+)(?=;)": r"\1setIntShiftTorsion(\1IntShiftTorsion / \2)",  # Replace `foo->IntShiftTorsion /= bar` with `foo->setIntShiftTorsion(foo->IntShiftTorsion() / (bar))`
-        fr"{arrow_or_dot}IntShiftTorsion(?!\s?=)": r"\1IntShiftTorsion()",  # Replace `c->IntShiftTorsion` with `c->IntShiftTorsion()` etc, but not if is assignment
+        # Replace `->IntShiftTorsion =` with `->setIntShiftTorsion()`, etc
+        fr"{arrow_or_dot}IntShiftTorsion\s?{equals_something}":
+            r"\1setIntShiftTorsion(\2)",
+        # Replace `foo->IntShiftTorsion /= bar` with `foo->setIntShiftTorsion(foo->IntShiftTorsion() / (bar))`
+        fr"{arrow_or_dot}IntShiftTorsion\s?\/{equals_something}":
+            r"\1setIntShiftTorsion(\1IntShiftTorsion / \2)",
+        # Replace `c->IntShiftTorsion` with `c->IntShiftTorsion()` etc, but not if is assignment
+        fr"{arrow_or_dot}IntShiftTorsion{not_followed_by_equals}":
+            r"\1IntShiftTorsion()",
     }
     for pattern, replacement in patterns_with_replacements.items():
         modified = re.sub(pattern, replacement, modified)
