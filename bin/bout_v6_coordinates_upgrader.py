@@ -163,7 +163,11 @@ def replace_one_line_cases(modified):
                                   + pattern_with_replacement("IntShiftTorsion"))
 
     for pattern, replacement in patterns_with_replacements:
-        modified = re.sub(pattern, replacement, modified)
+        MAX_OCCURRENCES = 12
+        count = 0
+        while re.search(pattern, modified) and count < MAX_OCCURRENCES:
+            count += 1
+            modified = re.sub(pattern, replacement, modified)
     return modified
 
 
