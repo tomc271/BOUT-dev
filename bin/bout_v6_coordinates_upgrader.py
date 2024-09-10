@@ -74,6 +74,10 @@ def use_metric_accessors(original_string):
     # find lines like: c->g_11 = x; and c.g_11 = x;
     pattern_setting_metric_component = r"(\b.+\-\>|\.)(g_?)(\d\d)\s?\=\s?(.+)(?=;)"
     line_matches = re.findall(pattern_setting_metric_component, original_string)
+
+    if len(line_matches) == 0:
+        return lines
+
     metric_components = {
         match[1] + match[2]: match[3]
         for match in line_matches
@@ -153,6 +157,7 @@ def pattern_with_replacement(var):
 
 # Deal with the basic find-and-replace cases that do not involve multiple lines
 def replace_one_line_cases(modified):
+
     metric_component = r"g_?\d\d"
     mesh_spacing = r"d[xyz]"
 
