@@ -146,7 +146,7 @@ def pattern_with_replacement(var):
          replacement_for_division_assignment),
 
         # Replace `c->var` with `c->var()` etc, but not if is assignment
-        (fr"({arrow_or_dot})({var}){not_followed_by_equals}",
+        (fr"({arrow_or_dot})({var})(?!\(\)){not_followed_by_equals}",
          fr"\1\2()")
     ]
 
