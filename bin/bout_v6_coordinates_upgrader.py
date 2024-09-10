@@ -136,34 +136,33 @@ def pattern_with_replacement(var):
         return \
             fr"{coord_and_arrow_or_dot}set{capitalised_name}({coord_and_arrow_or_dot}{variable_name} / {denominator})"
 
-    return {
+    return [
         # Replace `->var =` with `->setVar()`, etc
-        fr"({arrow_or_dot})({var})\s?{equals_something}":
-        replacement_for_assignment,
+        (fr"({arrow_or_dot})({var})\s?{equals_something}",
+         replacement_for_assignment),
 
         # Replace `foo->var /= bar` with `foo->setVar(foo->var() / (bar))`
-        fr"({arrow_or_dot})({var})\s?\/{equals_something}":
-        replacement_for_division_assignment,
+        (fr"({arrow_or_dot})({var})\s?\/{equals_something}",
+         replacement_for_division_assignment),
 
         # Replace `c->var` with `c->var()` etc, but not if is assignment
-        fr"({arrow_or_dot})({var}){not_followed_by_equals}":
-        fr"\1\2()"
-    }
+        (fr"({arrow_or_dot})({var}){not_followed_by_equals}",
+         fr"\1\2()")
+    ]
 
 
 # Deal with the basic find-and-replace cases that do not involve multiple lines
 def replace_one_line_cases(modified):
-
     metric_component = r"g_?\d\d"
     mesh_spacing = r"d[xyz]"
 
     patterns_with_replacements = (pattern_with_replacement(metric_component)
-                                  | pattern_with_replacement(mesh_spacing)
-                                  | pattern_with_replacement("Bxy")
-                                  | pattern_with_replacement("J")
-                                  | pattern_with_replacement("IntShiftTorsion"))
+                                  + pattern_with_replacement(mesh_spacing)
+                                  + pattern_with_replacement("Bxy")
+                                  + pattern_with_replacement("J")
+                                  + pattern_with_replacement("IntShiftTorsion"))
 
-    for pattern, replacement in patterns_with_replacements.items():
+    for pattern, replacement in patterns_with_replacements:
         modified = re.sub(pattern, replacement, modified)
     return modified
 
