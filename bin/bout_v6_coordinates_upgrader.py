@@ -28,9 +28,11 @@ def main(*args, **kwargs):
 
     path = pathlib.Path(args.files[0])
     if pathlib.Path.is_dir(path):
-        filepaths = [os.path.join(dir_path, f)
-                     for (dir_path, dir_names, filenames) in os.walk(path)
-                     for f in filenames]
+        filepaths = [
+            os.path.join(dir_path, f)
+            for (dir_path, dir_names, filenames) in os.walk(path)
+            for f in filenames
+        ]
     else:
         filepaths = args.files
 
@@ -78,29 +80,34 @@ def use_metric_accessors(original_string):
     if len(line_matches) == 0:
         return lines
 
-    metric_components = {
-        match[1] + match[2]: match[3]
-        for match in line_matches
-    }
+    metric_components = {match[1] + match[2]: match[3] for match in line_matches}
     lines_to_remove = indices_of_matching_lines(pattern_setting_metric_component, lines)
     lines_removed_count = 0
     for line_index in lines_to_remove:
         del lines[line_index - lines_removed_count]
         lines_removed_count += 1
-    metric_components_with_value = {key: value for key, value in metric_components.items() if value is not None}
+    metric_components_with_value = {
+        key: value for key, value in metric_components.items() if value is not None
+    }
     newline_inserted = False
     for key, value in metric_components_with_value.items().__reversed__():
-        new_value = re.sub(r"(\b\w+->|\.)(g_?\d\d)", r"\2", value)  # Replace `c->g11` with `g11`, etc
+        # Replace `c->g11` with `g11`, etc
+        new_value = re.sub(r"(\b\w+->|\.)(g_?\d\d)", r"\2", value)
         if not key.startswith("g_") and not newline_inserted:
             lines.insert(lines_to_remove[0], "")
             newline_inserted = True
         local_variable_line = rf"    const auto {key} = {new_value};"
         lines.insert(lines_to_remove[0], local_variable_line)
-    lines.insert(lines_to_remove[0] + len(metric_components_with_value) + 1, "")  # insert a blank line
+    # insert a blank line
+    lines.insert(lines_to_remove[0] + len(metric_components_with_value) + 1, "")
     new_metric_tensor_setter = (
         f"    coord->setMetricTensor(ContravariantMetricTensor(g11, g22, g33, g12, g13, g23),\n"
-        f"                           CovariantMetricTensor(g_11, g_22, g_33, g_12, g_13, g_23));")
-    lines.insert(lines_to_remove[0] + len(metric_components_with_value) + 2, new_metric_tensor_setter)
+        f"                           CovariantMetricTensor(g_11, g_22, g_33, g_12, g_13, g_23));"
+    )
+    lines.insert(
+        lines_to_remove[0] + len(metric_components_with_value) + 2,
+        new_metric_tensor_setter,
+    )
     del lines[lines_to_remove[-1] + 3]
     return lines
 
@@ -128,7 +135,7 @@ def pattern_with_replacement(var):
         variable_name = match.groups()[1]
         capitalised_name = variable_name[0].upper() + variable_name[1:]
         value = match.groups()[2]
-        return fr"{coord_and_arrow_or_dot}set{capitalised_name}({value})"
+        return rf"{coord_and_arrow_or_dot}set{capitalised_name}({value})"
 
     def replacement_for_division_assignment(match):
         coord_and_arrow_or_dot = match.groups()[0]
@@ -136,22 +143,21 @@ def pattern_with_replacement(var):
         capitalised_name = variable_name[0].upper() + variable_name[1:]
         value = match.groups()[2]
         # fr"\1set\u\2(\1\2 / \3)",
-        denominator = f"{value}" if value[0] == "(" and value[-1] == ")" else f"({value})"
-        return \
-            fr"{coord_and_arrow_or_dot}set{capitalised_name}({coord_and_arrow_or_dot}{variable_name} / {denominator})"
+        denominator = (
+            f"{value}" if value[0] == "(" and value[-1] == ")" else f"({value})"
+        )
+        return rf"{coord_and_arrow_or_dot}set{capitalised_name}({coord_and_arrow_or_dot}{variable_name} / {denominator})"
 
     return [
         # Replace `->var =` with `->setVar()`, etc
-        (fr"({arrow_or_dot})({var})\s?{equals_something}",
-         replacement_for_assignment),
-
+        (rf"({arrow_or_dot})({var})\s?{equals_something}", replacement_for_assignment),
         # Replace `foo->var /= bar` with `foo->setVar(foo->var() / (bar))`
-        (fr"({arrow_or_dot})({var})\s?\/{equals_something}",
-         replacement_for_division_assignment),
-
+        (
+            rf"({arrow_or_dot})({var})\s?\/{equals_something}",
+            replacement_for_division_assignment,
+        ),
         # Replace `c->var` with `c->var()` etc, but not if is assignment
-        (fr"({arrow_or_dot})({var})(?!\(\)){not_followed_by_equals}",
-         fr"\1\2()")
+        (rf"({arrow_or_dot})({var})(?!\(){not_followed_by_equals}", rf"\1\2()"),
     ]
 
 
@@ -161,11 +167,13 @@ def replace_one_line_cases(modified):
     metric_component = r"g_?\d\d"
     mesh_spacing = r"d[xyz]"
 
-    patterns_with_replacements = (pattern_with_replacement(metric_component)
-                                  + pattern_with_replacement(mesh_spacing)
-                                  + pattern_with_replacement("Bxy")
-                                  + pattern_with_replacement("J")
-                                  + pattern_with_replacement("IntShiftTorsion"))
+    patterns_with_replacements = (
+        pattern_with_replacement(metric_component)
+        + pattern_with_replacement(mesh_spacing)
+        + pattern_with_replacement("Bxy")
+        + pattern_with_replacement("J")
+        + pattern_with_replacement("IntShiftTorsion")
+    )
 
     for pattern, replacement in patterns_with_replacements:
         MAX_OCCURRENCES = 12
