@@ -160,19 +160,7 @@ def assignment_regex_pairs(var):
     ]
 
 
-# Deal with the basic find-and-replace cases that do not involve multiple lines
-def replace_one_line_cases(modified):
-
-    metric_component = r"g_?\d\d"
-    mesh_spacing = r"d[xyz]"
-
-    patterns_with_replacements = (
-        assignment_regex_pairs(metric_component)
-        + assignment_regex_pairs(mesh_spacing)
-        + assignment_regex_pairs("Bxy")
-        + assignment_regex_pairs("J")
-        + assignment_regex_pairs("IntShiftTorsion")
-    )
+def mesh_get_pattern_and_replacement():
 
     # Convert `mesh->get(coord->dx(), "dx")` to `coord->setDx(mesh->get("dx"));`, etc
 
@@ -187,10 +175,27 @@ def replace_one_line_cases(modified):
     arrow_or_dot = r"\-\>|\."
 
     mesh_get_pattern_replacement = (
-        rf"mesh({arrow_or_dot})get\((\w+)({arrow_or_dot})(\w+)\(\), (\"\w+\")\)",
+        rf"mesh({arrow_or_dot})get\((\w+)({arrow_or_dot})(\w+)\(?\)?, (\"\w+\")\)",
         replacement_for_assignment_with_mesh_get,
     )
-    patterns_with_replacements.append(mesh_get_pattern_replacement)
+    return mesh_get_pattern_replacement
+
+
+# Deal with the basic find-and-replace cases that do not involve multiple lines
+def replace_one_line_cases(modified):
+
+    metric_component = r"g_?\d\d"
+    mesh_spacing = r"d[xyz]"
+
+    patterns_with_replacements = (
+        assignment_regex_pairs(metric_component)
+        + assignment_regex_pairs(mesh_spacing)
+        + assignment_regex_pairs("Bxy")
+        + assignment_regex_pairs("J")
+        + assignment_regex_pairs("IntShiftTorsion")
+    )
+
+    patterns_with_replacements.append(mesh_get_pattern_and_replacement())
 
     for pattern, replacement in patterns_with_replacements:
         MAX_OCCURRENCES = 12
