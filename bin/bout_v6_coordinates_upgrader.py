@@ -174,6 +174,24 @@ def replace_one_line_cases(modified):
         + assignment_regex_pairs("IntShiftTorsion")
     )
 
+    # Convert `mesh->get(coord->dx(), "dx")` to `coord->setDx(mesh->get("dx"));`, etc
+
+    def replacement_for_assignment_with_mesh_get(match):
+        arrow_or_dot = match.groups()[0]
+        coords = match.groups()[1]
+        variable_name = match.groups()[3]
+        new_value = match.groups()[4]
+        capitalised_name = variable_name[0].upper() + variable_name[1:]
+        return rf"{coords}{arrow_or_dot}set{capitalised_name}(mesh->get({new_value}))"
+
+    arrow_or_dot = r"\-\>|\."
+
+    mesh_get_pattern_replacement = (
+        rf"mesh({arrow_or_dot})get\((\w+)({arrow_or_dot})(\w+)\(\), (\"\w+\")\)",
+        replacement_for_assignment_with_mesh_get,
+    )
+    patterns_with_replacements.append(mesh_get_pattern_replacement)
+
     for pattern, replacement in patterns_with_replacements:
         MAX_OCCURRENCES = 12
         count = 0
