@@ -124,7 +124,7 @@ def remove_geometry_calls(lines):
     return lines
 
 
-def pattern_with_replacement(var):
+def assignment_regex_pairs(var):
 
     arrow_or_dot = r"\b.+\-\>|\."
     not_followed_by_equals = r"(?!\s?=)"
@@ -142,7 +142,6 @@ def pattern_with_replacement(var):
         variable_name = match.groups()[1]
         capitalised_name = variable_name[0].upper() + variable_name[1:]
         value = match.groups()[2]
-        # fr"\1set\u\2(\1\2 / \3)",
         denominator = (
             f"{value}" if value[0] == "(" and value[-1] == ")" else f"({value})"
         )
@@ -168,11 +167,11 @@ def replace_one_line_cases(modified):
     mesh_spacing = r"d[xyz]"
 
     patterns_with_replacements = (
-        pattern_with_replacement(metric_component)
-        + pattern_with_replacement(mesh_spacing)
-        + pattern_with_replacement("Bxy")
-        + pattern_with_replacement("J")
-        + pattern_with_replacement("IntShiftTorsion")
+        assignment_regex_pairs(metric_component)
+        + assignment_regex_pairs(mesh_spacing)
+        + assignment_regex_pairs("Bxy")
+        + assignment_regex_pairs("J")
+        + assignment_regex_pairs("IntShiftTorsion")
     )
 
     for pattern, replacement in patterns_with_replacements:
