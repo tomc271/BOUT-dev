@@ -194,6 +194,9 @@ def replace_one_line_cases(modified):
         + assignment_regex_pairs("Bxy")
         + assignment_regex_pairs("J")
         + assignment_regex_pairs("IntShiftTorsion")
+        + assignment_regex_pairs("G1")
+        + assignment_regex_pairs("G2")
+        + assignment_regex_pairs("G3")
     )
 
     patterns_with_replacements.append(mesh_get_pattern_and_replacement())
