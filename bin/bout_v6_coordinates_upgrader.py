@@ -1,55 +1,54 @@
 #!/usr/bin/env python3
-import os
-import sys
-
-import boutupgrader
-
 import argparse
 import copy
 import pathlib
 import re
 import textwrap
 
+from common import apply_or_display_patch
 
-def main(*args, **kwargs):
 
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        description=textwrap.dedent(
+def add_parser(subcommand, default_args, files_args):
+
+    help_text = textwrap.dedent(
             """\
             Upgrade files to use the refactored Coordinates class. 
             
             For example, changes coords->dx to coord->dx()
             """
-        ),
+        )
+    parser = subcommand.add_parser(
+        "v6_upgrader",
+        help=help_text,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=help_text,
+        parents=[default_args, files_args],
     )
-    parser = boutupgrader.default_args(parser)
-    args = parser.parse_args(args=args)
+    parser.set_defaults(func=run)
 
-    path = pathlib.Path(args.files[0])
-    if pathlib.Path.is_dir(path):
-        filepaths = [
-            os.path.join(dir_path, f)
-            for (dir_path, dir_names, filenames) in os.walk(path)
-            for f in filenames
-        ]
-    else:
-        filepaths = args.files
 
-    for filename in filepaths:
+def run(args):
+    for filename in args.files:
         try:
             with pathlib.Path(filename).open() as f:
                 contents = f.read()
         except Exception as e:
-            print(f"Error reading {filename}", file=sys.stderr)
-            print(e, file=sys.stderr)
+            error_message = textwrap.indent(f"{e}", " ")
+            print(
+                f"Error reading {filename}:\n\n{error_message}"
+            )
 
         original = copy.deepcopy(contents)
         modified_contents = modify(contents)
 
-        # boutupgrader.apply_or_display_patch(
-        #     filename, original, modified_contents, args.patch_only, args.quiet, args.force
-        # )
+        apply_or_display_patch(
+            filename,
+            original,
+            modified_contents,
+            args.patch_only,
+            args.quiet,
+            args.force,
+        )
 
         return modified_contents
 
@@ -208,7 +207,3 @@ def replace_one_line_cases(modified):
             count += 1
             modified = re.sub(pattern, replacement, modified)
     return modified
-
-
-if __name__ == "__main__":
-    main()
