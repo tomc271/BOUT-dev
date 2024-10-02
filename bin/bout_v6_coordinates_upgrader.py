@@ -100,8 +100,9 @@ def use_metric_accessors(original_string):
         lines.insert(lines_to_remove[0], local_variable_line)
     # insert a blank line
     lines.insert(lines_to_remove[0] + len(metric_components_with_value) + 1, "")
+    coordinates_name_and_arrow = line_matches[0][0]
     new_metric_tensor_setter = (
-        f"    coord->setMetricTensor(ContravariantMetricTensor(g11, g22, g33, g12, g13, g23),\n"
+        f"    {coordinates_name_and_arrow}setMetricTensor(ContravariantMetricTensor(g11, g22, g33, g12, g13, g23),\n"
         f"                           CovariantMetricTensor(g_11, g_22, g_33, g_12, g_13, g_23));"
     )
     lines.insert(
