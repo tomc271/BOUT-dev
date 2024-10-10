@@ -3,7 +3,7 @@
 #include <bout/invert/laplacexy.hxx>
 #include <bout/invert/laplacexz.hxx>
 #include <bout/invert_laplace.hxx>
-#include <bout/physicsmodel.hxx>
+#include "../../common.hxx"
 
 /// Fundamental constants
 const BoutReal PI = 3.14159265;
@@ -202,6 +202,7 @@ protected:
       sbp = -1.0;
     }
 
+//    tokamak_coordinates(coord, Rxy, Bpxy, hthe, I, B0, Btxy);
     const auto g11 = SQ(Rxy * Bpxy);
     const auto g22 = 1.0 / SQ(hthe);
     const auto g33 = SQ(sinty) * g11 + SQ(coord->Bxy()) / g11;
