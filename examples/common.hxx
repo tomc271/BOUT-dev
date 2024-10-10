@@ -6,18 +6,18 @@
 
 inline Coordinates* tokamak_coordinates(Coordinates* coord, const FieldMetric& Rxy,
                                         const FieldMetric& Bpxy, const FieldMetric& hthe,
-                                        const FieldMetric& I, const FieldMetric& B0,
+                                        const FieldMetric& I, const FieldMetric& B,
                                         const FieldMetric& Btxy) {
 
   const auto g11 = SQ(Rxy * Bpxy);
   const auto g22 = 1.0 / SQ(hthe);
-  const auto g33 = SQ(I) * g11 + SQ(B0) / g11;
+  const auto g33 = SQ(I) * g11 + SQ(B) / g11;
   const auto g12 = 0.0;
   const auto g13 = -I * g11;
   const auto g23 = -Btxy / (hthe * Bpxy * Rxy);
 
   const auto g_11 = 1.0 / g11 + SQ(I * Rxy);
-  const auto g_22 = SQ(B0 * hthe / Bpxy);
+  const auto g_22 = SQ(B * hthe / Bpxy);
   const auto g_33 = Rxy * Rxy;
   const auto g_12 = Btxy * hthe * I * Rxy / Bpxy;
   const auto g_13 = I * Rxy * Rxy;
@@ -27,7 +27,7 @@ inline Coordinates* tokamak_coordinates(Coordinates* coord, const FieldMetric& R
                          CovariantMetricTensor(g_11, g_22, g_33, g_12, g_13, g_23));
 
   coord->setJ(hthe / Bpxy);
-  coord->setBxy(B0);
+  coord->setBxy(B);
 
   return coord;
 }
