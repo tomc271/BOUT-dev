@@ -16,12 +16,12 @@ inline Coordinates* tokamak_coordinates(Coordinates* coord, const FieldMetric& R
   const auto g33 = SQ(I) * g11 + SQ(B) / g11;
   const auto g12 = 0.0;
   const auto g13 = -I * g11;
-  const auto g23 = -Btxy / (hthe * Bpxy * Rxy);
+  const auto g23 = -sbp * Btxy / (hthe * Bpxy * Rxy);
 
   const auto g_11 = 1.0 / g11 + SQ(I * Rxy);
   const auto g_22 = SQ(B * hthe / Bpxy);
   const auto g_33 = Rxy * Rxy;
-  const auto g_12 = Btxy * hthe * I * Rxy / Bpxy;
+  const auto g_12 = sbp * Btxy * hthe * I * Rxy / Bpxy;
   const auto g_13 = I * Rxy * Rxy;
   const auto g_23 = sbp * Btxy * hthe * Rxy / Bpxy;
 
