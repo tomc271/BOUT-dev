@@ -10,7 +10,7 @@
   
  */
 
-#include "../common.hxx"
+#include <bout/tokamak_coordinates.hxx>
 
 class WaveTest : public PhysicsModel {
 public:

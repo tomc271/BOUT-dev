@@ -18,7 +18,7 @@
  *
  ****************************************************************/
 
-#include "../common.hxx"
+#include <bout/tokamak_coordinates.hxx>
 
 #include <bout/interpolation.hxx>
 #include <bout/invert/laplacexy.hxx>

@@ -13,8 +13,8 @@
 #include "bout/invert_laplace.hxx"
 #include "bout/invert_parderiv.hxx"
 #include "bout/msg_stack.hxx"
-#include "../common.hxx"
 #include "bout/sourcex.hxx"
+#include "bout/tokamak_coordinates.hxx"
 
 #include <cmath>
 

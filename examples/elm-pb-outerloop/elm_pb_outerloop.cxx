@@ -41,9 +41,9 @@
 
 #include <math.h>
 
+#include <bout/tokamak_coordinates.hxx>
 #include <bout/derivs.hxx>
 #include <bout/invert_laplace.hxx>
-#include "../common.hxx"
 #include <bout/single_index_ops.hxx>
 #include <bout/smoothing.hxx>
 
