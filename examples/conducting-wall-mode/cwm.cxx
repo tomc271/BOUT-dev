@@ -90,7 +90,7 @@ private:
     mesh->get(Bpxy, "Bpxy");
     mesh->get(Btxy, "Btxy");
     mesh->get(hthe, "hthe");
-    coord->setDx(mesh->get("dpsi"));
+    Field2D dx = mesh->get("dpsi");
     mesh->get(I, "sinty");
 
     // Load normalisation values
@@ -178,7 +178,6 @@ private:
     hthe /= rho_s;
     I *= rho_s * rho_s * (bmag / 1e4) * ShearFactor;
 
-    Field2D dx = mesh->get("dpsi");
     dx /= (rho_s * rho_s * (bmag / 1e4));
 
     // Normalise magnetic field
@@ -192,7 +191,7 @@ private:
     nu = nu_hat * Ni0 / pow(Te0, 1.5);
 
     tokamak_coordinates(mesh, Rxy, Bpxy, hthe, I, Bxy, Btxy);
-    coord->setDx(mesh->get("dpsi"));
+    coord->setDx(dx);
 
 
     /**************** SET EVOLVING VARIABLES *************/
