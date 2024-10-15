@@ -358,8 +358,7 @@ public:
   // Note: The rhs() function needs to be public so that RAJA can use CUDA
 
   int init(bool restarting) override {
-    Coordinates* metric = mesh->getCoordinates();
-
+    
     output.write("Solving high-beta flute reduced equations\n");
     output.write("\tFile    : {:s}\n", __FILE__);
     output.write("\tCompiled: {:s} at {:s}\n", __DATE__, __TIME__);
@@ -389,6 +388,8 @@ public:
     mesh->get(Psixy, "psixy");        // get Psi
     mesh->get(Psiaxis, "psi_axis");   // axis flux
     mesh->get(Psibndry, "psi_bndry"); // edge flux
+
+    auto* metric = tokamak_coordinates(mesh, Rxy, Bpxy, hthe, I, B0, Btxy);
 
     // Set locations of staggered variables
     // Note, use of staggered grids in elm-pb is untested and may not be completely
@@ -1088,8 +1089,6 @@ public:
     } else {
       rmp_Psi = 0.0;
     }
-
-    tokamak_coordinates(metric, Rxy, Bpxy, hthe, I, B0, Btxy);
 
     // Set B field vector
 

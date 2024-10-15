@@ -1050,7 +1050,7 @@ protected:
 
     /**************** CALCULATE METRICS ******************/
 
-    tokamak_coordinates(coord, Rxy, Bpxy, hthe, I, B0, Btxy);
+    tokamak_coordinates(mesh, Rxy, Bpxy, hthe, I, B0, Btxy);
 
     // Set B field vector
 
