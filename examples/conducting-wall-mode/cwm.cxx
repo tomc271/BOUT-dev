@@ -148,7 +148,7 @@ private:
     nu = nu_hat * Ni0 / pow(Te0, 1.5);
 
     coord = tokamak_coordinates(mesh, Rxy, Bpxy, hthe, I, Bxy, Btxy);
-    coord->setDx(mesh->get("dpsi"));
+    coord->setDx(dx);
 
     /**************** SET EVOLVING VARIABLES *************/
 
