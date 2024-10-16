@@ -30,7 +30,7 @@ public:
       mesh->get(I, "sinty");
     }
 
-    tokamak_coordinates(mesh, Rxy, Bpxy, hthe, I, Bxy, Btxy);
+    auto* coords = tokamak_coordinates(mesh, Rxy, Bpxy, hthe, I, Bxy, Btxy);
 
     solver->add(f, "f");
     solver->add(g, "g");
