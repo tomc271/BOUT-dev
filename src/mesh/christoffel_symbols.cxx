@@ -16,7 +16,7 @@ ChristoffelSymbols::ChristoffelSymbols(
       G2_11_m(std::move(G2_11)), G2_22_m(std::move(G2_22)), G2_33_m(std::move(G2_33)),
       G2_12_m(std::move(G2_12)), G2_13_m(std::move(G2_13)), G2_23_m(std::move(G2_23)),
       G3_11_m(std::move(G3_11)), G3_22_m(std::move(G3_22)), G3_33_m(std::move(G3_33)),
-      G3_12_m(std::move(G3_12)), G3_13_m(std::move(G3_13)), G3_23_m(std::move(G3_23)) {};
+      G3_12_m(std::move(G3_12)), G3_13_m(std::move(G3_13)), G3_23_m(std::move(G3_23)){};
 
 ChristoffelSymbols::ChristoffelSymbols(Coordinates& coordinates) {
   // Calculate Christoffel symbol terms (18 independent values)

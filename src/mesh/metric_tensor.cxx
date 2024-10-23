@@ -11,7 +11,6 @@
 #include <cstdlib>
 #include <utility>
 
-
 MetricTensor::MetricTensor(FieldMetric g11, FieldMetric g22, FieldMetric g33,
                            FieldMetric g12, FieldMetric g13, FieldMetric g23)
     : g11_m(std::move(g11)), g22_m(std::move(g22)), g33_m(std::move(g33)),
