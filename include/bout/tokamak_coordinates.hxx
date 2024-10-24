@@ -8,7 +8,7 @@ inline Coordinates* tokamak_coordinates(Mesh* mesh, const FieldMetric& Rxy,
                                         const FieldMetric& Bpxy, const FieldMetric& hthe,
                                         const FieldMetric& I, const FieldMetric& B,
                                         const FieldMetric& Btxy,
-                                        const BoutReal& sbp = 1.0) // Sign of Bp
+                                        BoutReal sbp = 1.0) // Sign of Bp
 {
   auto* coord = mesh->getCoordinates();
 
