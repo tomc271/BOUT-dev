@@ -114,10 +114,6 @@ private:
   BoutReal hyperresist;  // Hyper-resistivity coefficient (in core only)
   BoutReal ehyperviscos; // electron Hyper-viscosity coefficient
 
-  // Metric coefficients
-  Field2D Rxy, Bpxy, Btxy, B0, hthe;
-  Field2D I; // Shear factor
-
   bool mms; // True if testing with Method of Manufactured Solutions
 
   const BoutReal MU0 = 4.0e-7 * PI;
@@ -141,6 +137,9 @@ private:
 
 public:
   int init(bool restarting) {
+
+    bool noshear;
+
     output.write("Solving high-beta flute reduced equations\n");
     output.write("\tFile    : {:s}\n", __FILE__);
     output.write("\tCompiled: {:s} at {:s}\n", __DATE__, __TIME__);
@@ -151,26 +150,6 @@ public:
     // Load 2D profiles
     mesh->get(J0, "Jpar0");    // A / m^2
     mesh->get(P0, "pressure"); // Pascals
-
-    // Load curvature term
-    b0xcv.covariant = false;  // Read contravariant components
-    mesh->get(b0xcv, "bxcv"); // mixed units x: T y: m^-2 z: m^-2
-
-    // Load metrics
-    if (mesh->get(Rxy, "Rxy")) { // m
-      output_error.write("Error: Cannot read Rxy from grid\n");
-      return 1;
-    }
-    if (mesh->get(Bpxy, "Bpxy")) { // T
-      output_error.write("Error: Cannot read Bpxy from grid\n");
-      return 1;
-    }
-    mesh->get(Btxy, "Btxy"); // T
-    mesh->get(B0, "Bxy");    // T
-    mesh->get(hthe, "hthe"); // m
-    mesh->get(I, "sinty");   // m^-2 T^-1
-
-    Coordinates* coords = mesh->getCoordinates();
 
     //////////////////////////////////////////////////////////////
     // Read parameters from the options file
@@ -306,24 +285,6 @@ public:
 
     phi_solver = Laplacian::create();
 
-    //////////////////////////////////////////////////////////////
-    // SHIFTED RADIAL COORDINATES
-
-    bool ShiftXderivs;
-    globalOptions->get("shiftXderivs", ShiftXderivs, false); // Read global flag
-    if (ShiftXderivs) {
-      if (mesh->IncIntShear) {
-        // BOUT-06 style, using d/dx = d/dpsi + I * d/dz
-        coords->setIntShiftTorsion(I);
-
-      } else {
-        // Dimits style, using local coordinate system
-        if (include_curvature) {
-          b0xcv.z += I * b0xcv.x;
-        }
-        I = 0.0; // I disappears from metric
-      }
-    }
 
     //////////////////////////////////////////////////////////////
     // NORMALISE QUANTITIES
@@ -380,18 +341,6 @@ public:
     J0 = -MU0 * Lbar * J0 / B0;
     P0 = 2.0 * MU0 * P0 / (Bbar * Bbar);
 
-    b0xcv.x /= Bbar;
-    b0xcv.y *= Lbar * Lbar;
-    b0xcv.z *= Lbar * Lbar;
-
-    Rxy /= Lbar;
-    Bpxy /= Bbar;
-    Btxy /= Bbar;
-    B0 /= Bbar;
-    hthe /= Lbar;
-    coords->setDx(coords->dx() / (Lbar * Lbar * Bbar));
-    I *= Lbar * Lbar * Bbar;
-
     BoutReal pnorm = max(P0, true); // Maximum over all processors
 
     vacuum_pressure *= pnorm; // Get pressure from fraction
@@ -415,7 +364,27 @@ public:
 
     dump.add(eta, "eta", 0);
 
-    tokamak_coordinates(coords, Rxy, Bpxy, hthe, I, B0, Btxy);
+    //////////////////////////////////////////////////////////////
+    // SHIFTED RADIAL COORDINATES
+    if (!mesh->IncIntShear) {
+      noshear = true;
+    }
+
+    auto tokamak_coordinates_factory = TokamakCoordinatesFactory(*mesh);
+    coords = tokamak_coordinates_factory.make_tokamak_coordinates(noshear, include_curvature);
+    tokamak_coordinates_factory.normalise(Lbar, Bbar);
+
+    //////////////////////////////////////////////////////////////
+    // SHIFTED RADIAL COORDINATES
+
+    bool ShiftXderivs;
+    globalOptions->get("shiftXderivs", ShiftXderivs, false); // Read global flag
+    if (ShiftXderivs) {
+      if (mesh->IncIntShear) {
+        // BOUT-06 style, using d/dx = d/dpsi + I * d/dz
+        coord->setIntShiftTorsion(tokamak_coordinates_factory.get_ShearFactor());
+      }
+    }
 
     // Set B field vector
 

@@ -18,8 +18,8 @@
  *
  ****************************************************************/
 
-#include <bout/tokamak_coordinates.hxx>
 #include <bout/physicsmodel.hxx>
+#include <bout/tokamak_coordinates_factory.hxx>
 
 #include <bout/interpolation.hxx>
 #include <bout/invert/laplacexy.hxx>
@@ -84,6 +84,8 @@ private:
 protected:
   int init(bool UNUSED(restarting)) override {
 
+    bool noshear;
+
     /////////////////////////////////////////////////////
     // Load data from the grid
 
@@ -95,27 +97,6 @@ protected:
     Ni0 *= 1e20;                   // To m^-3
     Pe0 = 2. * Charge * Ni0 * Te0; // Electron pressure in Pascals
     SAVE_ONCE(Pe0);
-
-    // Load curvature term
-    b0xcv.covariant = false;  // Read contravariant components
-    mesh->get(b0xcv, "bxcv"); // mixed units x: T y: m^-2 z: m^-2
-
-    // Metric coefficients
-    Field2D Rxy, Bpxy, Btxy, hthe;
-    Field2D I; // Shear factor
-
-    if (mesh->get(Rxy, "Rxy")) { // m
-      output_error.write("Error: Cannot read Rxy from grid\n");
-      return 1;
-    }
-    if (mesh->get(Bpxy, "Bpxy")) { // T
-      output_error.write("Error: Cannot read Bpxy from grid\n");
-      return 1;
-    }
-    mesh->get(Btxy, "Btxy"); // T
-    mesh->get(B0, "Bxy");    // T
-    mesh->get(hthe, "hthe"); // m
-    mesh->get(I, "sinty");   // m^-2 T^-1
 
     //////////////////////////////////////////////////////////////
     // Options
@@ -174,10 +155,11 @@ protected:
         Options::root()["mesh"]["paralleltransform"]["type"].withDefault("identity");
 
     if (lowercase(ptstr) == "shifted") {
-      // Dimits style, using local coordinate system
-      b0xcv.z += I * b0xcv.x;
-      I = 0.0; // I disappears from metric
+      noshear = true;
     }
+
+    auto tokamak_coordinates_factory = TokamakCoordinatesFactory(*mesh);
+    const auto& coord = tokamak_coordinates_factory.make_tokamak_coordinates(noshear, true);
 
     ///////////////////////////////////////////////////
     // Normalisation
@@ -230,21 +212,8 @@ protected:
     hyper_viscosity /= wci * SQ(SQ(rho_s));
     viscosity_par /= wci * SQ(rho_s);
 
-    b0xcv.x /= Bnorm;
-    b0xcv.y *= rho_s * rho_s;
-    b0xcv.z *= rho_s * rho_s;
-
     // Metrics
-    Rxy /= rho_s;
-    hthe /= rho_s;
-    I *= rho_s * rho_s * Bnorm;
-    Bpxy /= Bnorm;
-    Btxy /= Bnorm;
-    B0 /= Bnorm;
-
-    auto* coord = tokamak_coordinates(mesh, Rxy, Bpxy, hthe, I, B0, Btxy);
-
-    coord->setDx(coord->dx() / (rho_s * rho_s * Bnorm));
+    tokamak_coordinates_factory.normalise(rho_s, Bnorm);
 
     SOLVE_FOR3(Vort, Pe, Vpar);
     comms.add(Vort, Pe, Vpar);

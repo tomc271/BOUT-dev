@@ -3,7 +3,7 @@
  * Same as Maxim's version of BOUT - simplified 2-fluid for benchmarking
  *******************************************************************************/
 
-#include <bout/tokamak_coordinates.hxx>
+#include <bout/tokamak_coordinates_factory.hxx>
 
 #include <bout/derivs.hxx>
 #include <bout/initialprofiles.hxx>
@@ -26,9 +26,6 @@ class Interchange : public PhysicsModel {
   // Derived 3D variables
   Field3D phi;
 
-  // Metric coefficients
-  Field2D Rxy, Bpxy, Btxy, hthe;
-
   // Parameters
   BoutReal Te_x, Ti_x, Ni_x, bmag, rho_s, AA, ZZ, wci;
 
@@ -50,18 +47,8 @@ protected:
     GRID_LOAD(Ti0);
     GRID_LOAD(Te0);
 
-    // Load magnetic curvature term
-    b0xcv.covariant = false;  // Read contravariant components
-    mesh->get(b0xcv, "bxcv"); // b0xkappa terms
 
     b0xcv *= -1.0; // NOTE: THIS IS FOR 'OLD' GRID FILES ONLY
-
-    // Load metrics
-    GRID_LOAD(Rxy);
-    GRID_LOAD(Bpxy);
-    GRID_LOAD(Btxy);
-    GRID_LOAD(hthe);
-    mesh->get(I, "sinty");
 
     // Load normalisation values
     GRID_LOAD(Te_x);
@@ -88,10 +75,10 @@ protected:
 
     /************* SHIFTED RADIAL COORDINATES ************/
 
+    bool noshear = false;
     const bool ShiftXderivs = (*globalOptions)["ShiftXderivs"].withDefault(false);
     if (ShiftXderivs) {
-      ShearFactor = 0.0; // I disappears from metric
-      b0xcv.z += I * b0xcv.x;
+      noshear = true;
     }
 
     /************** CALCULATE PARAMETERS *****************/
@@ -117,27 +104,9 @@ protected:
     Ti0 /= Te_x;
     Te0 /= Te_x;
 
-    // Normalise curvature term
-    b0xcv.x /= (bmag / 1e4);
-    b0xcv.y *= rho_s * rho_s;
-    b0xcv.z *= rho_s * rho_s;
-
-    // Normalise geometry
-    Rxy /= rho_s;
-    hthe /= rho_s;
-    I *= rho_s * rho_s * (bmag / 1e4) * ShearFactor;
-
-    // Normalise magnetic field
-    Bpxy /= (bmag / 1.e4);
-    Btxy /= (bmag / 1.e4);
-
-    Field2D Bxy = mesh->get("Bxy");
-    Bxy /= (bmag / 1.e4);
-
-    coord = tokamak_coordinates(mesh, Rxy, Bpxy, hthe, I, Bxy, Btxy);
-
-    coord->setDx(mesh->get("dpsi"));
-    coord->setDx(coord->dx() / (rho_s * rho_s * (bmag / 1e4)));
+    auto tokamak_coordinates_factory = TokamakCoordinatesFactory(*mesh);
+    coord = tokamak_coordinates_factory.make_tokamak_coordinates(noshear, true);
+    tokamak_coordinates_factory.normalise(rho_s, bmag / 1e4);
 
     // Tell BOUT++ which variables to evolve
     SOLVE_FOR2(rho, Ni);

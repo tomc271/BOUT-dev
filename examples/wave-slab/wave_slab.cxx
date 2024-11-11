@@ -10,28 +10,15 @@
   
  */
 
-#include <bout/tokamak_coordinates.hxx>
 #include <bout/physicsmodel.hxx>
+#include <bout/tokamak_coordinates_factory.hxx>
 
 class WaveTest : public PhysicsModel {
 public:
   int init(bool UNUSED(restarting)) {
-    Field2D Rxy, Bpxy, Btxy, hthe, I;
-    GRID_LOAD(Rxy);
-    GRID_LOAD(Bpxy);
-    GRID_LOAD(Btxy);
-    GRID_LOAD(hthe);
-    const auto& Bxy = mesh->get("Bxy");
-    int ShiftXderivs = 0;
-    mesh->get(ShiftXderivs, "false");
-    if (ShiftXderivs) {
-      // No integrated shear in metric
-      I = 0.0;
-    } else {
-      mesh->get(I, "sinty");
-    }
 
-    auto* coords = tokamak_coordinates(mesh, Rxy, Bpxy, hthe, I, Bxy, Btxy);
+    auto tokamak_coordinates_factory = TokamakCoordinatesFactory(*mesh);
+    const auto& coords = tokamak_coordinates_factory.make_tokamak_coordinates(true, true);
 
     solver->add(f, "f");
     solver->add(g, "g");

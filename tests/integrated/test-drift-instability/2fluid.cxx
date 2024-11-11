@@ -3,8 +3,8 @@
  * Same as Maxim's version of BOUT - simplified 2-fluid for benchmarking
  *******************************************************************************/
 
-#include <bout/tokamak_coordinates.hxx>
 #include <bout/physicsmodel.hxx>
+#include <bout/tokamak_coordinates_factory.hxx>
 
 #include <bout/derivs.hxx>
 #include <bout/initialprofiles.hxx>
@@ -23,7 +23,6 @@ class TwoFluid : public PhysicsModel {
   Field2D Ni0, Ti0, Te0, Vi0, phi0, Ve0, rho0, Ajpar0;
   // Staggered versions of initial profiles
   Field2D Ni0_maybe_ylow, Te0_maybe_ylow;
-  Vector2D b0xcv; // for curvature terms
 
   // 3D evolving fields
   Field3D rho, Te, Ni, Ajpar, Vi, Ti;
@@ -40,9 +39,6 @@ class TwoFluid : public PhysicsModel {
   // pressures
   Field3D pei, pe;
   Field2D pei0, pe0;
-
-  // Metric coefficients
-  Field2D Rxy, Bpxy, Btxy, hthe;
 
   // parameters
   BoutReal Te_x, Ti_x, Ni_x, Vi_x, bmag, rho_s, fmei, AA, ZZ;
@@ -83,17 +79,6 @@ protected:
     GRID_LOAD(phi0);
     GRID_LOAD(rho0);
     GRID_LOAD(Ajpar0);
-
-    // Load magnetic curvature term
-    b0xcv.covariant = false;  // Read contravariant components
-    mesh->get(b0xcv, "bxcv"); // b0xkappa terms
-
-    // Load metrics
-    GRID_LOAD(Rxy);
-    GRID_LOAD(Bpxy);
-    GRID_LOAD(Btxy);
-    GRID_LOAD(hthe);
-    mesh->get(I, "sinty");
 
     // Load normalisation values
     GRID_LOAD(Te_x);
@@ -141,8 +126,7 @@ protected:
 
     const bool ShiftXderivs = (*globalOptions)["ShiftXderivs"].withDefault(false);
     if (ShiftXderivs) {
-      ShearFactor = 0.0; // I disappears from metric
-      b0xcv.z += I * b0xcv.x;
+      noshear = true;
     }
 
     /************** CALCULATE PARAMETERS *****************/
@@ -191,31 +175,14 @@ protected:
     phi0 /= Te_x;
     Vi0 /= Vi_x;
 
-    // Normalise curvature term
-    b0xcv.x /= (bmag / 1e4);
-    b0xcv.y *= rho_s * rho_s;
-    b0xcv.z *= rho_s * rho_s;
-
-    // Normalise geometry
-    Rxy /= rho_s;
-    hthe /= rho_s;
-    I *= rho_s * rho_s * (bmag / 1e4) * ShearFactor;
-
-    // Normalise magnetic field
-    Bpxy /= (bmag / 1.e4);
-    Btxy /= (bmag / 1.e4);
-
     // calculate pressures
     pei0 = (Ti0 + Te0) * Ni0;
     pe0 = Te0 * Ni0;
 
-    Field2D Bxy = mesh->get("Bxy");
-    Bxy /= (bmag / 1.e4);
+    auto tokamak_coordinates_factory = TokamakCoordinatesFactory(*mesh);
+    coord = tokamak_coordinates_factory.make_tokamak_coordinates(noshear, include_curvature)
 
-    coord = tokamak_coordinates(mesh, Rxy, Bpxy, hthe, I, Bxy, Btxy);
-
-    coord->setDx(mesh->get("dpsi"));
-    coord->setDx(coord->dx() / (rho_s * rho_s * (bmag / 1e4)));
+    tokamak_coordinates_factory.normalise(rho_s, bmag / 1e4);
 
     /**************** SET EVOLVING VARIABLES *************/
 

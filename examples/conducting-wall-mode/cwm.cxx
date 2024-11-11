@@ -4,8 +4,8 @@
  * Mode discoverd by H.L. Berk et. al. 1993
  * Model version in the code created by M. Umansky and J. Myra.
  *******************************************************************************/
-#include <bout/tokamak_coordinates.hxx>
 #include <bout/physicsmodel.hxx>
+#include <bout/tokamak_coordinates_factory.hxx>
 
 #include <bout/derivs.hxx>
 #include <bout/initialprofiles.hxx>
@@ -29,8 +29,7 @@ private:
   // Phi boundary conditions
   Field3D dphi_bc_ydown, dphi_bc_yup;
 
-  // Metric coefficients
-  Field2D Rxy, Bpxy, Btxy, hthe, Zxy;
+  Field2D Zxy;
 
   // parameters
   BoutReal Te_x, Ni_x, Vi_x, bmag, rho_s, fmei, AA, ZZ;
@@ -55,23 +54,13 @@ private:
   std::unique_ptr<Laplacian> phiSolver{nullptr};
 
   int init(bool UNUSED(restarting)) override {
-    Field2D I; // Shear factor
+
+    bool noshear;
 
     /************* LOAD DATA FROM GRID FILE ****************/
 
     // Load 2D profiles (set to zero if not found)
     GRID_LOAD(Ni0, Te0);
-
-    coord = mesh->getCoordinates();
-
-    // Load metrics
-    mesh->get(Rxy, "Rxy");
-    mesh->get(Zxy, "Zxy");
-    mesh->get(Bpxy, "Bpxy");
-    mesh->get(Btxy, "Btxy");
-    mesh->get(hthe, "hthe");
-    FieldMetric dx = mesh->get("dpsi");
-    mesh->get(I, "sinty");
 
     // Load normalisation values
     GRID_LOAD(Te_x, Ni_x, bmag);
@@ -103,7 +92,7 @@ private:
             "identity");
 
     if (lowercase(ptstr) == "shifted") {
-      ShearFactor = 0.0; // I disappears from metric
+      noshear = true;
     }
 
     /************** CALCULATE PARAMETERS *****************/
@@ -129,6 +118,9 @@ private:
           hthe0 / rho_s);
     }
 
+    auto tokamak_coordinates_factory = TokamakCoordinatesFactory(*mesh);
+    const auto& coord = tokamak_coordinates_factory.make_tokamak_coordinates(noshear, true);
+
     /************** NORMALISE QUANTITIES *****************/
 
     output.write("\tNormalising to rho_s = {:e}\n", rho_s);
@@ -138,24 +130,10 @@ private:
     Te0 /= Te_x;
 
     // Normalise geometry
-    Rxy /= rho_s;
-    hthe /= rho_s;
-    I *= rho_s * rho_s * (bmag / 1e4) * ShearFactor;
-
-    dx /= (rho_s * rho_s * (bmag / 1e4));
-
-    // Normalise magnetic field
-    Bpxy /= (bmag / 1.e4);
-    Btxy /= (bmag / 1.e4);
-
-    FieldMetric Bxy = mesh->get("Bxy");
-    Bxy /= (bmag / 1.e4);
+    tokamak_coordinates_factory.normalise(rho_s, bmag / 1e4);
 
     // Set nu
     nu = nu_hat * Ni0 / pow(Te0, 1.5);
-
-    coord = tokamak_coordinates(mesh, Rxy, Bpxy, hthe, I, Bxy, Btxy);
-    coord->setDx(dx);
 
 
     /**************** SET EVOLVING VARIABLES *************/
@@ -164,6 +142,10 @@ private:
     // add evolving variables to the communication object
     SOLVE_FOR(rho, te);
 
+    Field2D Rxy = tokamak_coordinates_factory.get_Rxy();
+    Field2D Bpxy = tokamak_coordinates_factory.get_Bpxy();
+    Field2D Btxy = tokamak_coordinates_factory.get_Btxy();
+    Field2D hthe = tokamak_coordinates_factory.get_hthe();
     SAVE_ONCE(Rxy, Bpxy, Btxy, Zxy, hthe);
     SAVE_ONCE(nu_hat, hthe0);
 

@@ -9,8 +9,8 @@
  * This version uses global parameters for collisionality etc.
  ****************************************************************/
 
-#include <bout/tokamak_coordinates.hxx>
 #include <bout/constants.hxx>
+#include <bout/tokamak_coordinates_factory.hxx>
 
 #include <bout/gyro_average.hxx>
 #include <bout/interpolation.hxx>
@@ -182,17 +182,6 @@ class GEM : public PhysicsModel {
     flat_temp = options["flat_temp"].withDefault(-1.0);
     flat_dens = options["flat_dens"].withDefault(-1.0);
 
-    //////////////////////////////////
-    // Read profiles
-
-    // Mesh
-    Field2D Rxy, Bpxy, Btxy, Bxy, hthe;
-    GRID_LOAD(Rxy);  // Major radius [m]
-    GRID_LOAD(Bpxy); // Poloidal B field [T]
-    GRID_LOAD(Btxy); // Toroidal B field [T]
-    GRID_LOAD(Bxy);  // Total B field [T]
-    GRID_LOAD(hthe); // Poloidal arc length [m / radian]
-
     GRID_LOAD(Te0); // Electron temperature in eV
     GRID_LOAD(Ni0); // Ion number density in 10^20 m^-3
 
@@ -253,9 +242,12 @@ class GEM : public PhysicsModel {
     Tbar = options["Tbar"].withDefault(Tbar); // Override in options file
     SAVE_ONCE(Tbar);                          // Timescale in seconds
 
+    auto tokamak_coordinates_factory = TokamakCoordinatesFactory(*mesh);
+    coord = tokamak_coordinates_factory.make_tokamak_coordinates(true, true);
+
     if (mesh->get(Bbar, "Bbar")) {
       if (mesh->get(Bbar, "bmag")) {
-        Bbar = max(Bxy, true);
+        Bbar = max(tokamak_coordinates_factory.get_Bxy(), true);
       }
     }
     Bbar = options["Bbar"].withDefault(Bbar); // Override in options file
@@ -352,27 +344,13 @@ class GEM : public PhysicsModel {
     output << "\tNormalised rho_e = " << rho_e << endl;
     output << "\tNormalised rho_i = " << rho_i << endl;
 
-    //////////////////////////////////
-    // Metric tensor components
-
-    // Normalise
-    hthe /= Lbar; // parallel derivatives normalised to Lperp
-
-    Bpxy /= Bbar;
-    Btxy /= Bbar;
-    Bxy /= Bbar;
-
-    Rxy /= rho_s; // Perpendicular derivatives normalised to rho_s
-
-    coord = tokamak_coordinates(mesh, Rxy, Bpxy, hthe, 0.0, Bxy, Btxy);
-
-    coord->setDx(coord->dx() / (rho_s * rho_s * Bbar));
+    tokamak_coordinates_factory.normalise(Lbar, Bbar);
 
     // Set B field vector
 
     B0vec.covariant = false;
     B0vec.x = 0.;
-    B0vec.y = Bpxy / hthe;
+    B0vec.y = tokamak_coordinates_factory.get_Bpxy() / tokamak_coordinates_factory.get_hthe();
     B0vec.z = 0.;
 
     // Precompute this for use in RHS
