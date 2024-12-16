@@ -1357,28 +1357,9 @@ protected:
       }
     }
 
-    ////////////////////////////////////////////////////
-    // Parallel electric field
-    {
-      TRACE("ddt(Psi)");
-
-      ddt(Psi) = 0.0;
-
-      if (spitzer_resist) {
-        ddt(Psi) = -Grad_parP(tokamak_coordinates_factory.Bxy() * phi) / tokamak_coordinates_factory.Bxy() - eta_spitzer * Jpar;
-      } else {
-        ddt(Psi) = -Grad_parP(tokamak_coordinates_factory.Bxy() * phi) / tokamak_coordinates_factory.Bxy() - eta * Jpar;
-      }
-
-      if (diamag) {
-        ddt(Psi) -= bracket(tokamak_coordinates_factory.Bxy() * phi0, Psi, bm_exb); // Equilibrium flow
-      }
-
-      // Hyper-resistivity
-      if (hyperresist > 0.0) {
-        ddt(Psi) += hyperresist * Delp2(Jpar);
-      }
-    }
+    ddt(Psi) = parallel_electric_field(
+        ddt(Psi), spitzer_resist, tokamak_coordinates_factory.Bxy(), phi, eta_spitzer,
+        Jpar, eta, diamag, phi0, Psi, bm_exb, hyperresist);
 
     ////////////////////////////////////////////////////
     // Vorticity equation
@@ -1643,6 +1624,32 @@ protected:
     first_run = false;
 
     return 0;
+  }
+
+  Field3D& parallel_electric_field(Field3D& ddt_Psi, bool spitzer_resist,
+                                   const Field2D& Bxy, Field3D& phi, Field3D& eta_spitzer,
+                                   Field3D& Jpar, Field3D& eta, bool diamag,
+                                   Field2D& phi0, Field3D& Psi,
+                                   BRACKET_METHOD bm_exb, BoutReal hyperresist) {
+    TRACE("ddt(Psi)");
+
+    if (spitzer_resist) {
+      ddt_Psi = -Grad_parP(Bxy * phi) / Bxy - eta_spitzer * Jpar;
+    } else {
+      ddt_Psi = -Grad_parP(Bxy * phi) / Bxy - eta * Jpar;
+    }
+
+    if (diamag) {
+      ddt_Psi -= bracket(Bxy * phi0, Psi,
+                          bm_exb); // Equilibrium flow
+    }
+
+    // Hyper-resistivity
+    if (hyperresist > 0.0) {
+      ddt_Psi += hyperresist * Delp2(Jpar);
+    }
+
+    return ddt_Psi;
   }
 };
 
