@@ -567,10 +567,6 @@ void Coordinates::readFromMesh(Options* mesh_options, const std::string& suffix)
   dy_ = interpolateAndExtrapolate(dy_, location, extrapolate_x, extrapolate_y, false,
                                   transform.get());
 
-  setDx(dx_);
-  setDy(dy_);
-  setDz(dz_);
-
   // grid data source has staggered fields, so read instead of interpolating
   // Diagonal components of metric tensor g^{ij} (default to 1)
   const auto g11 = getAtLocOrUnaligned(localmesh, "g11", 1.0, suffix, location);
