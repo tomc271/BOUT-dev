@@ -131,5 +131,12 @@ MetricTensor MetricTensor::inverse(const std::string& region, const bool communi
 }
 
 void MetricTensor::communicate() const {
-  g11_m.getMesh()->communicate(g11_m, g22_m, g33_m, g12_m, g13_m, g23_m);
+  // copy to non-const variables (because communicate() cannot take const references)
+  auto tmp = g11_m;
+  auto tmp2 = g22_m;
+  auto tmp3 = g33_m;
+  auto tmp4 = g12_m;
+  auto tmp5 = g13_m;
+  auto tmp6 = g23_m;
+  g11_m.getMesh()->communicate(tmp, tmp2, tmp3, tmp4, tmp5, tmp6);
 }
