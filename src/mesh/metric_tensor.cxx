@@ -125,7 +125,7 @@ MetricTensor MetricTensor::inverse(const std::string& region, const bool communi
   output_info.write("\tMaximum error in off-diagonal inversion is {:e}\n",
                     off_diagonal_maxerr);
   if (communicate) {
-    communicate(g_11, g_22, g_33, g_12, g_13, g_23);
+    MetricTensor::communicate();
   }
   return MetricTensor(g_11, g_22, g_33, g_12, g_13, g_23);
 }
