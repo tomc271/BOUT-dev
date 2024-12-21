@@ -48,11 +48,16 @@ CELL_LOC normaliseLocation(CELL_LOC location, Mesh* mesh) {
 }
 } // namespace bout
 
-FieldData::FieldData(Mesh* localmesh, CELL_LOC location_in)
+FieldData::FieldData(Mesh* localmesh, Coordinates* coordinates, CELL_LOC location_in)
     : fieldmesh(localmesh == nullptr ? bout::globals::mesh : localmesh),
       location(bout::normaliseLocation(
-          location_in, fieldmesh)) { // Need to check for nullptr again, because the
-                                     // fieldmesh might still be
+          location_in, fieldmesh)) {
+
+  if (coordinates != nullptr) {
+    fieldCoordinates = std::shared_ptr<Coordinates>(coordinates);
+  }
+
+  // Need to check for nullptr again, because the fieldmesh might still be
   // nullptr if the global mesh hasn't been initialized yet
   if (fieldmesh != nullptr) {
     // sets fieldCoordinates by getting Coordinates for our location from
@@ -238,7 +243,7 @@ BOUT_HOST_DEVICE Coordinates* FieldData::getCoordinates() const {
   if (fieldCoordinates_shared) {
     return fieldCoordinates_shared.get();
   }
-  coordinates_from_mesh = getMesh()->getCoordinatesSmart(FieldData::getLocation());
+  std::shared_ptr<Coordinates> coordinates_from_mesh = getMesh()->getCoordinatesSmart(FieldData::getLocation());
   // If Coordinates are in the process of being constructed the object may not have been registered with Mesh yet
   if (coordinates_from_mesh != nullptr) {
     fieldCoordinates = coordinates_from_mesh;

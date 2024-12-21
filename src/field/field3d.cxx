@@ -61,6 +61,19 @@ Field3D::Field3D(Mesh* localmesh, CELL_LOC location_in, DirectionTypes direction
   }
 }
 
+Field3D::Field3D(Coordinates* coordinates, Mesh* localmesh, CELL_LOC location_in, DirectionTypes directions_in)
+    : Field(localmesh, coordinates, location_in, directions_in) {
+#if BOUT_USE_TRACK
+  name = "<F3D>";
+#endif
+
+  if (fieldmesh) {
+    nx = fieldmesh->LocalNx;
+    ny = fieldmesh->LocalNy;
+    nz = fieldmesh->LocalNz;
+  }
+}
+
 /// Doesn't copy any data, just create a new reference to the same data (copy on change
 /// later)
 Field3D::Field3D(const Field3D& f)
@@ -88,6 +101,13 @@ Field3D::Field3D(const Field2D& f) : Field(f) {
 }
 
 Field3D::Field3D(const BoutReal val, Mesh* localmesh) : Field3D(localmesh) {
+
+  TRACE("Field3D: Copy constructor from value");
+
+  *this = val;
+}
+
+Field3D::Field3D(const BoutReal val, Coordinates* coordinates, Mesh* localmesh) : Field3D(coordinates, localmesh) {
 
   TRACE("Field3D: Copy constructor from value");
 

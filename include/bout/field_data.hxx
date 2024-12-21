@@ -61,6 +61,7 @@ public:
   virtual ~FieldData();
 
   FieldData(Mesh* localmesh, CELL_LOC location_in = CELL_LOC::centre);
+  FieldData(Mesh* localmesh, Coordinates* coordinates, CELL_LOC location_in = CELL_LOC::centre);
 
   /// Set variable location for staggered grids to @param new_location
   ///

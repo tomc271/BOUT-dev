@@ -25,7 +25,7 @@ public:
                FieldMetric g13, FieldMetric g23);
 
   MetricTensor(BoutReal g11, BoutReal g22, BoutReal g33, BoutReal g12, BoutReal g13,
-               BoutReal g23, Mesh* mesh);
+               BoutReal g23, Mesh* mesh, Coordinates* coordinates);
 
   // check that tensors are positive (if expected) and finite (always)
   void check(int ystart);
@@ -88,8 +88,8 @@ public:
 
   CovariantMetricTensor(const BoutReal g11, const BoutReal g22, const BoutReal g33,
                         const BoutReal g12, const BoutReal g13, const BoutReal g23,
-                        Mesh* mesh)
-      : MetricTensor(g11, g22, g33, g12, g13, g23, mesh){};
+                        Mesh* mesh, Coordinates* coordinates)
+      : MetricTensor(g11, g22, g33, g12, g13, g23, mesh, coordinates){};
 };
 
 class ContravariantMetricTensor : public MetricTensor {
@@ -102,8 +102,8 @@ public:
 
   ContravariantMetricTensor(const BoutReal g_11, const BoutReal g_22, const BoutReal g_33,
                             const BoutReal g_12, const BoutReal g_13, const BoutReal g_23,
-                            Mesh* mesh)
-      : MetricTensor(g_11, g_22, g_33, g_12, g_13, g_23, mesh){};
+                            Mesh* mesh, Coordinates* coordinates)
+      : MetricTensor(g_11, g_22, g_33, g_12, g_13, g_23, mesh, coordinates){};
 };
 
 #endif //BOUT_METRIC_TENSOR_HXX

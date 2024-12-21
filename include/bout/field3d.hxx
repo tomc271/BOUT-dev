@@ -172,6 +172,10 @@ public:
           DirectionTypes directions_in = {YDirectionType::Standard,
                                           ZDirectionType::Standard});
 
+  Field3D(Coordinates* coordinates, Mesh* localmesh = nullptr, CELL_LOC location_in = CELL_CENTRE,
+          DirectionTypes directions_in = {YDirectionType::Standard,
+                                          ZDirectionType::Standard});
+
   /*!
    * Copy constructor
    */
@@ -183,6 +187,7 @@ public:
   Field3D(const Field2D& f);
   /// Constructor from value
   Field3D(BoutReal val, Mesh* localmesh = nullptr);
+  Field3D(BoutReal val, Coordinates* coordinates, Mesh* localmesh = nullptr);
   /// Constructor from Array and Mesh
   Field3D(Array<BoutReal> data, Mesh* localmesh, CELL_LOC location = CELL_CENTRE,
           DirectionTypes directions_in = {YDirectionType::Standard,

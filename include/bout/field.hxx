@@ -64,6 +64,7 @@ public:
   virtual ~Field() = default;
 
   Field(Mesh* localmesh, CELL_LOC location_in, DirectionTypes directions_in);
+  Field(Mesh* localmesh, Coordinates* coordinates, CELL_LOC location_in, DirectionTypes directions_in);
 
   /// Getters for DIRECTION types
   DirectionTypes getDirections() const { return directions; }
