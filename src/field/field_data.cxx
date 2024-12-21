@@ -238,7 +238,11 @@ BOUT_HOST_DEVICE Coordinates* FieldData::getCoordinates() const {
   if (fieldCoordinates_shared) {
     return fieldCoordinates_shared.get();
   }
-  fieldCoordinates = getMesh()->getCoordinatesSmart(FieldData::getLocation());
+  coordinates_from_mesh = getMesh()->getCoordinatesSmart(FieldData::getLocation());
+  // If Coordinates are in the process of being constructed the object may not have been registered with Mesh yet
+  if (coordinates_from_mesh != nullptr) {
+    fieldCoordinates = coordinates_from_mesh;
+  }
   return fieldCoordinates.lock().get();
 }
 
