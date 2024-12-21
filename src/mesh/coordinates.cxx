@@ -614,7 +614,7 @@ void Coordinates::readFromMesh(Options* mesh_options, const std::string& suffix)
     output_warn.write("\tWARNING! Covariant components of metric tensor set manually. "
                       "Contravariant components NOT recalculated\n");
   } else {
-    covariantMetricTensor.setMetricTensor(contravariantMetricTensor.inverse());
+    covariantMetricTensor.setMetricTensor(contravariantMetricTensor.inverse("RGN_ALL", false));
     output_warn.write("Not all covariant components of metric tensor found. "
                       "Calculating all from the contravariant tensor\n");
   }
