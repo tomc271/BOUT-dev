@@ -1525,3 +1525,8 @@ void Coordinates::setMetricTensor(
   contravariantMetricTensor.setMetricTensor(contravariant_metric_tensor);
   covariantMetricTensor.setMetricTensor(covariant_metric_tensor);
 }
+
+void Coordinates::communicateMetricTensor() {
+  contravariantMetricTensor.communicate();
+  covariantMetricTensor.communicate();
+}

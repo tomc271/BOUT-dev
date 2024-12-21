@@ -74,8 +74,11 @@ public:
     g23_m = function(g23_m);
   }
 
+  void communicate() const;
+
 private:
   FieldMetric g11_m, g22_m, g33_m, g12_m, g13_m, g23_m;
+
 };
 
 class CovariantMetricTensor : public MetricTensor {

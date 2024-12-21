@@ -235,6 +235,8 @@ public:
   void setMetricTensor(const ContravariantMetricTensor& contravariant_metric_tensor,
                        const CovariantMetricTensor& covariant_metric_tensor);
 
+  void communicateMetricTensor();
+
   ///< Coordinate system Jacobian, so volume of cell is J*dx*dy*dz
   FieldMetric& J() const;
 
