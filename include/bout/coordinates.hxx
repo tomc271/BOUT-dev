@@ -243,9 +243,9 @@ public:
   ///< Magnitude of B = nabla z times nabla x
   const FieldMetric& Bxy() const { return Bxy_; }
 
-  void setJ(const FieldMetric& J);
+  void setJ(const FieldMetric& J, const bool communicate = true);
 
-  void setBxy(FieldMetric Bxy);
+  void setBxy(FieldMetric Bxy, const bool communicate = true);
 
   /// d pitch angle / dx. Needed for vector differentials (Curl)
   const FieldMetric& ShiftTorsion() const { return ShiftTorsion_; }

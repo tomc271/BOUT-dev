@@ -501,9 +501,9 @@ void Coordinates::interpolateFromCoordinates(Options* mesh_options,
   checkCovariant();
 
   setJ(interpolateAndExtrapolate(coords_in->J(), location, true, true, false,
-                                 transform.get()));
+                                 transform.get()), false);
   setBxy(interpolateAndExtrapolate(coords_in->Bxy(), location, true, true, false,
-                                   transform.get()));
+                                   transform.get()), false);
 
   bout::checkFinite(J(), "The Jacobian", "RGN_NOCORNERS");
   bout::checkPositive(J(), "The Jacobian", "RGN_NOCORNERS");
@@ -635,7 +635,7 @@ void Coordinates::readFromMesh(Options* mesh_options, const std::string& suffix)
     const auto J_from_file = getAtLoc(localmesh, "J", suffix, location);
     // Compare calculated and loaded values
     output_warn.write("\tMaximum difference in J is {:e}\n", max(abs(J() - J_from_file)));
-    setJ(J_from_file);
+    setJ(J_from_file, false);
 
     communicate(J());
   }
@@ -643,7 +643,7 @@ void Coordinates::readFromMesh(Options* mesh_options, const std::string& suffix)
   // More robust to extrapolate derived quantities directly, rather than
   // deriving from extrapolated covariant metric components
   setJ(interpolateAndExtrapolate(J(), location, extrapolate_x, extrapolate_y, false,
-                                 transform.get()));
+                                 transform.get()), false);
 
   // Check jacobian
   bout::checkFinite(J(), "J" + suffix, "RGN_NOCORNERS");
@@ -658,15 +658,15 @@ void Coordinates::readFromMesh(Options* mesh_options, const std::string& suffix)
                       "Calculating from metric tensor\n",
                       suffix);
     // Re-evaluate Bxy using new J
-    setBxy(recalculateBxy());
+    setBxy(recalculateBxy(), false);
   } else {
     const auto Bcalc = getAtLoc(localmesh, "Bxy", suffix, location);
-    setBxy(Bcalc);
+    setBxy(Bcalc, false);
     output_warn.write("\tMaximum difference in Bxy is {:e}\n", max(abs(Bxy() - Bcalc)));
   }
 
   setBxy(interpolateAndExtrapolate(Bxy(), location, extrapolate_x, extrapolate_y, false,
-                                   transform.get()));
+                                   transform.get()), false);
 
   // Check Bxy
   bout::checkFinite(Bxy(), "Bxy" + suffix, "RGN_NOCORNERS");
@@ -1487,19 +1487,23 @@ FieldMetric& Coordinates::J() const {
   return *jacobian_cache;
 }
 
-void Coordinates::setJ(const FieldMetric& J) {
+void Coordinates::setJ(const FieldMetric& J, const bool communicate) {
   bout::checkFinite(J, "J", "RGN_NOCORNERS");
   bout::checkPositive(J, "J", "RGN_NOCORNERS");
 
   //TODO: Calculate J and check value is close
   jacobian_cache = std::make_unique<FieldMetric>(J);
-  localmesh->communicate(*jacobian_cache);
+  if (communicate) {
+    localmesh->communicate(*jacobian_cache);
+  }
 }
 
-void Coordinates::setBxy(FieldMetric Bxy) {
+void Coordinates::setBxy(FieldMetric Bxy, const bool communicate) {
   //TODO: Calculate Bxy and check value is close
   Bxy_ = std::move(Bxy);
-  localmesh->communicate(Bxy_);
+  if (communicate) {
+    localmesh->communicate(Bxy_);
+  }
 }
 
 void Coordinates::setContravariantMetricTensor(
