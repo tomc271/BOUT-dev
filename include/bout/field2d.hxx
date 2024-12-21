@@ -70,6 +70,10 @@ public:
           DirectionTypes directions_in = {YDirectionType::Standard,
                                           ZDirectionType::Average});
 
+  Field2D(Coordinates* coordinates, Mesh* localmesh = nullptr, CELL_LOC location_in = CELL_CENTRE,
+          DirectionTypes directions_in = {YDirectionType::Standard,
+                                          ZDirectionType::Average});
+
   /*!
    * Copy constructor. After this both fields
    * will share the same underlying data.
@@ -87,6 +91,7 @@ public:
    * boundary cells.
    */
   Field2D(BoutReal val, Mesh* localmesh = nullptr);
+  Field2D(BoutReal val, Coordinates* coordinates, Mesh* localmesh = nullptr);
 
   /// Constructor from Array and Mesh
   Field2D(Array<BoutReal> data, Mesh* localmesh, CELL_LOC location = CELL_CENTRE,

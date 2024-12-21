@@ -61,6 +61,19 @@ Field2D::Field2D(Mesh* localmesh, CELL_LOC location_in, DirectionTypes direction
 #endif
 }
 
+Field2D::Field2D(Coordinates* coordinates, Mesh* localmesh, CELL_LOC location_in, DirectionTypes directions_in)
+    : Field(localmesh, coordinates, location_in, directions_in) {
+
+  if (fieldmesh) {
+    nx = fieldmesh->LocalNx;
+    ny = fieldmesh->LocalNy;
+  }
+
+#if BOUT_USE_TRACK
+  name = "<F2D>";
+#endif
+}
+
 Field2D::Field2D(const Field2D& f) : Field(f), data(f.data) {
   TRACE("Field2D(Field2D&)");
 
@@ -75,6 +88,7 @@ Field2D::Field2D(const Field2D& f) : Field(f), data(f.data) {
 }
 
 Field2D::Field2D(BoutReal val, Mesh* localmesh) : Field2D(localmesh) { *this = val; }
+Field2D::Field2D(BoutReal val, Coordinates* coordinates, Mesh* localmesh) : Field2D(coordinates, localmesh) { *this = val; }
 
 Field2D::Field2D(Array<BoutReal> data_in, Mesh* localmesh, CELL_LOC datalocation,
                  DirectionTypes directions_in)

@@ -32,7 +32,10 @@
 #include <bout/utils.hxx>
 
 Field::Field(Mesh* localmesh, CELL_LOC location_in, DirectionTypes directions_in)
-    : FieldData(localmesh, location_in), directions(directions_in) {}
+    : FieldData(localmesh, nullptr, location_in), directions(directions_in) {}
+
+Field::Field(Mesh* localmesh, Coordinates* coordinates, CELL_LOC location_in, DirectionTypes directions_in)
+    : FieldData(localmesh, coordinates, location_in), directions(directions_in) {}
 
 int Field::getNx() const { return getMesh()->LocalNx; }
 

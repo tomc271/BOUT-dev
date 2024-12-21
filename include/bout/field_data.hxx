@@ -60,7 +60,7 @@ public:
   FieldData& operator=(FieldData&& other) noexcept;
   virtual ~FieldData();
 
-  FieldData(Mesh* localmesh, CELL_LOC location_in = CELL_LOC::centre);
+  FieldData(Mesh* localmesh, Coordinates* coordinates = nullptr, CELL_LOC location_in = CELL_LOC::centre);
 
   /// Set variable location for staggered grids to @param new_location
   ///

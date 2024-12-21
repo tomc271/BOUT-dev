@@ -442,11 +442,11 @@ Coordinates::Coordinates(Mesh* mesh, FieldMetric dx, FieldMetric dy, FieldMetric
 
 Coordinates::Coordinates(Mesh* mesh, Options* mesh_options, const CELL_LOC loc,
                          const Coordinates* coords_in, bool force_interpolate_from_centre)
-    : localmesh(mesh), location(loc), dx_(1., mesh), dy_(1., mesh), dz_(1., mesh),
-      d1_dx_(mesh), d1_dy_(mesh), d1_dz_(mesh), ShiftTorsion_(mesh),
-      IntShiftTorsion_(mesh), contravariantMetricTensor(1., 1., 1., 0, 0, 0, mesh),
+    : localmesh(mesh), location(loc), dx_(1., this, mesh), dy_(1., this, mesh), dz_(1., this, mesh),
+      d1_dx_(this, mesh), d1_dy_(this, mesh), d1_dz_(this, mesh), ShiftTorsion_(this, mesh),
+      IntShiftTorsion_(this, mesh), contravariantMetricTensor(1., 1., 1., 0, 0, 0, mesh, this),
       // Identity metric tensor
-      covariantMetricTensor(1., 1., 1., 0, 0, 0, mesh), Bxy_(1., mesh) {
+      covariantMetricTensor(1., 1., 1., 0, 0, 0, mesh, this), Bxy_(1., this, mesh) {
 
   if (mesh_options == nullptr) {
     mesh_options = Options::getRoot()->getSection("mesh");

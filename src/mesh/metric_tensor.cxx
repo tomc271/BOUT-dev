@@ -18,9 +18,9 @@ MetricTensor::MetricTensor(FieldMetric g11, FieldMetric g22, FieldMetric g33,
 
 MetricTensor::MetricTensor(const BoutReal g11, const BoutReal g22, const BoutReal g33,
                            const BoutReal g12, const BoutReal g13, const BoutReal g23,
-                           Mesh* mesh)
-    : g11_m(g11, mesh), g22_m(g22, mesh), g33_m(g33, mesh), g12_m(g12, mesh),
-      g13_m(g13, mesh), g23_m(g23, mesh) {}
+                           Mesh* mesh, Coordinates* coordinates)
+    : g11_m(g11, coordinates, mesh), g22_m(g22, coordinates, mesh), g33_m(g33, coordinates, mesh), g12_m(g12, coordinates, mesh),
+      g13_m(g13, coordinates, mesh), g23_m(g23, coordinates, mesh) {}
 
 void MetricTensor::check(int ystart) {
   const bool non_identity_parallel_transform =
