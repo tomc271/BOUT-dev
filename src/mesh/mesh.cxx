@@ -578,18 +578,14 @@ std::shared_ptr<Coordinates>
 Mesh::createDefaultCoordinates(const CELL_LOC location,
                                bool force_interpolate_from_centre) {
 
-  std::shared_ptr<Coordinates> coordinates;
   if (location == CELL_CENTRE || location == CELL_DEFAULT) {
     // Initialize coordinates from input
-    coordinates = std::make_shared<Coordinates>(this, options);
-  } else {
-    // Interpolate coordinates from CELL_CENTRE version
-    coordinates = std::make_shared<Coordinates>(this, options, location,
-                                                getCoordinates(CELL_CENTRE),
-                                                force_interpolate_from_centre);
+    return std::make_shared<Coordinates>(this, options);
   }
-  coordinates->communicateMetricTensor();
-  return coordinates;
+  // Interpolate coordinates from CELL_CENTRE version
+  return std::make_shared<Coordinates>(this, options, location,
+                                       getCoordinates(CELL_CENTRE),
+                                       force_interpolate_from_centre);
 }
 
 const Region<>& Mesh::getRegion3D(const std::string& region_name) const {
