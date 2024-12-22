@@ -43,7 +43,7 @@ class Mesh;
 /*!
  * Represents a coordinate system, and associated operators
  */
-class Coordinates {
+class Coordinates : public std::enable_shared_from_this<Coordinates> {
 public:
 #if BOUT_USE_METRIC_3D
   using FieldMetric = Field3D;

@@ -54,7 +54,7 @@ FieldData::FieldData(Mesh* localmesh, Coordinates* coordinates, CELL_LOC locatio
           location_in, fieldmesh)) {
 
   if (coordinates != nullptr) {
-    fieldCoordinates = std::shared_ptr<Coordinates>(coordinates);
+    fieldCoordinates = coordinates->weak_from_this();
   }
 
   // Need to check for nullptr again, because the fieldmesh might still be
