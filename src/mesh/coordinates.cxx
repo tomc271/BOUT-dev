@@ -567,6 +567,10 @@ void Coordinates::readFromMesh(Options* mesh_options, const std::string& suffix)
   dy_ = interpolateAndExtrapolate(dy_, location, extrapolate_x, extrapolate_y, false,
                                   transform.get());
 
+  setDx(dx_, false);
+  setDy(dy_, false);
+  setDz(dz_, false);
+
   // grid data source has staggered fields, so read instead of interpolating
   // Diagonal components of metric tensor g^{ij} (default to 1)
   const auto g11 = getAtLocOrUnaligned(localmesh, "g11", 1.0, suffix, location);
@@ -758,31 +762,34 @@ const Field2D& Coordinates::zlength() const {
   return *zlength_cache;
 }
 
-void Coordinates::setDx(FieldMetric dx) {
+void Coordinates::setDx(FieldMetric dx, const bool communicate) {
   if (min(abs(dx)) < 1e-8) {
     throw BoutException("dx magnitude less than 1e-8");
   }
-
   dx_ = std::move(dx);
-  localmesh->communicate(dx_);
+  if (communicate) {
+    localmesh->communicate(dx_);
+  }
 }
 
-void Coordinates::setDy(FieldMetric dy) {
+void Coordinates::setDy(FieldMetric dy, const bool communicate) {
   if (min(abs(dy)) < 1e-8) {
     throw BoutException("dy magnitude less than 1e-8");
   }
-
   dy_ = std::move(dy);
-  localmesh->communicate(dy_);
+  if (communicate) {
+    localmesh->communicate(dy_);
+  }
 }
 
-void Coordinates::setDz(FieldMetric dz) {
+void Coordinates::setDz(FieldMetric dz, const bool communicate) {
   if (min(abs(dz)) < 1e-8) {
     throw BoutException("dz magnitude less than 1e-8");
   }
-
   dz_ = std::move(dz);
-  localmesh->communicate(dz_);
+  if (communicate) {
+    localmesh->communicate(dz_);
+  }
 }
 
 void Coordinates::recalculateAndReset(bool recalculate_staggered,

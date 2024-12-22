@@ -108,9 +108,9 @@ public:
   const BoutReal& J(int x, int y) const { return J()(x, y); }
 #endif
 
-  void setDx(FieldMetric dx);
-  void setDy(FieldMetric dy);
-  void setDz(FieldMetric dz);
+  void setDx(FieldMetric dx, const bool communicate = true);
+  void setDy(FieldMetric dy, const bool communicate = true);
+  void setDz(FieldMetric dz, const bool communicate = true);
 
   void setD1_dx(FieldMetric d1_dx) { d1_dx_ = std::move(d1_dx); }
   void setD1_dy(FieldMetric d1_dy) { d1_dy_ = std::move(d1_dy); }
