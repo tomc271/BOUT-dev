@@ -212,8 +212,8 @@ int main(int argc, char** argv) {
     {
       auto dy = emptyFrom(coord->dx());
       auto J = emptyFrom(coord->J());
-      // Initialise all field values to zero, as guards cells not set below
-      J = 0.0;
+      // Initialise all field values, as guards cells not set below
+      J = 1.0;
       for (int x = mesh->xstart; x <= mesh->xend; x++) {
         for (int y = mesh->ystart; y <= mesh->yend; y++) {
           const double y_n = (double(y) + 0.5) / double(mesh->yend + 1);

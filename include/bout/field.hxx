@@ -275,7 +275,7 @@ inline void checkPositive(const T& f, const std::string& name = "field",
   }
 
   BOUT_FOR_SERIAL(i, f.getRegion(rgn)) {
-    if (f[i] < 0.) {
+    if (f[i] <= 0.) {
       throw BoutException("{:s} ({:s} {:s}) is {:e} (not positive) at {:s}", name,
                           toString(f.getLocation()), toString(f.getDirections()), f[i],
                           toString(i));
