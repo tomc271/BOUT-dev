@@ -210,7 +210,7 @@ int main(int argc, char** argv) {
     Coordinates* coord = Te.getCoordinates();
 
     {
-      auto dy = emptyFrom(coord->dx());
+      auto dy = emptyFrom(coord->dy());
       auto J = emptyFrom(coord->J());
       for (int x = mesh->xstart; x <= mesh->xend; x++) {
         for (int y = mesh->ystart; y <= mesh->yend; y++) {
