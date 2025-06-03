@@ -197,6 +197,11 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Debug petsc
+        run: |
+          echo "MatFDColoringSetFunction declaration:"
+          cat /home/runner/local/petsc/include/petscmat.h | grep -A 2 -B 2 MatFDColoringSetFunction
+
       - name: Install pip packages
         run: |
           python -m pip install --upgrade pip setuptools
