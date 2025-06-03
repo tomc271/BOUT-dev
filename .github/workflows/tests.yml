@@ -178,11 +178,16 @@ jobs:
                  lcov
                  openmpi-bin
                  libopenmpi-dev
-                 petsc-dev
-                 slepc-dev
                  liblapack-dev
                  libparpack2-dev
                  libhypre-dev
+
+      - name: Install petsc
+        run: sudo apt update &&
+             sudo apt install -y
+                 petsc-dev
+                 slepc-dev
+        if: matrix.config.build_petsc == ''
 
       - uses: actions/checkout@v4
         with:
