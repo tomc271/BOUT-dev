@@ -193,6 +193,14 @@ jobs:
         run: |
           echo "MatFDColoringSetFunction declaration:"
           cat /home/runner/local/petsc/include/petscmat.h | grep -A 2 -B 2 MatFDColoringSetFunction
+          echo "MatFDColoringSetFunction declaration:"
+          PETSC_INCLUDE_PATH="/usr/lib/petscdir/petsc3.15/include/petscmat.h"
+          if [ -f "$PETSC_INCLUDE_PATH" ]; then
+            cat "$PETSC_INCLUDE_PATH" | grep -A 2 -B 2 MatFDColoringSetFunction
+          else
+            echo "Error: petscmat.h not found at $PETSC_INCLUDE_PATH"
+            exit 1
+          fi
 
       - name: Install pip packages
         run: |
