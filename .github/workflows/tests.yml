@@ -20,11 +20,7 @@ jobs:
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
     env:
-      BOUT_TEST_TIMEOUT: "6m"
-      PETSC_DIR: /usr/lib/petscdir/petsc3.12/x86_64-linux-gnu-real
-      PETSC_ARCH: ""
-      SLEPC_DIR: /usr/lib/slepcdir/slepc3.12/x86_64-linux-gnu-real/
-      SLEPC_ARCH: ""
+      BOUT_TEST_TIMEOUT: 6m
       OMP_NUM_THREADS: ${{ matrix.config.omp_num_threads }}
       PYTHONPATH: ${{ github.workspace }}/tools/pylib
       OMPI_MCA_rmaps_base_oversubscribe: yes
