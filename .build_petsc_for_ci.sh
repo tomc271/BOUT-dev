@@ -1,61 +1,61 @@
 #!/bin/bash
-
 set -e
 
 if test $BUILD_PETSC ; then
-    if [[ ! -d $HOME/local/petsc/include/petsc ]] || test $1 ; then
-	echo "****************************************"
-	echo "Building PETSc"
-	echo "****************************************"
+    echo "****************************************"
+    echo "Cleaning previous PETSc/SLEPc installation"
+    echo "****************************************"
+    rm -rf $HOME/local/petsc $HOME/local/slepc
 
-	branch=${1:-release}
-	git clone -b $branch https://gitlab.com/petsc/petsc.git petsc --depth=1
+    echo "****************************************"
+    echo "Building PETSc"
+    echo "****************************************"
+    branch=${1:-v3.23.3}  # Pin to specific tag
+    git clone -b $branch https://gitlab.com/petsc/petsc.git petsc --depth=1
+    cd petsc
+    git log -1 --pretty=%H  # Log commit hash
+    ./configure \
+        --with-mpi=yes \
+        --with-precision=double \
+        --with-scalar-type=real \
+        --with-shared-libraries=1 \
+        --with-debugging=0 \
+        {C,CXX,F}OPTFLAGS="-O3" \
+        --prefix=$HOME/local/petsc
+    make
+    make install
+    if [ ! -f $HOME/local/petsc/include/petscmat.h ]; then
+        echo "Error: petscmat.h not found after install"
+        exit 1
+    fi
+    echo "PETSc version:"
+    cat $HOME/local/petsc/include/petscversion.h
+    echo "MatFDColoringSetFunction signature:"
+    grep MatFDColoringSetFunction $HOME/local/petsc/include/petscmat.h
+    cd ..
 
-	unset PETSC_DIR
-	unset PETSC_ARCH
-
-	pushd petsc
-	./configure \
-	    --with-mpi=yes \
-	    --with-precision=double \
-	    --with-scalar-type=real \
-	    --with-shared-libraries=1 \
-	    --with-debugging=0 \
-	    {C,CXX,F}OPTFLAGS="-O3" \
-	    --prefix=$HOME/local/petsc
-
-	make && make install
-	popd
-
-	echo "****************************************"
-	echo " Finished building PETSc"
-	echo "****************************************"
-
-	echo "****************************************"
-	echo "Building SLEPc"
-	echo "****************************************"
-
+    echo "****************************************"
+    echo "Building SLEPc"
+    echo "****************************************"
     git clone -b $branch https://gitlab.com/slepc/slepc.git slepc --depth=1
-
-    pushd slepc
-	unset SLEPC_DIR
-	unset SLEPC_ARCH
+    cd slepc
+    git log -1 --pretty=%H
+    unset SLEPC_DIR
+    unset SLEPC_ARCH
     PETSC_DIR=$HOME/local/petsc ./configure --prefix=$HOME/local/slepc
-
     make SLEPC_DIR=$(pwd) PETSC_DIR=$HOME/local/petsc
     make SLEPC_DIR=$(pwd) PETSC_DIR=$HOME/local/petsc install
-    popd
-
-	echo "****************************************"
-	echo " Finished building SLEPc"
-	echo "****************************************"
-    else
-	echo "****************************************"
-	echo " PETSc already installed"
-	echo "****************************************"
+    if [ ! -f $HOME/local/slepc/lib/libslepc.so ]; then
+        echo "Error: libslepc.so not found after install"
+        exit 1
     fi
+    cd ..
+
+    echo "****************************************"
+    echo "Finished building PETSc/SLEPc"
+    echo "****************************************"
 else
     echo "****************************************"
-    echo " PETSc not requested"
+    echo "PETSc not requested"
     echo "****************************************"
 fi
