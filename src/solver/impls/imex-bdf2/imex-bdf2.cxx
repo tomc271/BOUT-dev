@@ -117,6 +117,20 @@ static PetscErrorCode FormFunctionForColoring(SNES UNUSED(snes), Vec x, Vec f,
                                               void* ctx) {
   return static_cast<IMEXBDF2*>(ctx)->snes_function(x, f, true);
 }
+#if PETSC_VERSION_GE(3, 20, 0)
+// Wrapper for PETSc 3.20 and later (signature: PetscErrorCode (*)(void*, Vec, Vec, void*))
+static PetscErrorCode FormFunctionForColoringWrapper(void*, Vec x, Vec y, void* ctx) {
+    SNES dummy_snes = nullptr;
+    return FormFunctionForColoring(dummy_snes, x, y, ctx);
+}
+#else
+// Wrapper for PETSc 3.12 and 3.19 (signature: PetscErrorCode (*)(void))
+static PetscErrorCode FormFunctionForColoringWrapper(void* ctx) {
+    SNES dummy_snes = nullptr;
+    Vec dummy_vec = nullptr;
+    return FormFunctionForColoring(dummy_snes, dummy_vec, dummy_vec, ctx);
+}
+#endif
 
 static PetscErrorCode imexbdf2PCapply(PC pc, Vec x, Vec y) {
   int ierr;
@@ -651,9 +665,7 @@ void IMEXBDF2::constructSNES(SNES* snesIn) {
       // Create data structure for SNESComputeJacobianDefaultColor
       MatFDColoringCreate(Jmf, iscoloring, &fdcoloring);
       // Set the function to difference
-      MatFDColoringSetFunction(
-          fdcoloring, reinterpret_cast<PetscErrorCode (*)(void*, Vec, Vec, void*)>(FormFunctionForColoring),
-          this);
+      MatFDColoringSetFunction(fdcoloring, FormFunctionForColoringWrapper, this);
       MatFDColoringSetFromOptions(fdcoloring);
       MatFDColoringSetUp(Jmf, iscoloring, fdcoloring);
       ISColoringDestroy(&iscoloring);
