@@ -125,10 +125,11 @@ static PetscErrorCode FormFunctionForColoringWrapper(void*, Vec x, Vec y, void* 
 }
 #else
 // Wrapper for PETSc 3.12 and 3.19 (signature: PetscErrorCode (*)(void))
-static PetscErrorCode FormFunctionForColoringWrapper(void* ctx) {
+static PetscErrorCode FormFunctionForColoringWrapper() {
     SNES dummy_snes = nullptr;
     Vec dummy_vec = nullptr;
-    return FormFunctionForColoring(dummy_snes, dummy_vec, dummy_vec, ctx);
+    void* dummy_ctx = nullptr;
+    return FormFunctionForColoring(dummy_snes, dummy_vec, dummy_vec, dummy_ctx);
 }
 #endif
 
