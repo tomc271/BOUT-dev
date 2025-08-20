@@ -26,9 +26,12 @@
 ///
 ///     using MyTest = FakeMeshFixture;
 ///
-///     Type alias FakeMeshFixture = FakeMeshFixture_tmpl<3, 5, 7>;
-///     is used as a shim to allow FakeMeshFixture to be used with default values for nx, ny, nz
-template<int NX, int NY, int NZ>
+/// Type alias `FakeMeshFixture = FakeMeshFixture_tmpl<3, 5, 7>`
+/// is used as a shim to allow FakeMeshFixture to be used with default values for nx, ny, nz.
+/// Use this template class directly to use different sized grid:
+///
+///     using MyTest = FakeMeshFixture_tmpl<7, 9, 11>;
+template <int NX, int NY, int NZ>
 class FakeMeshFixture_tmpl : public ::testing::Test {
 public:
   FakeMeshFixture_tmpl()
