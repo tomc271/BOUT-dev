@@ -49,7 +49,7 @@ TEST_F(CoordinateTransformTest, CylindricalToCartesian) {
     }
 
     // act
-    bout::Coordinates3D cartesian_coords = tokamak_options.CylindricalCoordinatesToCartesian();
+    bout::Coordinates3D cartesian_coords = tokamak_options.cylindrical_coordinates_to_cartesian();
 
     // assert
     const auto max_r = *std::max_element(begin(r_values), end(r_values));

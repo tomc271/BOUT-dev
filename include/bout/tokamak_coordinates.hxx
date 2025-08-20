@@ -35,7 +35,7 @@ namespace bout {
 
         void normalise(BoutReal Lbar, BoutReal Bbar, BoutReal ShearFactor);
 
-        Coordinates3D CylindricalCoordinatesToCartesian();
+        Coordinates3D cylindrical_coordinates_to_cartesian();
     };
 
     BoutReal get_sign_of_bp(const Field2D &Bpxy);

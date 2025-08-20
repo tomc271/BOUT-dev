@@ -36,7 +36,7 @@ namespace bout {
         }
     }
 
-    Coordinates3D TokamakOptions::CylindricalCoordinatesToCartesian() {
+    Coordinates3D TokamakOptions::cylindrical_coordinates_to_cartesian() {
 
         auto* mesh = Rxy.getMesh();
         Field3D x = Field3D(0.0, mesh);
