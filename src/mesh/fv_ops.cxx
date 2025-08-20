@@ -444,8 +444,8 @@ void communicateFluxes(Field3D& f) {
   comm_handle xin, xout;
   // Cache results to silence spurious compiler warning about xin,
   // xout possibly being uninitialised when used
-  bool const not_first = !mesh->firstX();
-  bool const not_last = !mesh->lastX();
+  const bool not_first = mesh->periodicX || !mesh->firstX();
+  const bool not_last = mesh->periodicX || !mesh->lastX();
   if (not_first) {
     xin = mesh->irecvXIn(f(0, 0), size, 0);
   }
