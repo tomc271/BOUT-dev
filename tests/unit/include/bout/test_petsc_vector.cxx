@@ -10,6 +10,7 @@
 #include "bout/operatorstencil.hxx"
 #include "bout/petsc_interface.hxx"
 #include "bout/region.hxx"
+#include <sstream>
 
 #if BOUT_HAS_PETSC
 
@@ -241,6 +242,57 @@ TYPED_TEST(PetscVectorTest, TestSwap) {
   EXPECT_NE(r0, r1);
   EXPECT_EQ(l0, r1);
   EXPECT_EQ(r0, l1);
+}
+
+TYPED_TEST(PetscVectorTest, ReproducesNoisyPETScWarnings) {
+  SCOPED_TRACE("ReproducesNoisyPETScWarnings");
+
+  // Temporarily restore default PETSc error printing to allow warnings to be visible
+  auto old_error_printf = PetscErrorPrintf;
+  PetscErrorPrintf = PetscErrorPrintfDefault;
+
+  // Capture stderr to verify noisy output
+  std::streambuf* old_cerr_buf = std::cerr.rdbuf();
+  std::stringstream capture_stream;
+  std::cerr.rdbuf(capture_stream.rdbuf());
+
+  // Reproduce the issue: Create vector and perform element-wise sets via proxy
+  // Each vector(index) = ... creates an Element, which calls VecGetValues (get)
+  // during assembly phase, mixing with subsequent VecSetValues (set), triggering
+  // one warning per element in recent PETSc versions.
+  PetscVector<TypeParam> vector(this->field, this->indexer);
+  const TypeParam val(-10.);
+
+  // Loop over all indices to trigger multiple warnings (noisy behavior)
+  BOUT_FOR(index, val.getRegion("RGN_ALL")) {
+    vector(index) = val[index];
+  }
+  vector.assemble();  // Assembly finalizes, but warnings occur during the sets/gets above
+
+  // Restore stderr and PETSc printing
+  std::cerr.rdbuf(old_cerr_buf);
+  PetscErrorPrintf = old_error_printf;
+
+  // Verify noisy behavior: Captured output should not be empty (contains warnings)
+  std::string captured_output = capture_stream.str();
+  EXPECT_FALSE(captured_output.empty()) << "Expected noisy PETSc warning messages in stderr, but captured empty output.";
+
+  // Optional: More specific check if warning message is known (e.g., contains "VecGetValues" or "assembly")
+  // EXPECT_NE(captured_output.find("VecGetValues"), std::string::npos)
+  //     << "Expected warnings mentioning VecGetValues or assembly state.";
+
+  // Verify functional correctness (values set properly despite warnings)
+  TypeParam result = vector.toField();
+  BOUT_FOR(i, this->field.getRegion("RGN_NOY")) {
+    EXPECT_DOUBLE_EQ(result[i], val[i]);
+  }
+
+  // Additional check: Number of warnings roughly matches number of elements (noisy = one per element)
+  // Approximate count of warning lines (assuming each warning is a separate line)
+  size_t num_warnings = std::count(captured_output.begin(), captured_output.end(), '\n');
+  int num_elements = this->field.getRegion("RGN_ALL").size();
+  EXPECT_GE(num_warnings, static_cast<size_t>(num_elements / 2))  // Allow some tolerance for formatting
+      << "Expected approximately " << num_elements << " warnings (one per element), got " << num_warnings << " lines.";
 }
 
 #endif // BOUT_HAS_PETSC
