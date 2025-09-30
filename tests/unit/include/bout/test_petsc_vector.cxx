@@ -250,6 +250,13 @@ TYPED_TEST(PetscVectorTest, TestSwap) {
   EXPECT_EQ(r0, l1);
 }
 
+#include <petscsys.h>  // For PetscGetVersion and PetscErrorPrintf
+#include <sstream>     // For std::stringstream (already present)
+#include <stdarg.h>    // For va_list, va_start, va_end
+#include <cstdio>      // For vsnprintf and fflush
+#include <unistd.h>    // For dup, pipe, read, STDERR_FILENO
+#include <sys/types.h> // For ssize_t
+
 // Helper: std::stringstream for PETSc error capture (static for global access)
 static std::stringstream petsc_capture_stream;
 
@@ -273,9 +280,8 @@ static PetscErrorCode petsc_capture_printf(const char *format, ...) {
   return 0;
 }
 
-// Updated TYPED_TEST with proper ind_type usage
+// Updated TYPED_TEST with BOUT_FOR for ind_type compatibility
 TYPED_TEST(PetscVectorTest, ReproducesNoisyPETScWarnings) {
-  using ind_type = typename TypeParam::ind_type;  // Typed test alias
   SCOPED_TRACE("ReproducesNoisyPETScWarnings");
 
   // Get PETSc version to conditionally enable noise checks
@@ -321,15 +327,12 @@ TYPED_TEST(PetscVectorTest, ReproducesNoisyPETScWarnings) {
   const TypeParam val(-10.);
   const BoutReal delta = 5.0;  // For += on initial field value (1.5)
 
-  // Manual loop to avoid ind_type variance across FieldTypes
-  const Region<ind_type> &region = this->field.getRegion("RGN_ALL");
-  int num_elements = region.size();
-  for (int j = 0; j < num_elements; ++j) {
-    ind_type ind(j);  // Construct ind_type from int
+  // Use BOUT_FOR for proper ind_type
+  BOUT_FOR(ind, val.getRegion("RGN_ALL")) {
     // DEBUG: Force a test warning to verify capture (to stderr via PetscErrorPrintf, no comm)
-    PetscErrorPrintf("Test warning for element %d\n", j);
+    PetscErrorPrintf("Test warning for element %d\n", ind.ind);
 
-    if (j % 2 == 0) {
+    if (ind.ind % 2 == 0) {
       vector(ind) = val[ind];  // Triggers VecSetValues(INSERT_VALUES)
     } else {
       vector(ind) += delta;  // Triggers VecSetValues(ADD_VALUES) after prior INSERT
@@ -374,10 +377,10 @@ TYPED_TEST(PetscVectorTest, ReproducesNoisyPETScWarnings) {
                             all_captured.find("VecSetValues") != std::string::npos ||
                             all_captured.find("state") != std::string::npos);
   if (test_warning_captured && !has_petsc_warning) {
-    SUCCEED() << "Test warnings captured (105 lines), but no PETSc mixing warnings."
-              << " Repro partial: Functionality works; noise not triggered (likely per-op assembly in BOUT-dev)."
-              << " To full repro: Inspect src/invert/petsclib/petscvector.cxx for VecAssembly* in Element::operator= or +=."
-              << " Comment out assembly calls there, rebuild BOUT-dev, re-run for spam.";
+    EXPECT_TRUE(has_petsc_warning) << "No PETSc mixing warnings detected; repro incomplete. "
+                                   << "Mixing INSERT/ADD triggered, but BOUT-dev may assemble per-op. "
+                                   << "Check petscvector.cxx for VecAssembly calls in Element. "
+                                   << "Version: " << version_str_for_msg << ". All captured: [" << all_captured << "]";
   } else if (!test_warning_captured) {
     ADD_FAILURE() << "Capture broken—no test warnings. Debug FD setup.";
   } else {
@@ -398,6 +401,7 @@ TYPED_TEST(PetscVectorTest, ReproducesNoisyPETScWarnings) {
         ++num_petsc_warning_lines;
       }
     }
+    int num_elements = val.getRegion("RGN_ALL").size();
     EXPECT_GE(num_petsc_warning_lines, static_cast<size_t>(num_elements / 5))
         << "Expected ~" << (num_elements / 2) << " PETSc warnings (per mode switch), got "
         << num_petsc_warning_lines << ". All captured: [" << all_captured << "]";
