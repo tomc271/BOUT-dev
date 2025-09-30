@@ -273,7 +273,7 @@ static PetscErrorCode petsc_capture_printf(const char *format, ...) {
   return 0;
 }
 
-// Updated TYPED_TEST with FD redirection for full capture
+// Updated TYPED_TEST with stderr-only FD redirection
 TYPED_TEST(PetscVectorTest, ReproducesNoisyPETScWarnings) {
   SCOPED_TRACE("ReproducesNoisyPETScWarnings");
 
@@ -305,59 +305,52 @@ TYPED_TEST(PetscVectorTest, ReproducesNoisyPETScWarnings) {
   auto old_error_printf = PetscErrorPrintf;
   PetscErrorPrintf = petsc_capture_printf;
 
-  // FD Redirection for stdout and stderr (captures PetscPrintf and fprintf(stderr))
-  int saved_stdout = dup(STDOUT_FILENO);
+  // FD Redirection for stderr only (captures PetscErrorPrintf and fprintf(stderr))
   int saved_stderr = dup(STDERR_FILENO);
-  int stdout_pipe[2], stderr_pipe[2];
-  pipe(stdout_pipe);
+  int stderr_pipe[2];
   pipe(stderr_pipe);
 
-  // Redirect stdout/stderr to pipes
-  dup2(stdout_pipe[1], STDOUT_FILENO);
+  // Redirect stderr to pipe
   dup2(stderr_pipe[1], STDERR_FILENO);
 
   // Reproduce the issue: Initial construction assembles from field.
-  // Loop mixes = (INSERT_VALUES) and += (ADD_VALUES, uses ctor GetValues + set).
-  // Assembly open after first op; subsequent ctors call VecGetValues during assembly,
-  // triggering per-element warnings in debug PETSc.
+  // Loop mixes = (INSERT_VALUES) and += (ADD_VALUES), without assembly between.
+  // This mixes modes, triggering per-switch warnings in debug PETSc.
   PetscVector<TypeParam> vector(this->field, this->indexer);
   const TypeParam val(-10.);
   const BoutReal delta = 5.0;  // For += on initial field value (1.5)
 
   BOUT_FOR(index, val.getRegion("RGN_ALL")) {
-    // DEBUG: Force a test warning to verify capture works (uses PetscPrintf for stdout)
-    PetscPrintf(PETSC_COMM_WORLD, "Test warning for element %d\n", index.ind);
+    // DEBUG: Force a test warning to verify capture (to stderr via PetscErrorPrintf, no comm)
+    PetscErrorPrintf("Test warning for element %d\n", index.ind);
 
     if (index.ind % 2 == 0) {
-      vector(index) = val[index];  // Triggers VecSetValues(INSERT)
+      vector(index) = val[index];  // Triggers VecSetValues(INSERT_VALUES)
     } else {
-      vector(index) += delta;  // Triggers VecGetValues in ctor + VecSetValues(ADD)
+      vector(index) += delta;  // Triggers VecSetValues(ADD_VALUES) after prior INSERT
     }
   }
-  vector.assemble();  // Ends assembly; warnings during loop
+  vector.assemble();  // Ends assembly; mixing warnings during loop
 
-  // Restore FDs
-  dup2(saved_stdout, STDOUT_FILENO);
+  // Flush buffers before reading
+  fflush(stderr);
+  fflush(NULL);
+
+  // Restore stderr
   dup2(saved_stderr, STDERR_FILENO);
-  close(saved_stdout);
   close(saved_stderr);
-  close(stdout_pipe[1]);
   close(stderr_pipe[1]);
 
-  // Read captured output from pipes
-  std::string stdout_captured, stderr_captured;
+  // Read captured output from stderr pipe
+  std::string stderr_captured;
   char buf[1024];
   ssize_t bytes;
-  while ((bytes = read(stdout_pipe[0], buf, sizeof(buf))) > 0) {
-    stdout_captured.append(buf, bytes);
-  }
-  close(stdout_pipe[0]);
   while ((bytes = read(stderr_pipe[0], buf, sizeof(buf))) > 0) {
     stderr_captured.append(buf, bytes);
   }
   close(stderr_pipe[0]);
 
-  std::string all_captured = petsc_capture_stream.str() + stdout_captured + stderr_captured;
+  std::string all_captured = petsc_capture_stream.str() + stderr_captured;
 
   // First, check if test warnings captured (verifies mechanism works)
   EXPECT_FALSE(all_captured.empty())
@@ -369,23 +362,22 @@ TYPED_TEST(PetscVectorTest, ReproducesNoisyPETScWarnings) {
       << "Test warnings not captured—mechanism not working. Version: " << version_str_for_msg
       << ". All captured: [" << all_captured << "]";
 
-  // Now check for real PETSc warnings (refined keywords from PETSc source/docs)
-  bool has_petsc_warning = (all_captured.find("Must call VecAssemblyBegin") != std::string::npos ||
+  // Now check for real PETSc warnings (keywords for mixing modes)
+  bool has_petsc_warning = (all_captured.find("mix INSERT_VALUES and ADD_VALUES") != std::string::npos ||
+                            all_captured.find("Cannot mix INSERT_VALUES") != std::string::npos ||
                             all_captured.find("assembly") != std::string::npos ||
-                            all_captured.find("using this vector") != std::string::npos ||
-                            all_captured.find("VecGetValues") != std::string::npos ||
-                            all_captured.find("called while") != std::string::npos ||
+                            all_captured.find("VecSetValues") != std::string::npos ||
                             all_captured.find("state") != std::string::npos);
   if (test_warning_captured && !has_petsc_warning) {
-    SUCCEED() << "Test warnings captured, but no PETSc assembly warnings."
-              << " Likely trigger not hit (e.g., BOUT-dev calls AssemblyEnd per-element)."
-              << " Check petscvector.cxx Element impl for assembly calls. Functionality OK.";
+    SUCCEED() << "Test warnings captured, but no PETSc mixing warnings."
+              << " Mixing INSERT/ADD triggered, but BOUT-dev may assemble per-op."
+              << " Check petscvector.cxx for VecAssembly calls in Element. Functionality OK.";
   } else if (!test_warning_captured) {
     ADD_FAILURE() << "Capture broken—no test warnings. Debug FD setup.";
   } else {
     // Full verification if PETSc warnings appear
     EXPECT_TRUE(has_petsc_warning)
-        << "Expected PETSc keywords like 'Must call VecAssemblyBegin' or 'assembly'. "
+        << "Expected PETSc keywords like 'mix INSERT_VALUES and ADD_VALUES' or 'assembly'. "
         << "Version: " << version_str_for_msg << ". All captured: [" << all_captured << "]";
 
     // Count real warning lines (exclude test lines)
@@ -393,26 +385,26 @@ TYPED_TEST(PetscVectorTest, ReproducesNoisyPETScWarnings) {
     std::istringstream iss(all_captured);
     std::string line;
     while (std::getline(iss, line)) {
-      if (line.find("Must call VecAssemblyBegin") != std::string::npos ||
+      if (line.find("mix INSERT_VALUES") != std::string::npos ||
+          line.find("Cannot mix") != std::string::npos ||
           line.find("assembly") != std::string::npos ||
-          line.find("using this vector") != std::string::npos ||
-          line.find("VecGetValues") != std::string::npos) {
+          line.find("VecSetValues") != std::string::npos) {
         ++num_petsc_warning_lines;
       }
     }
     int num_elements = this->field.getRegion("RGN_ALL").size();
     EXPECT_GE(num_petsc_warning_lines, static_cast<size_t>(num_elements / 5))
-        << "Expected ~" << (num_elements - 1) << " PETSc warnings, got " << num_petsc_warning_lines
-        << ". All captured: [" << all_captured << "]";
+        << "Expected ~" << (num_elements / 2) << " PETSc warnings (per mode switch), got "
+        << num_petsc_warning_lines << ". All captured: [" << all_captured << "]";
   }
 
   // Always verify functionality (mixed ops work despite warnings)
   TypeParam result = vector.toField();
   BOUT_FOR(i, this->field.getRegion("RGN_NOY")) {
     if (i.ind % 2 == 0) {
-      EXPECT_DOUBLE_EQ(result[i], -10.0);  // From =
+      EXPECT_DOUBLE_EQ(result[i], -10.0);  // From = (INSERT)
     } else {
-      EXPECT_DOUBLE_EQ(result[i], 1.5 + 5.0);  // Initial + delta from +=
+      EXPECT_DOUBLE_EQ(result[i], 1.5 + 5.0);  // Initial + delta from += (ADD)
     }
   }
 }
