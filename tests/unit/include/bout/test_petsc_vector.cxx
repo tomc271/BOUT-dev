@@ -250,13 +250,6 @@ TYPED_TEST(PetscVectorTest, TestSwap) {
   EXPECT_EQ(r0, l1);
 }
 
-#include <petscsys.h>  // For PetscGetVersion and PetscErrorPrintf
-#include <sstream>     // For std::stringstream (already present)
-#include <stdarg.h>    // For va_list, va_start, va_end
-#include <cstdio>      // For vsnprintf and fflush
-#include <unistd.h>    // For dup, pipe, read, STDERR_FILENO
-#include <sys/types.h> // For ssize_t
-
 // Helper: std::stringstream for PETSc error capture (static for global access)
 static std::stringstream petsc_capture_stream;
 
@@ -280,7 +273,7 @@ static PetscErrorCode petsc_capture_printf(const char *format, ...) {
   return 0;
 }
 
-// Updated TYPED_TEST with BOUT_FOR for ind_type compatibility
+// TYPED_TEST reproducing noisy warnings via deferred assembly in loop
 TYPED_TEST(PetscVectorTest, ReproducesNoisyPETScWarnings) {
   SCOPED_TRACE("ReproducesNoisyPETScWarnings");
 
@@ -320,9 +313,8 @@ TYPED_TEST(PetscVectorTest, ReproducesNoisyPETScWarnings) {
   // Redirect stderr to pipe
   dup2(stderr_pipe[1], STDERR_FILENO);
 
-  // Reproduce the issue: Initial construction assembles from field.
-  // Loop mixes = (INSERT_VALUES) and += (ADD_VALUES), without assembly between.
-  // This mixes modes, triggering per-switch warnings in debug PETSc.
+  // Reproduce the issue: Default ctor (empty vector), loop sets without intermediate assemble.
+  // Element ctor's VecGetValues during open assembly from prior sets triggers warnings.
   PetscVector<TypeParam> vector(this->field, this->indexer);
   const TypeParam val(-10.);
   const BoutReal delta = 5.0;  // For += on initial field value (1.5)
@@ -335,10 +327,10 @@ TYPED_TEST(PetscVectorTest, ReproducesNoisyPETScWarnings) {
     if (ind.ind % 2 == 0) {
       vector(ind) = val[ind];  // Triggers VecSetValues(INSERT_VALUES)
     } else {
-      vector(ind) += delta;  // Triggers VecSetValues(ADD_VALUES) after prior INSERT
+      vector(ind) += delta;  // Triggers Element ctor VecGetValues + VecSetValues(ADD_VALUES)
     }
   }
-  vector.assemble();  // Ends assembly; mixing warnings during loop
+  vector.assemble();  // Deferred assembly; warnings during loop Element ctors
 
   // Flush buffers before reading
   fflush(stderr);
@@ -370,42 +362,38 @@ TYPED_TEST(PetscVectorTest, ReproducesNoisyPETScWarnings) {
       << "Test warnings not captured—mechanism not working. Version: " << version_str_for_msg
       << ". All captured: [" << all_captured << "]";
 
-  // Now check for real PETSc warnings (keywords for mixing modes)
-  bool has_petsc_warning = (all_captured.find("mix INSERT_VALUES and ADD_VALUES") != std::string::npos ||
-                            all_captured.find("Cannot mix INSERT_VALUES") != std::string::npos ||
-                            all_captured.find("assembly") != std::string::npos ||
+  // Now check for real PETSc warnings (keywords for get during assembly)
+  bool has_petsc_warning = (all_captured.find("VecGetValues called while") != std::string::npos ||
+                            all_captured.find("assembly state") != std::string::npos ||
+                            all_captured.find("Must call VecAssemblyBegin") != std::string::npos ||
+                            all_captured.find("using this vector") != std::string::npos ||
                             all_captured.find("VecSetValues") != std::string::npos ||
-                            all_captured.find("state") != std::string::npos);
-  if (test_warning_captured && !has_petsc_warning) {
-    EXPECT_TRUE(has_petsc_warning) << "No PETSc mixing warnings detected; repro incomplete. "
-                                   << "Mixing INSERT/ADD triggered, but BOUT-dev may assemble per-op. "
-                                   << "Check petscvector.cxx for VecAssembly calls in Element. "
-                                   << "Version: " << version_str_for_msg << ". All captured: [" << all_captured << "]";
-  } else if (!test_warning_captured) {
-    ADD_FAILURE() << "Capture broken—no test warnings. Debug FD setup.";
-  } else {
-    // Full verification if PETSc warnings appear
-    EXPECT_TRUE(has_petsc_warning)
-        << "Expected PETSc keywords like 'mix INSERT_VALUES and ADD_VALUES' or 'assembly'. "
-        << "Version: " << version_str_for_msg << ". All captured: [" << all_captured << "]";
+                            all_captured.find("state") != std::string::npos ||
+                            all_captured.find("mix INSERT_VALUES") != std::string::npos ||
+                            all_captured.find("Cannot mix") != std::string::npos);
+  EXPECT_TRUE(has_petsc_warning)
+      << "No PETSc mixing warnings detected; repro incomplete. Element ctor GetValues during deferred assembly triggered, "
+      << "but no warnings (check PETSc debug config or BOUT-dev Element impl). Version: " << version_str_for_msg
+      << ". All captured: [" << all_captured << "]";
 
-    // Count real warning lines (exclude test lines)
-    size_t num_petsc_warning_lines = 0;
-    std::istringstream iss(all_captured);
-    std::string line;
-    while (std::getline(iss, line)) {
-      if (line.find("mix INSERT_VALUES") != std::string::npos ||
-          line.find("Cannot mix") != std::string::npos ||
-          line.find("assembly") != std::string::npos ||
-          line.find("VecSetValues") != std::string::npos) {
-        ++num_petsc_warning_lines;
-      }
+  // Count real warning lines (exclude test lines)
+  size_t num_petsc_warning_lines = 0;
+  std::istringstream iss(all_captured);
+  std::string line;
+  while (std::getline(iss, line)) {
+    if (line.find("VecGetValues called while") != std::string::npos ||
+        line.find("assembly state") != std::string::npos ||
+        line.find("Must call VecAssemblyBegin") != std::string::npos ||
+        line.find("using this vector") != std::string::npos ||
+        line.find("mix INSERT_VALUES") != std::string::npos ||
+        line.find("Cannot mix") != std::string::npos) {
+      ++num_petsc_warning_lines;
     }
-    int num_elements = val.getRegion("RGN_ALL").size();
-    EXPECT_GE(num_petsc_warning_lines, static_cast<size_t>(num_elements / 5))
-        << "Expected ~" << (num_elements / 2) << " PETSc warnings (per mode switch), got "
-        << num_petsc_warning_lines << ". All captured: [" << all_captured << "]";
   }
+  int num_elements = val.getRegion("RGN_ALL").size();
+  EXPECT_GE(num_petsc_warning_lines, static_cast<size_t>(num_elements / 5))
+      << "Expected ~" << (num_elements - 1) << " PETSc warnings (one per Element ctor after first), got "
+      << num_petsc_warning_lines << ". All captured: [" << all_captured << "]";
 
   // Always verify functionality (mixed ops work despite warnings)
   TypeParam result = vector.toField();
