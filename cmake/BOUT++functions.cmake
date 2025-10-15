@@ -218,7 +218,7 @@ function(bout_add_integrated_or_mms_test BUILD_CHECK_TARGET TESTNAME)
     set_tests_properties(${TESTNAME} PROPERTIES
       ENVIRONMENT PYTHONPATH=${BOUT_PYTHONPATH}:$ENV{PYTHONPATH}
       )
-    bout_copy_file(test-${TESTNAME}.py)
+    bout_copy_file(${TESTNAME}.py)
   else()
     add_test(NAME ${TESTNAME} COMMAND ${TESTNAME} ${BOUT_TEST_OPTIONS_TESTARGS})
   endif()
