@@ -683,7 +683,7 @@ if(BOUT_TESTS)
   endif()
 
   add_custom_target(check-integrated-tests
-    COMMAND ctest -R "test-" --output-on-failure)
+    COMMAND pytest -k "test-")
   add_dependencies(check-integrated-tests build-check-integrated-tests)
 
   add_custom_target(check-mms-tests
