@@ -60,7 +60,7 @@ class Requirements(object):
                     value = yesno[value]
                 except KeyError:
                     print(
-                        "Error parsing " + match + ' - %s is not "yes"/"no"' % match[1]
+                        print(f"Error parsing has_{key}={value} - {value} is not \"yes\"/\"no\"")
                     )
                 else:
                     self.add(key, value)
