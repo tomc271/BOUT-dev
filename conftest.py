@@ -2,6 +2,7 @@ import os
 import glob
 import pytest
 
+
 class TestDir(pytest.Directory):
     def collect(self):
         # Scan for directories with 'runtest' (like the script's glob)
@@ -10,6 +11,7 @@ class TestDir(pytest.Directory):
         for dir_path in test_dirs:
             # Yield a single parametrized test per directory
             yield TestDirItem(dir_path, self)
+
 
 class TestDirItem(pytest.Item):
     def __init__(self, dir_path, parent):
@@ -20,8 +22,9 @@ class TestDirItem(pytest.Item):
         # This will be overridden by the actual test function; here we just collect
         pass
 
-    def repr_failure(self, excinfo):
+    def repr_failure(self, excinfo, style=None):
         return "Failed to run test in %s" % self.dir_path
+
 
 # Hook to use custom collector
 def pytest_collect_directory(path, parent):
