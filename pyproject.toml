@@ -4,3 +4,12 @@ requires = []
 # Defined by PEP 517:
 build-backend = "backend"
 backend-path = ["tools/pylib/_boutpp_build/"]
+[tool.pytest.ini_options]
+norecursedirs = [
+    "dist",
+    "build",
+    ".tox",
+    ".eggs",
+    "externalpackages/**/googletest",
+    "externalpackages/**/googlemock"
+]
