@@ -28,5 +28,5 @@ class TestDirItem(pytest.Item):
 
 # Hook to use custom collector
 def pytest_collect_directory(path, parent):
-    if path.isdir() and path.joinpath('runtest').exists():
+    if path.is_dir() and path.joinpath('runtest').exists():
         return TestDir(str(path), parent)
