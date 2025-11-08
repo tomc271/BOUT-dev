@@ -5,46 +5,35 @@ import pytest
 
 class TestDir(pytest.Directory):
     def collect(self):
-        # Scan recursively within this directory for 'runtest' files
-        runtest_paths = glob.glob(str(self.path / "**/runtest"), recursive=True)
-        for path in runtest_paths:
-            dir_path = os.path.dirname(path)
-            name = os.path.basename(dir_path)
-            yield TestDirItem.from_parent(
-                parent=self,
-                name=name,
-                dir_path=dir_path
-            )
+        # Scan for directories with 'runtest' (like the script's glob)
+        runtest_paths = glob.glob("**/runtest", recursive=True)
+        test_dirs = [os.path.dirname(path) for path in runtest_paths]
+        for dir_path in test_dirs:
+            # Yield a single parametrized test per directory
+            yield TestDirItem.from_parent(parent=self, name=os.path.basename(dir_path), dir_path=dir_path)
 
 
 class TestDirItem(pytest.Item):
-    def __init__(self, name, parent, dir_path):
-        super().__init__(name, parent)
-        self.dir_path = dir_path
+    def __init__(self, name, parent, **kwargs):
+        super().__init__(name, parent, **kwargs)
+        self.dir_path = kwargs.get("dir_path")
 
     @classmethod
-    def from_parent(cls, parent, *, name, dir_path):
-        item = cls(name, parent)
-        item.dir_path = dir_path
+    def from_parent(cls, parent, **kwargs):
+        item = super().from_parent(parent, **kwargs)
+        item.dir_path = kwargs.get("dir_path")
         return item
 
     def runtest(self):
-        # Placeholder: Run the 'runtest' script
-        # import subprocess
-        # result = subprocess.run(['./runtest'], cwd=self.dir_path, capture_output=True, text=True)
-        # if result.returncode != 0:
-        #     pytest.fail(f"runtest failed in {self.dir_path}:\n{result.stderr}")
+        # This will be overridden by the actual test function; here we just collect
         pass
 
     def repr_failure(self, excinfo, style=None):
-        return f"Failed to run test in {self.dir_path}"
-
-    def repr_short(self):
-        return f"runtest in {self.dir_path}"
+        return "Failed to run test in %s" % self.dir_path
 
 
-# Hook: Create TestDir only if 'runtest' exists in the directory itself
+# Hook to use custom collector
 def pytest_collect_directory(path, parent):
-    if path.is_dir() and (path / 'runtest').exists():
-        return TestDir.from_parent(parent, name=str(path))
+    if path.is_dir() and path.joinpath('runtest').exists():
+        return TestDir.from_parent(parent, path=path)
     return None
