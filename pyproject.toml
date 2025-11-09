@@ -10,6 +10,6 @@ norecursedirs = [
     "build",
     ".tox",
     ".eggs",
-    "externalpackages/**/googletest",
-    "externalpackages/**/googlemock"
+    "externalpackages",
+    "tools"
 ]
