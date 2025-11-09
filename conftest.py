@@ -3,12 +3,11 @@ import glob
 import pytest
 
 
-# Session-scoped fixture: Compute test directories ONCE
-@pytest.fixture(scope="session")
-def test_dirs():
-    """Glob for test directories once, at session start."""
+# Function to get test dirs (called at collection time)
+def get_test_dirs():
+    """Return list of test directories with runtest."""
     runtest_paths = glob.glob("**/runtest", recursive=True)
-    return [os.path.dirname(path) for path in runtest_paths]
+    return [os.path.dirname(p) for p in runtest_paths]
 
 
 # Custom CLI options
@@ -23,7 +22,7 @@ def requirements(pytestconfig):
     """Mimic Requirements; adapt to your module."""
     # Assuming you have 'your_project.requirements' – replace as needed
     try:
-        from your_project import Requirements
+        from your_project import Requirements  # e.g., from BOUT-dev/requirements.py
         reqs = Requirements()
     except ImportError:
         # Fallback simple dict if no module
