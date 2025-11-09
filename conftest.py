@@ -3,37 +3,37 @@ import glob
 import pytest
 
 
-class TestDir(pytest.Directory):
-    def collect(self):
-        # Scan for directories with 'runtest' (like the script's glob)
-        runtest_paths = glob.glob("**/runtest", recursive=True)
-        test_dirs = [os.path.dirname(path) for path in runtest_paths]
-        for dir_path in test_dirs:
-            # Yield a single parametrized test per directory
-            yield TestDirItem.from_parent(parent=self, name=os.path.basename(dir_path), dir_path=dir_path)
+# Session-scoped fixture: Compute test directories ONCE
+@pytest.fixture(scope="session")
+def test_dirs():
+    """Glob for test directories once, at session start."""
+    runtest_paths = glob.glob("**/runtest", recursive=True)
+    return [os.path.dirname(path) for path in runtest_paths]
 
 
-class TestDirItem(pytest.Item):
-    def __init__(self, name, parent, **kwargs):
-        super().__init__(name, parent, **kwargs)
-        self.dir_path = kwargs.get("dir_path")
-
-    @classmethod
-    def from_parent(cls, parent, **kwargs):
-        item = super().from_parent(parent, **kwargs)
-        item.dir_path = kwargs.get("dir_path")
-        return item
-
-    def runtest(self):
-        # This will be overridden by the actual test function; here we just collect
-        pass
-
-    def repr_failure(self, excinfo, style=None):
-        return "Failed to run test in %s" % self.dir_path
+# Custom CLI options
+def pytest_addoption(parser):
+    parser.addoption("--make", action="store_true", help="Build instead of run")
+    parser.addoption("--all", action="store_true", help="Include all tests")
+    parser.addoption("--set-bool", action="append", help="Set bool: key=value")
 
 
-# Hook to use custom collector
-def pytest_collect_directory(path, parent):
-    if path.is_dir() and path.joinpath('runtest').exists():
-        return TestDir.from_parent(parent, path=path)
-    return None
+@pytest.fixture(scope="session")
+def requirements(pytestconfig):
+    """Mimic Requirements; adapt to your module."""
+    # Assuming you have 'your_project.requirements' – replace as needed
+    try:
+        from your_project import Requirements
+        reqs = Requirements()
+    except ImportError:
+        # Fallback simple dict if no module
+        reqs = {}
+
+    if pytestconfig.getoption("--set-bool"):
+        lookup = {"false": False, "no": False, "true": True, "yes": True}
+        for arg in pytestconfig.getoption("--set-bool"):
+            k, v = arg.split("=")
+            reqs[k] = lookup[v.lower()]
+    reqs["make"] = pytestconfig.getoption("--make")
+    reqs["all_tests"] = pytestconfig.getoption("--all")
+    return reqs
