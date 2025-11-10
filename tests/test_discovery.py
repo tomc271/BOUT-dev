@@ -5,18 +5,17 @@ import subprocess
 import time
 
 
-# Auto-discover test subdirs with runtest (recursive from tests/)
+# Auto-discover test subdirectories containing runtest file (relative from tests/)
 def pytest_generate_tests(metafunc):
     if "test_dir" in metafunc.fixturenames:
-        # Recursive glob to find all (e.g., integrated/test-drift-instability/runtest, unit/runtest)
+        # Glob relative to tests/ directory
         test_paths = [p for p in glob.glob("**/*runtest", root_dir=".", recursive=True) if os.path.isfile(p)]
-        test_dirs = [os.path.dirname(p) for p in
-                     test_paths]  # Relative to tests/, e.g., ['integrated/test-drift-instability']
-        # full_paths = [os.path.join('tests', d) for d in test_dirs]  # Full relative to root: ['tests/integrated/test-drift-instability']
-        print(f"Discovered full paths: {test_dirs}")  # Debug
-        # test_dirs = ['tests/integrated/test-drift-instability']  # Debug: Remove later
-        metafunc.parametrize("test_dir", test_dirs, indirect=True,
-                             ids=[os.path.basename(d) for d in test_dirs])  # IDs = test name
+        test_dirs = [os.path.dirname(p) for p in test_paths]
+        # Filter valid existing dirs
+        test_dirs = [d for d in test_dirs if d and os.path.exists(d)]
+        # Strip leading 'tests/' prefix if present
+        test_names = [d.replace('tests/', '', 1) for d in test_dirs]
+        metafunc.parametrize("test_dir", test_names, indirect=True, ids=test_names)
 
 
 @pytest.fixture
@@ -30,11 +29,24 @@ def make_cmd(request):
     return "make" if request.config.getoption("make") else "./runtest"
 
 
-def test_runtest(test_dir, tmp_path, make_cmd):
+@pytest.fixture(autouse=True, scope="function")
+def initial_cwd():
+    """Auto-reset CWD to tests/ directory before each test."""
+    start_dir = os.path.dirname(os.path.abspath(__file__))  # Always tests/
+    original_cwd = os.getcwd()
+    os.chdir(start_dir)
+    print(f"Reset CWD to: {start_dir}")
+    yield
+    os.chdir(original_cwd)  # Restore after (cleanup)
+
+
+def test_runtest(test_dir, tmp_path, make_cmd, initial_cwd):
+    # BOUT_TOP from script dir (CWD-independent)
     script_dir = os.path.dirname(os.path.abspath(__file__))
     bout_root = os.path.abspath(os.path.join(script_dir, ".."))
     os.environ["BOUT_TOP"] = bout_root
 
+    print(f"Chdir to relative: {test_dir} (abs: {os.path.abspath(test_dir)})")
     os.chdir(test_dir)
     cmd = make_cmd
     start = time.time()
