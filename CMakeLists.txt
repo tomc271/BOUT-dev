@@ -697,6 +697,18 @@ if(BOUT_TESTS)
     add_dependencies(check check-unit-tests)
   endif()
 
+  # Custom target for pytest-integrated-tests (replaces CTest/original runner)
+  find_package(Python3 REQUIRED COMPONENTS Interpreter)
+  add_custom_target(pytest-integrated-tests
+      COMMAND ${Python3_EXECUTABLE} -m pytest tests/ -v -s -k integrated  # Adjust: -n auto for parallel, --timeout=600, --make for build-only
+      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+      COMMENT "Running integrated tests with pytest (discovery via test_discovery.py)"
+      DEPENDS build-check-integrated-tests  # Builds exes/deps first (grids, boutpp, etc.)
+      VERBATIM
+  )
+  # Alias to override/extend original
+  add_custom_target(check-integrated-tests-pytest DEPENDS pytest-integrated-tests)
+
 endif()
 
 option(BOUT_BUILD_EXAMPLES "Build the examples" ON)
