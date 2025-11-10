@@ -48,7 +48,11 @@ def test_runtest(test_dir, tmp_path, make_cmd, initial_cwd):
 
     print(f"Chdir to relative: {test_dir} (abs: {os.path.abspath(test_dir)})")
     os.chdir(test_dir)
+
+    # MPI oversubscribe for communications test
     cmd = make_cmd
+    if "communications" in test_dir:
+        cmd = f"mpirun --oversubscribe {cmd}"
     start = time.time()
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=600)
     elapsed = time.time() - start
