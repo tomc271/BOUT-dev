@@ -31,17 +31,15 @@ def make_cmd(request):
 
 
 def test_runtest(test_dir, tmp_path, make_cmd):
-    # Set BOUT_TOP for makefiles (from tests/ to BOUT-dev root)
-    bout_root = os.path.abspath(
-        os.path.join(os.getcwd(), "../../../"))
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    bout_root = os.path.abspath(os.path.join(script_dir, ".."))
     os.environ["BOUT_TOP"] = bout_root
 
-    os.chdir(test_dir)  # chdir to discovered relative path
-    cmd = make_cmd  # Use fixture for CLI flag
+    os.chdir(test_dir)
+    cmd = make_cmd
     start = time.time()
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=600)
     elapsed = time.time() - start
-    print(f"Output: {result.stdout}")
     if result.returncode != 0:
-        print(f"Stderr: {result.stderr}")
+        print(f"Output: {result.stdout}\nStderr: {result.stderr}")
     assert result.returncode == 0, f"Failed after {elapsed:.3f}s in {test_dir}"
