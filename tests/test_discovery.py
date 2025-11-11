@@ -51,6 +51,12 @@ def test_runtest(test_dir, tmp_path, make_cmd, initial_cwd):
     if os.path.exists(pylib_path):
         os.environ["PYTHONPATH"] = f"{pylib_path}:{os.environ.get('PYTHONPATH', '')}"
 
+    # Pre-build for dependencies like grid.fci.nc
+    print(f"Pre-building in {test_dir}")  # Debug
+    build_result = subprocess.run("make", shell=True, cwd=test_dir, capture_output=True, text=True, timeout=60)
+    if build_result.returncode != 0:
+        print(f"Build stderr in {test_dir}: {build_result.stderr}")  # Non-fatal; some tests no-op
+
     print(f"Chdir to relative: {test_dir} (abs: {os.path.abspath(test_dir)})")
     os.chdir(test_dir)
 
