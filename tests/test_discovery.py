@@ -57,7 +57,7 @@ def test_runtest(test_dir, tmp_path, make_cmd, initial_cwd):
     # MPI oversubscribe for communications test
     cmd = make_cmd
     if "communications" in test_dir:
-        cmd = f"mpirun --oversubscribe {cmd}"
+        os.environ["OMPI_MCA_rmaps_base_oversubscribe"] = "1"  # Allows 18 procs
     start = time.time()
     result = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=600)
     elapsed = time.time() - start
