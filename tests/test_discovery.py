@@ -46,6 +46,11 @@ def test_runtest(test_dir, tmp_path, make_cmd, initial_cwd):
     bout_root = os.path.abspath(os.path.join(script_dir, ".."))
     os.environ["BOUT_TOP"] = bout_root
 
+    # Add pylib (dependencies like boutdata) to PYTHONPATH
+    pylib_path = os.path.join(bout_root, "tools", "pylib")
+    if os.path.exists(pylib_path):
+        os.environ["PYTHONPATH"] = f"{pylib_path}:{os.environ.get('PYTHONPATH', '')}"
+
     print(f"Chdir to relative: {test_dir} (abs: {os.path.abspath(test_dir)})")
     os.chdir(test_dir)
 
