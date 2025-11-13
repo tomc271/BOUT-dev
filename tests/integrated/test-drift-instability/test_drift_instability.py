@@ -51,13 +51,7 @@ gamma_orig = {
 }  # 0.130220286897} Changed 25th April 2014
 
 
-@pytest.fixture(scope="module")
-def build_project():
-    """Build the project once per test module."""
-    build_and_log("resistive drift instability test")
-
-
-def run_zeff_case(zeff, build_project):
+def run_zeff_case(zeff):
     """Run a single Zeff case and return success flag and details."""
 
     if zeff not in omega_orig:
@@ -203,8 +197,8 @@ def run_zeff_case(zeff, build_project):
 
 
 @pytest.mark.parametrize("zeff", zlist)
-def test_zeff_case(zeff, build_project):
+def test_zeff_case(zeff):
     """Pytest wrapper for running a single Zeff case."""
-    success, omegadiff, gammadiff = run_zeff_case(zeff, build_project)
+    success, omegadiff, gammadiff = run_zeff_case(zeff)
 
     assert success, f"Test failed for Zeff={zeff}: omega diff={omegadiff:.2%}, gamma diff={gammadiff:.2%}"
