@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import pathlib
 
 #
 # Run the test, compare results against the benchmark
@@ -51,6 +52,22 @@ gamma_orig = {
 }  # 0.130220286897} Changed 25th April 2014
 
 
+def find_in_build_directory():
+    this_file = pathlib.Path(__file__)
+    current_dir = this_file.parent.absolute()
+    src_root_dir = current_dir.parent.parent.parent
+    src_dir_parent = src_root_dir.parent
+    matching_files = list(src_dir_parent.rglob(this_file.name))
+    matches_except_src_dir = [f for f in matching_files if f.parents[3] != src_root_dir]
+    if matches_except_src_dir:
+        # Select the most recently created (by creation time)
+        most_recent = max(matches_except_src_dir, key=lambda p: p.stat().st_ctime)
+        return most_recent.parent
+    else:
+        raise Exception(f"Test {this_file.name} not found in build directory ({src_dir_parent}).")
+
+
+
 def run_zeff_case(zeff):
     """Run a single Zeff case and return success flag and details."""
 
@@ -70,9 +87,12 @@ def run_zeff_case(zeff):
 
     print("Running drift instability test, zeff = ", zeff)
 
+    executable_location = find_in_build_directory()
+    executable_path = executable_location / "2fluid"
+
     # Run the case
     s, out = launch_safe(
-        "./2fluid 2fluid:Zeff={} solver:output_step={}".format(zeff, timestep),
+        f"{executable_path} 2fluid:Zeff={zeff} solver:output_step={timestep}",
         nproc=nproc,
         mthread=nthreads,
         pipe=True,
