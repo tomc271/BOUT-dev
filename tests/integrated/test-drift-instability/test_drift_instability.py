@@ -90,9 +90,12 @@ def run_zeff_case(zeff):
     executable_location = find_in_build_directory()
     executable_path = executable_location / "2fluid"
 
+    this_directory = pathlib.Path(__file__).parent.absolute()
+    src_data_dir = this_directory / "data"
+
     # Run the case
     s, out = launch_safe(
-        f"{executable_path} 2fluid:Zeff={zeff} solver:output_step={timestep}",
+        f"{executable_path} 2fluid:Zeff={zeff} solver:output_step={timestep} -d {src_data_dir}",
         nproc=nproc,
         mthread=nthreads,
         pipe=True,
