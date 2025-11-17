@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import os
 import pathlib
+import sys
 
 #
 # Run the test, compare results against the benchmark
@@ -9,7 +10,7 @@ import pathlib
 # Requires: not metric_3d
 
 import pytest
-from boututils.run_wrapper import build_and_log, shell, launch_safe
+from boututils.run_wrapper import shell, launch_safe
 from boututils.calculus import deriv
 from boututils.datafile import DataFile
 from boututils.linear_regression import linear_regression
@@ -17,6 +18,10 @@ from boututils.linear_regression import linear_regression
 from boutdata.collect import collect
 import numpy as np
 from math import isnan
+
+project_root = pathlib.Path(__file__).resolve().parent.parent.parent.parent
+sys.path.append(str(project_root))
+from tests.utils import find_in_build_directory
 
 nthreads = 1
 nproc = 2  # Number of processors to run on
@@ -53,22 +58,6 @@ gamma_orig = {
 }  # 0.130220286897} Changed 25th April 2014
 
 
-def find_in_build_directory():
-    this_file = pathlib.Path(__file__)
-    current_dir = this_file.parent.absolute()
-    src_root_dir = current_dir.parent.parent.parent
-    src_dir_parent = src_root_dir.parent
-    matching_files = list(src_dir_parent.rglob(this_file.name))
-    matches_except_src_dir = [f for f in matching_files if f.parents[3] != src_root_dir]
-    if matches_except_src_dir:
-        # Select the most recently created (by creation time)
-        most_recent = max(matches_except_src_dir, key=lambda p: p.stat().st_ctime)
-        return most_recent.parent
-    else:
-        raise Exception(f"Test {this_file.name} not found in build directory ({src_dir_parent}).")
-
-
-
 def run_zeff_case(zeff):
     """Run a single Zeff case and return success flag and details."""
 
@@ -88,7 +77,8 @@ def run_zeff_case(zeff):
 
     print("Running drift instability test, zeff = ", zeff)
 
-    executable_location = find_in_build_directory()
+    this_file = pathlib.Path(__file__)
+    executable_location = find_in_build_directory(this_file)
     executable_path = executable_location / "2fluid"
 
     this_directory = pathlib.Path(__file__).parent.absolute()
