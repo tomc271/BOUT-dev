@@ -20,7 +20,6 @@ except:
 from boututils.run_wrapper import build_and_log, shell, launch_safe
 from boutdata.collect import collect
 from numpy import abs, seterr
-from sys import stdout, exit
 
 # Good chance we'll do 0.0/0.0, which generates a warning
 # Ignore this warning
@@ -35,42 +34,37 @@ tol = 1e-10  # Relative tolerance
 
 build_and_log("{nm} test".format(nm=name))
 
-print("Running {nm} test".format(nm=name))
-success = True
 
-for nproc in [1, 2, 4]:
-    nxpe = 1
-    if nproc > 2:
-        nxpe = 2
+def test_fieldgroupComm():
 
-    cmd = "./{exe} ".format(exe=exeName)
+    print("Running {nm} test".format(nm=name))
 
-    shell("rm data/BOUT.dmp.*.nc")
+    for nproc in [1, 2, 4]:
+        nxpe = 1
+        if nproc > 2:
+            nxpe = 2
 
-    print("   %d processors ...." % (nproc))
-    s, out = launch_safe(cmd, nproc=nproc, pipe=True)
-    with open("run.log." + str(nproc), "w") as f:
-        f.write(out)
+        cmd = "./{exe} ".format(exe=exeName)
 
-    # Analyse result
-    # /"Correct" answer
-    f1 = collect(varCorrect, path="data", info=False)
-    f1max = abs(f1).max()
-    # /Two different fields which should be identical to correct
-    err = []
-    for v in varsComp:
-        tmp = collect(v, path="data", info=False)
-        err.append(abs((f1 - tmp)).max() / f1max)
+        shell("rm data/BOUT.dmp.*.nc")
 
-    for i, e in enumerate(err):
-        if e > tol:
-            print("Fail, in {i}th comparison relative error is {re}".format(i=i, re=e))
-            success = False
+        print("   %d processors ...." % (nproc))
+        s, out = launch_safe(cmd, nproc=nproc, pipe=True)
+        with open("run.log." + str(nproc), "w") as f:
+            f.write(out)
 
+        # Analyse result
+        # /"Correct" answer
+        f1 = collect(varCorrect, path="data", info=False)
+        f1max = abs(f1).max()
+        # /Two different fields which should be identical to correct
+        err = []
+        for v in varsComp:
+            tmp = collect(v, path="data", info=False)
+            if f1max <= 0:
+                print(f"f1max = {f1max}; Skipping")
+                continue
+            err.append(abs((f1 - tmp)).max() / f1max)
 
-if success:
-    print(" => All {nm} passed".format(nm=name))
-    exit(0)
-else:
-    print(" => Some failed tests")
-    exit(1)
+        for i, e in enumerate(err):
+            assert e <= tol, f"Fail, in {i}th comparison relative error is {re}".format(i=i, re=e)

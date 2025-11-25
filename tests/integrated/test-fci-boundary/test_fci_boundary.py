@@ -28,44 +28,47 @@ mthread = 2
 
 directory = "data"
 
-with DataFile("grid.fci.nc") as grid:
-    MXG = grid.get("MXG", default=1)
-    xfwd = grid.read("forward_xt_prime")[MXG:-MXG]
-    xbwd = grid.read("backward_xt_prime")[MXG:-MXG]
+def test_fci_boundary():
 
-nx = xfwd.shape[0]
 
-regions = {
-    "xin_fwd": xfwd < MXG,
-    "xout_fwd": xfwd > nx + MXG - 1,
-    "xin_bwd": xbwd < MXG,
-    "xout_bwd": xbwd > nx + MXG - 1,
-}
-regions = {k: v.astype(int) for k, v in regions.items()}
+    with DataFile("grid.fci.nc") as grid:
+        MXG = grid.get("MXG", default=1)
+        xfwd = grid.read("forward_xt_prime")[MXG:-MXG]
+        xbwd = grid.read("backward_xt_prime")[MXG:-MXG]
 
-# for x in "xout", "xin":
-#     regions[x] = np.logical_or(regions[f"{x}_fwd"], regions[f"{x}_bwd"])
-# for x in "fwd", "bwd":
-#     regions[x] = np.logical_or(regions[f"xin_{x}"], regions[f"xout_{x}"])
-# regions["all"] = np.logical_or(regions["xin"], regions["xout"])
-for x in "xout", "xin":
-    regions[x] = regions[f"{x}_fwd"] + regions[f"{x}_bwd"]
-for x in "fwd", "bwd":
-    regions[x] = regions[f"xin_{x}"] + regions[f"xout_{x}"]
-regions["all"] = regions["xin"] + regions["xout"]
+    nx = xfwd.shape[0]
 
-for nproc in nprocs:
-    cmd = "./get_par_bndry"
+    regions = {
+        "xin_fwd": xfwd < MXG,
+        "xout_fwd": xfwd > nx + MXG - 1,
+        "xin_bwd": xbwd < MXG,
+        "xout_bwd": xbwd > nx + MXG - 1,
+    }
+    regions = {k: v.astype(int) for k, v in regions.items()}
 
-    # Launch using MPI
-    _, out = launch_safe(cmd, nproc=nproc, mthread=mthread, pipe=True)
+    # for x in "xout", "xin":
+    #     regions[x] = np.logical_or(regions[f"{x}_fwd"], regions[f"{x}_bwd"])
+    # for x in "fwd", "bwd":
+    #     regions[x] = np.logical_or(regions[f"xin_{x}"], regions[f"xout_{x}"])
+    # regions["all"] = np.logical_or(regions["xin"], regions["xout"])
+    for x in "xout", "xin":
+        regions[x] = regions[f"{x}_fwd"] + regions[f"{x}_bwd"]
+    for x in "fwd", "bwd":
+        regions[x] = regions[f"xin_{x}"] + regions[f"xout_{x}"]
+    regions["all"] = regions["xin"] + regions["xout"]
 
-    for k, v in regions.items():
-        # Collect data
-        data = collect(f"field_{k}")
-        assert np.allclose(data, v), (
-            k + " does not match",
-            np.sum(data),
-            np.sum(v),
-            np.max(data),
-        )
+    for nproc in nprocs:
+        cmd = "./get_par_bndry"
+
+        # Launch using MPI
+        _, out = launch_safe(cmd, nproc=nproc, mthread=mthread, pipe=True)
+
+        for k, v in regions.items():
+            # Collect data
+            data = collect(f"field_{k}")
+            assert np.allclose(data, v), (
+                k + " does not match",
+                np.sum(data),
+                np.sum(v),
+                np.max(data),
+            )
