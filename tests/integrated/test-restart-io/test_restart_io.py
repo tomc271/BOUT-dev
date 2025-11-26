@@ -4,7 +4,7 @@
 #
 # requires: netcdf
 # cores: 4
-
+import pytest
 from boutdata import restart
 from boutdata.collect import collect
 from boututils.boutarray import BoutArray
@@ -23,7 +23,15 @@ myg = 2
 build_and_log("restart I/O test")
 
 
-def test_restart_io():
+@pytest.fixture(scope="function")
+def clean_up_binary_files():
+    yield
+    shell(
+        "rm -f data/BOUT.dmp.*.nc data/BOUT.restart.*.nc data/restart/BOUT.restart.0.nc"
+    )
+
+
+def test_restart_io(clean_up_binary_files):
 
     x = numpy.linspace(0.0, 1.0, nx + 2 * mxg)[:, numpy.newaxis, numpy.newaxis]
     y = numpy.linspace(0.0, 1.0, ny + 2 * myg)[numpy.newaxis, :, numpy.newaxis]
@@ -180,7 +188,3 @@ def test_restart_io():
     assert success, "=> Some failed tests"
 
     print("=> All restart I/O tests passed")
-    # clean up binary files
-    shell(
-        "rm -f data/BOUT.dmp.*.nc data/BOUT.restart.*.nc data/restart/BOUT.restart.0.nc"
-    )
