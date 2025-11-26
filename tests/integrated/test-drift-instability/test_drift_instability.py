@@ -57,7 +57,7 @@ def build_project():
     build_and_log("resistive drift instability test")
 
 
-def run_zeff_case(zeff, build_project):
+def run_zeff_case(zeff):
     """Run a single Zeff case and return success flag and details."""
 
     if zeff not in omega_orig:
@@ -205,6 +205,6 @@ def run_zeff_case(zeff, build_project):
 @pytest.mark.parametrize("zeff", zlist)
 def test_zeff_case(zeff, build_project):
     """Pytest wrapper for running a single Zeff case."""
-    success, omegadiff, gammadiff = run_zeff_case(zeff, build_project)
+    success, omegadiff, gammadiff = run_zeff_case(zeff)
 
     assert success, f"Test failed for Zeff={zeff}: omega diff={omegadiff:.2%}, gamma diff={gammadiff:.2%}"
