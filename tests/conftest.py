@@ -1,39 +1,73 @@
 from pathlib import Path
 import pytest
+import re
+from typing import Set
 
-def _is_zeff_enabled_via_cmake(test_file_path: Path) -> bool:
+from boutconfig import has as bout_has_options
+
+# Regex to extract REQUIRES lines from bout_add_integrated_test(...)
+_RE_REQUIRES = re.compile(
+    r'^\s*REQUIRES\s+([A-Z0-9_]+)',
+    re.MULTILINE
+)
+
+def _get_required_features_from_cmakelists(test_file_path: Path) -> Set[str]:
     """
-    Return True if Zeff tests should run for the test located at `test_file_path`.
-    Looks for the companion CMakeLists.txt in the same directory.
+    Parse the companion CMakeLists.txt and return set of features
+    required by the integrated test in the same directory.
     """
-    cmakelists = test_file_path.parent / "CMakeLists.txt"
-    if not cmakelists.exists():
-        return True                                 # no file → assume enabled
+    cmakelists_path = test_file_path.parent / "CMakeLists.txt"
+    if not cmakelists_path.exists():
+        return set()  # no file → no requirements
 
-    content = cmakelists.read_text(encoding="utf-8", errors="ignore")
+    content = cmakelists_path.read_text(encoding="utf-8", errors="ignore")
 
-    if "ENABLE_ZEFF_TESTS" in content:              # example flag
-        return content.contains("ON") or "TRUE" in content
-    if "set(ENABLE_ZEFF_TESTS ON)" in content:
-        return True
-    if "add_test(zeff" in content.lower():
-        return True
+    # Find all REQUIRES XXX lines (even if split across multiple lines)
+    requires_lines = _RE_REQUIRES.findall(content)
 
-    # default when nothing explicit
-    return False
+    # Also support multi-line REQUIRES
+    continued = re.findall(r'REQUIRES\s+\\?\s*\n\s*([A-Z0-9_]+)', content, re.MULTILINE)
+    requires_lines.extend(continued)
+
+    # Clean up known prefixes (BOUT++ uses BOUT_HAS_*, BOUT_USE_*, etc.)
+    cleaned = {
+        feat.replace("BOUT_HAS_", "").replace("BOUT_USE_", "").replace("BOUT_ENABLE_", "")
+        for feat in requires_lines
+    }
+    return cleaned
 
 
 @pytest.fixture(autouse=True)
-def skip_zeff_if_disabled_in_cmake(request):
+def skip_if_build_requirements_not_met(request):
     """
-    Automatically skips any test marked with @pytest.mark.zeff_test
-    if the companion CMakeLists.txt says they are disabled.
+    Automatically skip any integrated test whose CMakeLists.txt contains
+    REQUIRES flags not satisfied by the current build.
     """
-    if not request.node.get_closest_marker("zeff_test"):
-        return                                 # not a zeff test → do nothing
+    # Only apply to BOUT++ integrated tests (you can detect by name or marker)
+    if not request.node.name.startswith("test_"):
+        return
+    if not request.node.originalname:  # not parametrized
+        test_name = request.node.name
+    else:
+        test_name = request.node.originalname
 
-    # __file__ of the actual test module
-    test_file_path = Path(request.fspath).resolve()
+    # Heuristic: only check files that likely have a matching CMakeLists.txt
+    test_file = Path(request.fspath).resolve()
+    if not (test_file.parent / "CMakeLists.txt").exists():
+        return
 
-    if not _is_zeff_enabled_via_cmake(test_file_path):
-        pytest.skip("Zeff tests are disabled in the companion CMakeLists.txt")
+    required_features = _get_required_features_from_cmakelists(test_file)
+
+    if not required_features:
+        return  # no REQUIRES → always run
+
+    missing = [
+        feature for feature in required_features
+        if not bout_has_options.get(feature, False)
+           and not bout_has_options.get(f"BOUT_HAS_{feature}", False)
+           and not bout_has_options.get(f"BOUT_USE_{feature}", False)
+    ]
+
+    if missing:
+        missing_str = ", ".join(missing)
+        pytest.skip(f"Build missing required features: {missing_str}")
