@@ -1,24 +1,18 @@
 #!/usr/bin/env python3
-
-# requires: all_tests
-
-from boututils.run_wrapper import shell, shell_safe
-
-from boutdata import collect
+import pytest
 import numpy as np
+from boututils.run_wrapper import shell_safe
 
-shell_safe("make > make.log")
+def test_collect():
+    # This prevents pytest from recursing into boutdata during collection
+    collect = pytest.importorskip("boutdata").collect
 
-shell_safe("./test-collect")
+    shell_safe("make > make.log")
+    shell_safe("./test-collect")
 
-# Try collecting data using incorrect case
-# This should be corrected automatically
-a = collect("A", path="data")
+    # Try collecting data using incorrect case
+    # This should be corrected automatically
+    a = collect("A", path="data")
 
-if not np.allclose(a, 1.23):
-    print("Wrong value => Failed")
-    print(a)
-    exit(1)
-
-print("Passed")
-exit(0)
+    assert np.allclose(a, 1.23), f"Expected 1.23, got {a}"
+    print("Passed")
