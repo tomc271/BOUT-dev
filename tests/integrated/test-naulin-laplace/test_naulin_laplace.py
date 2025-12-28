@@ -20,50 +20,45 @@ numTests = 4  # We test 4 different boundary conditions (with slightly different
 
 from boututils.run_wrapper import build_and_log, shell, launch_safe
 from boutdata.collect import collect
-from sys import exit
 
 
-build_and_log("LaplaceNaulin inversion test")
+def test_naulin_laplace():
+    build_and_log("LaplaceNaulin inversion test")
 
-print("Running LaplaceNaulin inversion test")
-success = True
+    print("Running LaplaceNaulin inversion test")
+    success = True
 
-for nproc in [1, 3]:
-    # Make sure we don't use too many cores:
-    # Reduce number of OpenMP threads when using multiple MPI processes
-    mthread = 2
-    if nproc > 1:
-        mthread = 1
+    for nproc in [1, 3]:
+        # Make sure we don't use too many cores:
+        # Reduce number of OpenMP threads when using multiple MPI processes
+        mthread = 2
+        if nproc > 1:
+            mthread = 1
 
-    # set nxpe on the command line as we only use solution from one point in y, so splitting in y-direction is redundant (and also doesn't help test the solver)
-    cmd = "./test_naulin_laplace NXPE=" + str(nproc)
+        # set nxpe on the command line as we only use solution from one point in y, so splitting in y-direction is redundant (and also doesn't help test the solver)
+        cmd = "./test_naulin_laplace NXPE=" + str(nproc)
 
-    shell("rm data/BOUT.dmp.*.nc")
+        shell("rm data/BOUT.dmp.*.nc")
 
-    print("   %d processors..." % nproc)
-    s, out = launch_safe(cmd, nproc=nproc, mthread=mthread, pipe=True)
-    with open("run.log." + str(nproc), "w") as f:
-        f.write(out)
+        print("   %d processors..." % nproc)
+        s, out = launch_safe(cmd, nproc=nproc, mthread=mthread, pipe=True)
+        with open("run.log." + str(nproc), "w") as f:
+            f.write(out)
 
-    # Collect errors
-    errors = [
-        collect("max_error" + str(i), path="data") for i in range(1, numTests + 1)
-    ]
+        # Collect errors
+        errors = [
+            collect("max_error" + str(i), path="data") for i in range(1, numTests + 1)
+        ]
 
-    for i, e in enumerate(errors):
-        print("Checking test " + str(i))
-        if e < 0.0:
-            print("Fail, solver did not converge")
-            success = False
-        if e > tol:
-            print("Fail, maximum absolute error = " + str(e))
-            success = False
-        else:
-            print("Pass")
+        for i, e in enumerate(errors):
+            print("Checking test " + str(i))
+            if e < 0.0:
+                print("Fail, solver did not converge")
+                success = False
+            if e > tol:
+                print("Fail, maximum absolute error = " + str(e))
+                success = False
+            else:
+                print("Pass")
 
-if success:
-    print(" => All LaplaceNaulin inversion tests passed")
-    exit(0)
-else:
-    print(" => Some failed tests")
-    exit(1)
+    assert success, " => Some failed tests"
