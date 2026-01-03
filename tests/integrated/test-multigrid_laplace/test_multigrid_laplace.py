@@ -21,13 +21,11 @@ except:
 tol = 2e-7  # Absolute tolerance
 numTests = 4  # We test 4 different boundary conditions (with slightly different inputs for each)
 
-from boututils.run_wrapper import build_and_log, shell, launch_safe
+from boututils.run_wrapper import shell, launch_safe
 from boutdata.collect import collect
 
 
 def test_multigrid_laplace():
-
-    build_and_log("multigrid Laplacian inversion test")
 
     print("Running multigrid Laplacian inversion test")
     success = True
@@ -46,7 +44,7 @@ def test_multigrid_laplace():
         this_directory = pathlib.Path(__file__).parent.absolute()
         os.chdir(this_directory)
 
-        shell("rm data/BOUT.dmp.*.nc")
+        shell(["rm data/BOUT.dmp.*.nc"])
 
         print("   %d processors..." % nproc)
         s, out = launch_safe(cmd, nproc=nproc, mthread=mthread, pipe=True)

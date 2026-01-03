@@ -39,14 +39,13 @@ vars = [
 ]
 tol = 1e-6  # Absolute tolerance
 
-from boututils.run_wrapper import build_and_log, shell, launch_safe
+from boututils.run_wrapper import shell, launch_safe
 from boutdata.collect import collect
 import numpy as np
 from sys import stdout
 
 
 def test_laplace():
-    build_and_log("Laplacian inversion test")
 
     this_directory = pathlib.Path(__file__).parent.absolute()
     os.chdir(this_directory)
@@ -68,7 +67,7 @@ def test_laplace():
 
             cmd = "./test_laplace NXPE=" + str(nxpe) + " laplace:type=" + solver
 
-            shell("rm data/BOUT.dmp.*.nc")
+            shell(["rm data/BOUT.dmp.*.nc"])
 
             print("   %s solver with %d processors (nxpe = %d)...." % (solver, nproc, nxpe))
             s, out = launch_safe(cmd, nproc=nproc, mthread=1, pipe=True)

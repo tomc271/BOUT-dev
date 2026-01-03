@@ -24,14 +24,12 @@ vars = [
 ]
 # tol = 1e-4                  # Absolute (?) tolerance
 
-from boututils.run_wrapper import build_and_log, shell, launch_safe
+from boututils.run_wrapper import shell, launch_safe
 from boutdata.collect import collect
 
 # import numpy as np
 from sys import stdout, exit
 
-
-build_and_log("PETSc Laplacian inversion test")
 
 print("Running PETSc Laplacian inversion test")
 success = True
@@ -43,7 +41,7 @@ for nproc in [1, 2, 4]:
 
     cmd = "./test_petsc_laplace"
 
-    shell("rm data/BOUT.dmp.*.nc")
+    shell(["rm data/BOUT.dmp.*.nc"])
 
     print("   %d processors...." % nproc)
     s, out = launch_safe(cmd, nproc=nproc, pipe=True, verbose=True)
