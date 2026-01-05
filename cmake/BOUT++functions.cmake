@@ -222,6 +222,10 @@ function(bout_add_integrated_or_mms_test BUILD_CHECK_TARGET TESTNAME)
     string(REPLACE "-" "_" TEST_FILENAME "${TEST_FILENAME}")
 	bout_copy_file(${TEST_FILENAME})
 
+	if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/runtest)
+        bout_copy_file(runtest)
+    endif()
+
   else()
     add_test(NAME ${TESTNAME} COMMAND ${TESTNAME} ${BOUT_TEST_OPTIONS_TESTARGS})
   endif()
