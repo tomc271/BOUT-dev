@@ -10,9 +10,6 @@
 
 from __future__ import print_function
 
-import os
-import pathlib
-
 try:
     from builtins import str
 except:
@@ -46,9 +43,6 @@ from sys import stdout
 
 
 def test_laplace():
-
-    this_directory = pathlib.Path(__file__).parent.absolute()
-    os.chdir(this_directory)
 
     # Read benchmark values
     print("Reading benchmark data")

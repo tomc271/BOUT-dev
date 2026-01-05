@@ -24,14 +24,9 @@ from boututils.run_wrapper import shell, launch_safe
 from boutdata.collect import collect
 import numpy as np
 from sys import stdout
-import os
-import pathlib
 
 
 def test_gyro():
-
-    this_directory = pathlib.Path(__file__).parent.absolute()
-    os.chdir(this_directory)
 
     # Read benchmark values
     print("Reading benchmark data")

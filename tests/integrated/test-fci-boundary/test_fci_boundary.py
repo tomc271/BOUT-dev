@@ -7,8 +7,6 @@
 # only working with cmake
 # requires: False
 
-import os
-import pathlib
 import numpy as np
 from boututils.run_wrapper import launch_safe
 from boututils.datafile import DataFile
@@ -32,8 +30,6 @@ def test_fci_boundary():
     mthread = 2
 
 
-    this_directory = pathlib.Path(__file__).parent.absolute()
-    os.chdir(this_directory)
     with DataFile("grid.fci.nc") as grid:
         MXG = grid.get("MXG", default=1)
         xfwd = grid.read("forward_xt_prime")[MXG:-MXG]

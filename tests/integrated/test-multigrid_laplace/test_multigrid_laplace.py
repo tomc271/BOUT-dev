@@ -10,9 +10,6 @@
 
 from __future__ import print_function
 
-import os
-import pathlib
-
 try:
     from builtins import str
 except:
@@ -40,9 +37,6 @@ def test_multigrid_laplace():
         # set nxpe on the command line as we only use solution from one point in y,
         # so splitting in y-direction is redundant (and also doesn't help test the multigrid solver)
         cmd = "./test_multigrid_laplace NXPE=" + str(nproc)
-
-        this_directory = pathlib.Path(__file__).parent.absolute()
-        os.chdir(this_directory)
 
         shell(["rm data/BOUT.dmp.*.nc"])
 
