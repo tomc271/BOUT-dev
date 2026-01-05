@@ -4,7 +4,7 @@
 #
 # requires: netcdf
 # cores: 2
-
+import pytest
 from boutdata.collect import collect
 from boututils.run_wrapper import shell, launch_safe
 import numpy
@@ -33,6 +33,7 @@ testvars = {
 }
 
 
+@pytest.mark.xdist_group(name="datafile_facade")
 def test_datafile_facade():
 
     success = True

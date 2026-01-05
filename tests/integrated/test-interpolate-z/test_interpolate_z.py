@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-
 #
 # Run the test, compare results against the benchmark
 #
 
+import pytest
 from boututils.run_wrapper import shell, launch_safe
 from boutdata import collect
 from numpy import sqrt, max, abs, mean, array, log, polyfit
@@ -28,6 +28,7 @@ methods = {
 }
 
 
+@pytest.mark.xdist_group(name="interpolate_z")
 def test_interpolate_z():
 
     print("Running ZInterpolation test")

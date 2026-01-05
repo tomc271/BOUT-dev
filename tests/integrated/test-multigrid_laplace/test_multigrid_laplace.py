@@ -10,6 +10,8 @@
 
 from __future__ import print_function
 
+import pytest
+
 try:
     from builtins import str
 except:
@@ -22,6 +24,7 @@ from boututils.run_wrapper import shell, launch_safe
 from boutdata.collect import collect
 
 
+@pytest.mark.xdist_group(name="multigrid_laplace")
 def test_multigrid_laplace():
 
     print("Running multigrid Laplacian inversion test")

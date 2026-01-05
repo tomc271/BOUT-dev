@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import pytest
 from boutdata import collect
 from boututils.run_wrapper import launch_safe
 import numpy
@@ -8,6 +9,7 @@ datapath = "data"
 nproc = 1
 tol = 1.0e-13
 
+@pytest.mark.xdist_group(name="twistshift_staggered")
 def test_twistshift_staggered():
 
     s, out = launch_safe("./test-twistshift", nproc=nproc, pipe=True)
