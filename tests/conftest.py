@@ -33,3 +33,25 @@ def copy_and_cwd_to_unique_tmp_dir(request, tmp_path_factory, monkeypatch):
 
     # Change working directory to the copy
     monkeypatch.chdir(run_dir)
+
+import subprocess
+from boututils.run_wrapper import launch as original_launch
+
+def patched_launch(command, nproc=1, pipe=True, mthread=1, **kwargs):
+    # Replicate original behavior: prepend mpirun for nproc > 1
+    full_command = f"mpirun -np {nproc} {command}" if nproc > 1 else command
+
+    result = subprocess.run(
+        full_command,
+        shell=True,
+        capture_output=pipe,
+        text=True,
+    )
+    out = result.stdout if pipe else ''
+    if result.stderr:
+        out += result.stderr  # Merge for logging, like original
+    return result.returncode, out
+
+@pytest.fixture(autouse=True)
+def replace_launch(monkeypatch):
+    monkeypatch.setattr("boututils.run_wrapper.launch", patched_launch)
