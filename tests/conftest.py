@@ -38,6 +38,11 @@ def copy_and_cwd_to_unique_tmp_dir(request, tmp_path_factory, monkeypatch):
 import subprocess
 
 def patched_launch(command, nproc=1, pipe=True, mthread=1, verbose=False, **kwargs):
+    # Set OMP_NUM_THREADS if mthread is provided (for OpenMP in BOUT++)
+    env = dict(os.environ)
+    if mthread:
+        env["OMP_NUM_THREADS"] = str(mthread)
+
     # Replicate original behavior: prepend mpirun for nproc > 1
     if nproc > 1:
         full_command = f"mpirun -np {nproc} {command}"
@@ -49,6 +54,7 @@ def patched_launch(command, nproc=1, pipe=True, mthread=1, verbose=False, **kwar
         shell=True,
         capture_output=pipe,
         text=True,
+        env=env,
         **kwargs
     )
     out = result.stdout if pipe else ''
