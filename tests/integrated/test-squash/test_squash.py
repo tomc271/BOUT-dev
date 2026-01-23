@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+import pytest
 from boututils.datafile import DataFile
 import itertools
 import time
@@ -80,6 +80,7 @@ def verify(f1, f2):
                     raise RuntimeError("data mismatch in ", v, err, v1, v2)
 
 
+@pytest.mark.xdist_group(name="squash")
 def test_squash():
     parser = argparse.ArgumentParser(description="Test the bout-squashoutput wrapper")
     parser.add_argument(

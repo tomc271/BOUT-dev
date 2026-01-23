@@ -3,12 +3,13 @@
 # Run the test, compare results against the benchmark
 
 import sys
-
+import pytest
 from boututils.run_wrapper import launch
 from boutdata.collect import collect
 
 nproc = 1
 
+@pytest.mark.xdist_group(name="stopCheck_file")
 def test_stopCheck_file():
 
     check_values = [True, False]

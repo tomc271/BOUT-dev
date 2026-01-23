@@ -24,6 +24,7 @@ settings = [
 
 
 @pytest.mark.parametrize("setting", settings)
+@pytest.mark.xdist_group(name="delp2")
 def test_delp2(setting):
 
     # Read benchmark values

@@ -197,6 +197,7 @@ def run_zeff_case(zeff):
 
 
 @pytest.mark.parametrize("zeff", zlist)
+@pytest.mark.xdist_group(name="zeff")
 def test_zeff_case(zeff):
     """Pytest wrapper for running a single Zeff case."""
     success, omegadiff, gammadiff = run_zeff_case(zeff)

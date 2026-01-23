@@ -11,12 +11,14 @@
 vars = ["yavg2d", "yavg3d", "sm3d"]
 tol = 1e-7  # Absolute tolerance, benchmark values are floats
 
+import pytest
 from boututils.run_wrapper import shell, launch_safe
 from boutdata.collect import collect
 import numpy as np
 from sys import stdout
 
 
+@pytest.mark.xdist_group(name="smooth")
 def test_smooth():
 
     # Read benchmark values
