@@ -8,7 +8,6 @@
 # requires: all_tests
 # cores: 4
 
-<<<<<<< HEAD:tests/integrated/test-petsc_laplace/test_petsc_laplace.py
 # Variables to compare
 from __future__ import print_function
 from builtins import str
