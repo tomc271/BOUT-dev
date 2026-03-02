@@ -6,9 +6,9 @@
  * up a linear system.
  *
  **************************************************************************
- * Copyright 2019 C. MacMackin
+ * Copyright 2019 - 2025 BOUT++ contributors
  *
- * Contact: Ben Dudson, bd512@york.ac.uk
+ * Contact: Ben Dudson, dudson2@llnl.gov
  *
  * This file is part of BOUT++.
  *
@@ -363,7 +363,7 @@ public:
       }
     }
     Element& operator=(const Element& other) {
-      AUTO_TRACE();
+
       if (this == &other) {
         return *this;
       }
@@ -372,14 +372,14 @@ public:
       return *this;
     }
     Element& operator=(BoutReal val) {
-      AUTO_TRACE();
+
       ASSERT3(finite(val));
       value = val;
       setValues(val, INSERT_VALUES);
       return *this;
     }
     Element& operator+=(BoutReal val) {
-      AUTO_TRACE();
+
       ASSERT3(finite(val));
       auto columnPosition = std::find(positions.begin(), positions.end(), petscCol);
       if (columnPosition != positions.end()) {
@@ -573,7 +573,7 @@ PetscVector<T> operator*(const PetscMatrix<T>& mat, const PetscVector<T>& vec) {
 namespace bout {
 template <class T>
 constexpr auto cast_MatFDColoringFn(T func) {
-  return func;
+  return reinterpret_cast<MatFDColoringFn*>(func); // NOLINT(*-reinterpret-cast)
 }
 } // namespace bout
 #else

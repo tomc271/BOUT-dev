@@ -8,6 +8,7 @@
 # requires: all_tests
 # cores: 4
 
+<<<<<<< HEAD:tests/integrated/test-petsc_laplace/test_petsc_laplace.py
 # Variables to compare
 from __future__ import print_function
 from builtins import str
@@ -25,39 +26,44 @@ vars = [
 # tol = 1e-4                  # Absolute (?) tolerance
 
 from boututils.run_wrapper import shell, launch_safe
-from boutdata.collect import collect
+from boutdata.collect import collect, create_cache
 
-# import numpy as np
-from sys import stdout, exit
+import pathlib
+from sys import exit
 
+errors = [
+    "max_error1",
+    "max_error2",
+    "max_error3",
+    "max_error5",
+    "max_error6",
+    "max_error7",
+]
+tol = 2e-4  # Absolute (?) tolerance
 
 print("Running PETSc Laplacian inversion test")
 success = True
 
 for nproc in [1, 2, 4]:
-    #  nxpe = 1
-    #  if nproc > 2:
-    #    nxpe = 2
-
     cmd = "./test_petsc_laplace"
 
     shell(["rm data/BOUT.dmp.*.nc"])
 
-    print("   %d processors...." % nproc)
+    print(f"   {nproc} processors....")
     s, out = launch_safe(cmd, nproc=nproc, pipe=True, verbose=True)
-    f = open("run.log." + str(nproc), "w")
-    f.write(out)
-    f.close()
+
+    pathlib.Path(f"run.log.{nproc}").write_text(out)
+    cache = create_cache(path="data", prefix="BOUT.dmp")
 
     # Collect output data
-    for varname, tol in vars:
-        stdout.write("      Checking " + varname + " ... ")
-        error = collect(varname, path="data", info=False)
+    for varname in errors:
+        print(f"      Checking {varname} ... ", end="")
+        error = collect(varname, path="data", info=False, datafile_cache=cache)
         if error <= 0:
             print("Convergence error")
             success = False
         elif error > tol:
-            print("Fail, maximum error is = " + str(error))
+            print(f"Fail, maximum error is = {error:e}")
             success = False
         else:
             print("Pass")

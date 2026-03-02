@@ -7,6 +7,7 @@
 import pytest
 from boututils.run_wrapper import shell, launch_safe
 from boutdata import collect
+import boutconfig
 from numpy import sqrt, max, abs, mean, array, log, polyfit
 from sys import stdout
 
@@ -16,9 +17,6 @@ show_plot = False
 
 # List of NX values to use
 nxlist = [16, 32, 64, 128]
-
-# Only testing 2D (x, z) slices, so only need one processor
-nproc = 1
 
 # Variables to compare
 varlist = ["a", "b", "c"]
@@ -50,11 +48,9 @@ def test_interpolate(method):
     for nx in nxlist:
         dx = 1.0 / (nx)
 
-        args = (
-            " mesh:nx={nx4} mesh:dx={dx} MZ={nx} xzinterpolation:type={method}".format(
-                nx4=nx + 4, dx=dx, nx=nx, method=method
-            )
-        )
+        args = f" mesh:nx={nx + 4} mesh:dx={dx} MZ={nx} xzinterpolation:type={method}"
+        nproc = 2 if method == "hermitespline" and boutconfig.has["petsc"] else 1
+        args += f" NXPE={nproc}"
 
         cmd = "./test_interpolate" + args
 
@@ -72,6 +68,17 @@ def test_interpolate(method):
             )
 
             E = interp - solution
+
+            if False:
+                import matplotlib.pyplot as plt
+
+                def myplot(f, lbl=None):
+                    plt.plot(f[:, 0, 6], label=lbl)
+
+                myplot(interp, "interp")
+                myplot(solution, "sol")
+                plt.legend()
+                plt.show()
 
             l2 = float(sqrt(mean(E**2)))
             linf = float(max(abs(E)))
