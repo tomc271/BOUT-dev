@@ -7,11 +7,16 @@
 # only working with cmake
 # requires: False
 
+import os
+import pytest
 import numpy as np
 from boututils.run_wrapper import launch_safe
 from boututils.datafile import DataFile
 from boutdata.collect import collect as _collect
 
+
+if not os.path.exists(os.path.join(os.path.dirname(__file__), "grid.fci.nc")):
+    pytest.skip("grid.fci.nc not found (Zoidberg likely missing), skipping test.", allow_module_level=True)
 
 directory = "data"
 
