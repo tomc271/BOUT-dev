@@ -7,7 +7,7 @@
  * Copyright 2010 - 2025 BOUT++ developers
  *
  * Contact: Ben Dudson, dudson2@llnl.gov
- * 
+ *
  * This file is part of BOUT++.
  *
  * BOUT++ is free software: you can redistribute it and/or modify
@@ -25,6 +25,7 @@
  *
  **************************************************************************/
 
+#include "bout/bout_types.hxx"
 #include "bout/build_defines.hxx"
 
 #include <bout/boutcomm.hxx>
@@ -32,7 +33,9 @@
 
 #include <cmath>
 #include <cpptrace/cpptrace.hpp>
+#include <cstddef>
 #include <memory>
+#include <optional>
 #include <utility>
 
 #include "bout/parallel_boundary_op.hxx"
@@ -52,8 +55,9 @@
 #include "fmt/format.h"
 
 /// Constructor
-Field3D::Field3D(Mesh* localmesh, CELL_LOC location_in, DirectionTypes directions_in)
-    : Field(localmesh, location_in, directions_in) {
+Field3D::Field3D(Mesh* localmesh, CELL_LOC location_in, DirectionTypes directions_in,
+                 std::optional<size_t> regionID)
+    : Field(localmesh, location_in, directions_in), regionID{regionID} {
 #if BOUT_USE_TRACK
   name = "<F3D>";
 #endif
@@ -145,6 +149,7 @@ void Field3D::splitParallelSlices() {
     yup_fields.emplace_back(fieldmesh);
     ydown_fields.emplace_back(fieldmesh);
   }
+  resetRegionParallel();
 }
 
 void Field3D::clearParallelSlices() {
@@ -229,7 +234,7 @@ const Region<Ind2D>& Field3D::getRegion2D(const std::string& region_name) const 
 }
 
 /***************************************************************
- *                         OPERATORS 
+ *                         OPERATORS
  ***************************************************************/
 
 /////////////////// ASSIGNMENT ////////////////////
@@ -341,9 +346,9 @@ Field3D& Field3D::operator=(const BoutReal val) {
   return *this;
 }
 
-Field3D& Field3D::calcParallelSlices() {
+void Field3D::calcParallelSlices() {
+  ASSERT1(areCalcParallelSlicesAllowed());
   getCoordinates()->getParallelTransform().calcParallelSlices(*this);
-  return *this;
 }
 
 ///////////////////// BOUNDARY CONDITIONS //////////////////
@@ -705,7 +710,7 @@ Field3D lowPass(const Field3D& var, int zmax, bool keep_zonal, const std::string
   return result;
 }
 
-/* 
+/*
  * Use FFT to shift by an angle in the Z direction
  */
 void shiftZ(Field3D& var, int jx, int jy, double zangle) {
@@ -840,6 +845,15 @@ Field3D::getValidRegionWithDefault(const std::string& region_name) const {
 
 void Field3D::setRegion(const std::string& region_name) {
   regionID = fieldmesh->getRegionID(region_name);
+}
+
+void Field3D::resetRegionParallel() {
+  if (isFci()) {
+    for (int i = 0; i < fieldmesh->ystart; ++i) {
+      yup_fields[i].setRegion(fmt::format("RGN_YPAR_{:+d}", i + 1));
+      ydown_fields[i].setRegion(fmt::format("RGN_YPAR_{:+d}", -i - 1));
+    }
+  }
 }
 
 Field3D& Field3D::enableTracking(const std::string& name,
