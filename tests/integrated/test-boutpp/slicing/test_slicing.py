@@ -2,6 +2,7 @@
 # requires boutpp
 # requires not make
 import numpy as np
+import numpy.testing as npt
 import boutpp as bc
 import inspect
 
@@ -43,13 +44,7 @@ def test_slicing():
     print(field.shape)
     for ex in examples:
         print("testing", inspect.getsource(ex))
-        try:
-            nout = ex(ndat)
-            fout = ex(field)
-            assert (
-                fout.shape == nout.shape
-            ), f"Field3D returned {{ fout.shape }} but numpy {{ nout.shape }}"
-            assert np.all(fout == nout), f"data mismatch, {{ fout == nout }}"
-        except:
-            print("Failed to test", inspect.getsource(ex))
-            raise
+        nout = ex(ndat)
+        fout = ex(field)
+        assert npt.assert_allclose(fout, nout), \
+            f"data mismatch, {{ fout == nout }}. Failed to test {inspect.getsource(ex)}"
