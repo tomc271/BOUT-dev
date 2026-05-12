@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 
-from sympy import Symbol, Eq
+from sympy import Symbol
 from sympy.matrices import Matrix
 from sympy.printing import ccode
 from sympy.simplify import combsimp as simp
-from sympy.utilities.codegen import codegen
 
 
 def pow(a, b):
