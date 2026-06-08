@@ -169,6 +169,8 @@ jobs:
 
           # Install the core requirements into the same venv
           uv pip install -r requirements.txt
+          
+          uv pip install zoidberg 
 
           # Put the venv in the PATH
           echo "$GITHUB_WORKSPACE/.venv/bin" >> $GITHUB_PATH
