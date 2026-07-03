@@ -374,10 +374,10 @@ public:
   ///
   ///  - doc              [string] Documentation, describing what the variable does
   ///
-  std::map<std::string, AttributeType> attributes;
+  std::map<std::string, AttributeType, std::less<>> attributes;
 
   /// Return true if this value has attribute \p key
-  bool hasAttribute(const std::string& key) const {
+  bool hasAttribute(std::string_view key) const {
     return attributes.find(key) != attributes.end();
   }
 
