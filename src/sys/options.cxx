@@ -299,58 +299,24 @@ bool Options::isSection(const std::string& name) const {
   return child->second.isSection();
 }
 
-template <>
-Options& Options::assign<>(Field2D val, std::string source) {
+// For Field types
+template <bout::concepts::BoutField T>
+Options& Options::assign(T val, std::string source) {
   attributes["cell_location"] = toString(val.getLocation());
   attributes["direction_y"] = toString(val.getDirectionY());
   attributes["direction_z"] = toString(val.getDirectionZ());
+
+  if constexpr (std::is_same_v<T, FieldPerp>) {
+    attributes["yindex_global"] = val.getGlobalIndex();
+  }
+
   _set_no_check(std::move(val), std::move(source));
   return *this;
 }
-template <>
-Options& Options::assign<>(Field3D val, std::string source) {
-  attributes["cell_location"] = toString(val.getLocation());
-  attributes["direction_y"] = toString(val.getDirectionY());
-  attributes["direction_z"] = toString(val.getDirectionZ());
-  _set_no_check(std::move(val), std::move(source));
-  return *this;
-}
-template <>
-Options& Options::assign<>(FieldPerp val, std::string source) {
-  attributes["cell_location"] = toString(val.getLocation());
-  attributes["direction_y"] = toString(val.getDirectionY());
-  attributes["direction_z"] = toString(val.getDirectionZ());
-  attributes["yindex_global"] = val.getGlobalIndex();
-  _set_no_check(std::move(val), std::move(source));
-  return *this;
-}
-template <>
-Options& Options::assign<>(Array<BoutReal> val, std::string source) {
-  _set_no_check(std::move(val), std::move(source));
-  return *this;
-}
-template <>
-Options& Options::assign<>(Array<int> val, std::string source) {
-  _set_no_check(std::move(val), std::move(source));
-  return *this;
-}
-template <>
-Options& Options::assign<>(Matrix<BoutReal> val, std::string source) {
-  _set_no_check(std::move(val), std::move(source));
-  return *this;
-}
-template <>
-Options& Options::assign<>(Matrix<int> val, std::string source) {
-  _set_no_check(std::move(val), std::move(source));
-  return *this;
-}
-template <>
-Options& Options::assign<>(Tensor<BoutReal> val, std::string source) {
-  _set_no_check(std::move(val), std::move(source));
-  return *this;
-}
-template <>
-Options& Options::assign<>(Tensor<int> val, std::string source) {
+
+// For Array, Matrix, and Tensor variants
+template <bout::concepts::BoutContainer T>
+Options& Options::assign(T val, std::string source) {
   _set_no_check(std::move(val), std::move(source));
   return *this;
 }
@@ -744,71 +710,45 @@ FieldPerp Options::as<FieldPerp>(const FieldPerp& similar_to) const {
 }
 
 namespace {
-/// Primary declaration of ConvertContainer, for specialization below.
-/// No definition needed unless it is used.
-template <class Container>
-struct ConvertContainer;
-
-/// Visitor to convert an int, BoutReal or Array/Matrix/Tensor to the
-/// appropriate container. Templated on both the container class C
-/// and scalar type Scalar.
-template <template <class> class C, class Scalar>
-struct ConvertContainer<C<Scalar>> {
-  using Container = C<Scalar>;
-  ConvertContainer(std::string error, Container similar_to_)
-      : error_message(std::move(error)), similar_to(std::move(similar_to_)) {}
-
-  Container operator()(int value) {
-    Container result(similar_to);
-    std::ranges::fill(result, static_cast<Scalar>(value));
-    return result;
-  }
-
-  Container operator()(BoutReal value) {
-    Container result(similar_to);
-    std::ranges::fill(result, static_cast<Scalar>(value));
-    return result;
-  }
-
-  Container operator()(const Container& value) { return value; }
-
-  // Convert between scalar types: C<OtherScalar> -> C<Scalar>
-  // The size of the returned result will be the same as the input value
-  template <class OtherScalar>
-  Container operator()(const C<OtherScalar>& value) {
-    Container result(similar_to);
-    result.reshape(value.shape()); // Resize to shape of input
-
-    std::ranges::transform(value, std::begin(result),
-                           [](const auto& x) { return static_cast<Scalar>(x); });
-    return result;
-  }
-
-  template <class Other>
-  Container operator()([[maybe_unused]] const Other& value) {
-    throw BoutException(error_message);
-  }
-
-private:
-  std::string error_message;
-  Container similar_to;
-};
-} // namespace
-
-namespace {
-// `Options::as` helper for `Array`, `Matrix`, `Tensor` (amt)
-template <class T>
+// Concept-driven helper handles Arrays, Matrices, and Tensors generically
+template <bout::concepts::BoutContainer T>
 T as_amt(const Options& self, const T& similar_to) {
   if (self.isSection()) {
     throw BoutException(_f("Option {:s} has no value"), self.str());
   }
 
+  using Scalar = typename T::value_type;
+
   const T result = bout::utils::visit(
-      ConvertContainer<T>{
-          fmt::format(_f("Value for option {:s} cannot be converted to an {}"),
-                      self.str(), bout::utils::typeName<T>()),
-          similar_to},
-      self.value);
+    [&]<typename V>(const V& val) -> T {
+      // Direct numeric assignment fallback (scalars)
+      if constexpr (std::is_same_v<V, int> || std::is_same_v<V, BoutReal>) {
+        T res(similar_to);
+        std::ranges::fill(res, static_cast<Scalar>(val));
+        return res;
+      }
+      // Exact match handling
+      else if constexpr (std::is_same_v<V, T>) {
+        return val;
+      }
+      // Cross-scalar container conversion
+      else if constexpr (bout::concepts::BoutContainer<V>) {
+        T res(similar_to);
+        res.reshape(val.shape());
+        std::ranges::transform(val, std::begin(res), [](const auto& x) {
+          return static_cast<Scalar>(x);
+        });
+        return res;
+      }
+      // Everything else throws
+      else {
+        throw BoutException(fmt::format(
+          _f("Value for option {:s} cannot be converted to an {}"),
+          self.str(), bout::utils::typeName<T>()));
+      }
+    },
+    self.value
+  );
 
   printNameValueSourceLine(self, bout::utils::typeName<T>());
 
@@ -816,44 +756,13 @@ T as_amt(const Options& self, const T& similar_to) {
 }
 } // namespace
 
-template <>
-auto Options::as(const Array<BoutReal>& similar_to) const -> Array<BoutReal> {
+template <bout::concepts::BoutContainer T>
+T Options::as(const T& similar_to) const {
   value_used = true;
   return as_amt(*this, similar_to);
 }
 
-template <>
-auto Options::as(const Array<int>& similar_to) const -> Array<int> {
-  value_used = true;
-  return as_amt(*this, similar_to);
-}
 
-template <>
-auto Options::as(const Matrix<BoutReal>& similar_to) const -> Matrix<BoutReal> {
-  value_used = true;
-  return as_amt(*this, similar_to);
-}
-
-template <>
-auto Options::as(const Matrix<int>& similar_to) const -> Matrix<int> {
-  value_used = true;
-  return as_amt(*this, similar_to);
-}
-
-template <>
-auto Options::as(const Tensor<BoutReal>& similar_to) const -> Tensor<BoutReal> {
-  value_used = true;
-  return as_amt(*this, similar_to);
-}
-
-template <>
-auto Options::as(const Tensor<int>& similar_to) const -> Tensor<int> {
-  value_used = true;
-  return as_amt(*this, similar_to);
-}
-
-// Note: This is defined here rather than in the header
-// to avoid using as<string> before specialising it.
 bool Options::operator==(const char* other) const {
   return as<std::string>() == std::string(other);
 }
@@ -958,337 +867,9 @@ void Options::cleanCache() { FieldFactory::get()->cleanCache(); }
 std::map<std::string, const Options*> Options::subsections() const {
   std::map<std::string, const Options*> sections;
   for (const auto& child : children) {
-    if (child.second.is_section) {
+    if (child.second.isSection()) {
       sections[child.first] = &child.second;
     }
   }
   return sections;
 }
-
-std::vector<std::string> Options::getFlattenedKeys() const {
-  std::vector<std::string> flattened_names;
-
-  if (isValue() and not full_name.empty()) {
-    flattened_names.push_back(full_name);
-  }
-
-  for (const auto& child : children) {
-    if (child.second.isValue()) {
-      flattened_names.push_back(child.second.full_name);
-    }
-    if (child.second.is_section) {
-      const auto child_names = child.second.getFlattenedKeys();
-      flattened_names.insert(flattened_names.end(), child_names.begin(),
-                             child_names.end());
-    }
-  }
-
-  return flattened_names;
-}
-
-namespace {
-/// Visitor that returns the shape of its argument
-struct GetDimensions {
-  std::vector<int> operator()([[maybe_unused]] bool value) { return {1}; }
-  std::vector<int> operator()([[maybe_unused]] int value) { return {1}; }
-  std::vector<int> operator()([[maybe_unused]] BoutReal value) { return {1}; }
-  std::vector<int> operator()([[maybe_unused]] const std::string& value) { return {1}; }
-  template <typename T>
-  std::vector<int> operator()(const Array<T>& array) {
-    return {array.size()};
-  }
-  template <typename T>
-  std::vector<int> operator()(const Matrix<T>& array) {
-    const auto shape = array.shape();
-    return {std::get<0>(shape), std::get<1>(shape)};
-  }
-  template <typename T>
-  std::vector<int> operator()(const Tensor<T>& array) {
-    const auto shape = array.shape();
-    return {std::get<0>(shape), std::get<1>(shape), std::get<2>(shape)};
-  }
-  std::vector<int> operator()(const Field& array) {
-    return {array.getNx(), array.getNy(), array.getNz()};
-  }
-};
-} // namespace
-
-std::vector<int> Options::getShape() const {
-  if (is_loaded()) {
-    return bout::utils::visit(GetDimensions{}, value);
-  }
-  return lazy_shape;
-}
-
-fmt::format_context::iterator
-bout::details::OptionsFormatterBase::format(const Options& options,
-                                            fmt::format_context& ctx) const {
-
-  const auto conditionally_used = [](const Options& option) -> bool {
-    if (not option.hasAttribute(conditionally_used_attribute)) {
-      return false;
-    }
-    return option.attributes.at(conditionally_used_attribute).as<bool>();
-  };
-
-  if (options.isValue()) {
-    const std::string section_name = options.str();
-    const std::string name = (inline_section_names and not section_name.empty())
-                                 ? section_name
-                                 : options.name();
-    fmt::format_to(ctx.out(), "{}", name);
-
-    if (not key_only) {
-      const auto value = bout::utils::variantToString(options.value);
-      // Convert empty strings to ""
-      const std::string as_str = value.empty() ? "\"\"" : value;
-      fmt::format_to(ctx.out(), " = {}", as_str);
-    }
-
-    const bool has_doc = options.attributes.count("doc") != 0U;
-    const bool has_source = options.attributes.count("source") != 0U;
-    const bool has_type = options.attributes.count("type") != 0U;
-
-    std::vector<std::string> comments;
-
-    if (unused and not options.valueUsed()) {
-      if (conditionally_used(options)) {
-        comments.emplace_back("unused value (marked conditionally used)");
-      } else {
-        comments.emplace_back("unused value (NOT marked conditionally used)");
-      }
-    }
-
-    if (docstrings) {
-      if (has_type) {
-        comments.emplace_back(
-            fmt::format("type: {}", options.attributes.at("type").as<std::string>()));
-      }
-
-      if (has_doc) {
-        comments.emplace_back(
-            fmt::format("doc: {}", options.attributes.at("doc").as<std::string>()));
-      }
-    }
-
-    if (source and has_source) {
-      const auto source = options.attributes.at("source").as<std::string>();
-      if (not source.empty()) {
-        comments.emplace_back(fmt::format("source: {}", source));
-      }
-    }
-
-    if (not comments.empty()) {
-      fmt::format_to(ctx.out(), "\t\t# {}", fmt::join(comments, ", "));
-    }
-    return ctx.out();
-  }
-
-  // Only print section headers if the section has a name and it has
-  // non-section children
-  const auto& children = options.getChildren();
-  const bool has_child_values =
-      std::any_of(children.begin(), children.end(),
-                  [](const auto& child) { return child.second.isValue(); });
-  const std::string section_name = options.str();
-  if (not inline_section_names and not section_name.empty() and has_child_values) {
-    fmt::format_to(ctx.out(), "\n[{}]\n", section_name);
-  }
-
-  // Get all the child values first
-  for (const auto& child : children) {
-    if (child.second.isValue()) {
-      format(child.second, ctx);
-      fmt::format_to(ctx.out(), "\n");
-    }
-  }
-
-  // Now descend the tree, accumulating subsections
-  for (const auto& subsection : options.subsections()) {
-    format(*subsection.second, ctx);
-  }
-
-  return ctx.out();
-}
-
-std::string toString(const Options& value) { return fmt::format("{}", value); }
-
-namespace bout {
-void checkForUnusedOptions() {
-  auto& options = Options::root();
-  const bool error_on_unused_options =
-      options["input"]["error_on_unused_options"]
-          .doc(
-              "Error if there are any unused options before starting the main simulation")
-          .withDefault(true);
-
-  if (not error_on_unused_options) {
-    return;
-  }
-  checkForUnusedOptions(options, options["datadir"].withDefault("data"),
-                        options["optionfile"].withDefault("BOUT.inp"));
-}
-
-namespace {
-/// Gather the set of unused option keys that are unused on *every* MPI processor.
-///
-/// Each processor may use a different subset of options (e.g. because some
-/// options are only read on processors handling a particular region). An option
-/// should only be considered globally unused — and therefore an error — if it
-/// was not used on any processor.
-///
-/// Strategy:
-///   1. MPI_Allgather the per-processor serialised key lists so every rank
-///      knows the full union of locally-unused keys.
-///   2. For each key in that union, MPI_Allreduce with MPI_PROD over a flag
-///      that is 1 if the key is locally unused and 0 if it was used.  A
-///      product of 1 means every rank left it unused.
-///
-/// Keys are serialised as a newline-separated string.  Newlines are safe as a
-/// separator because option keys use ':' as their only structural character.
-std::set<std::string> getGlobalUnusedSet(std::vector<std::string> local_unused_keys) {
-  MPI_Comm comm = BoutComm::get();
-  const int nprocs = BoutComm::size();
-
-  // --- Step 1: share every processor's locally-unused key list ---
-
-  // Serialise this processor's unused keys as a newline-separated string.
-  // An empty key list produces an empty string, which is handled correctly
-  // by MPI_Allgatherv (contributing zero bytes).
-  const std::string local_serialized =
-      fmt::format("{}", fmt::join(local_unused_keys, "\n"));
-  int local_len = static_cast<int>(local_serialized.size());
-
-  // Gather the byte-lengths from all processors so we can allocate the
-  // receive buffer and build the displacement array for MPI_Allgatherv.
-  std::vector<int> all_lens(nprocs);
-  MPI_Allgather(&local_len, 1, MPI_INT, all_lens.data(), 1, MPI_INT, comm);
-
-  std::vector<int> displs(nprocs, 0);
-  for (int i = 1; i < nprocs; ++i) {
-    displs[i] = displs[i - 1] + all_lens[i - 1];
-  }
-  const int total_len = displs[nprocs - 1] + all_lens[nprocs - 1];
-
-  // Gather the serialised key strings from all processors.
-  std::string all_serialized(total_len, '\0');
-  MPI_Allgatherv(local_serialized.data(), local_len, MPI_CHAR, all_serialized.data(),
-                 all_lens.data(), displs.data(), MPI_CHAR, comm);
-
-  // Reconstruct the global union of unused keys by splitting each
-  // processor's contribution at the newline separator.
-  std::set<std::string> global_unused_union;
-  for (int i = 0; i < nprocs; ++i) {
-    if (all_lens[i] == 0) {
-      continue; // processor had no unused keys
-    }
-    const std::string proc_keys = all_serialized.substr(displs[i], all_lens[i]);
-    for (const auto& key : strsplit(proc_keys, '\n')) {
-      global_unused_union.insert(key);
-    }
-  }
-
-  if (global_unused_union.empty()) {
-    return {};
-  }
-
-  // --- Step 2: keep only keys that were unused on *every* processor ---
-
-  // Build a presence flag for each key in the global union: 1 if unused
-  // locally (i.e. in our local_unused_keys), 0 if it was used here.
-  const std::set<std::string> local_set(local_unused_keys.begin(),
-                                        local_unused_keys.end());
-  const std::vector<std::string> global_keys(global_unused_union.begin(),
-                                             global_unused_union.end());
-
-  std::vector<int> local_flags(global_keys.size());
-  for (std::size_t i = 0; i < global_keys.size(); ++i) {
-    local_flags[i] = local_set.contains(global_keys[i]) ? 1 : 0;
-  }
-
-  // MPI_PROD: product across all processors is 1 iff every processor
-  // contributed 1, i.e. iff the key was unused everywhere.
-  std::vector<int> global_flags(global_keys.size());
-  MPI_Allreduce(local_flags.data(), global_flags.data(),
-                static_cast<int>(global_keys.size()), MPI_INT, MPI_PROD, comm);
-
-  std::set<std::string> globally_unused;
-  for (std::size_t i = 0; i < global_keys.size(); ++i) {
-    if (global_flags[i] != 0) {
-      globally_unused.insert(global_keys[i]);
-    }
-  }
-  return globally_unused;
-}
-} // namespace
-
-void checkForUnusedOptions(const Options& options, const std::string& data_dir,
-                           const std::string& option_file) {
-  const Options unused = options.getUnused();
-
-  // Get the keys that are not used on any processor
-  const auto keys = getGlobalUnusedSet(unused.getFlattenedKeys());
-
-  if (not keys.empty()) {
-
-    // Construct a string with all the fuzzy matches for each unused option
-    std::string possible_misspellings;
-    for (const auto& key : keys) {
-      auto fuzzy_matches = options.fuzzyFind(key);
-      // Remove unacceptable matches, including:
-      // - exact matches
-      // - other unused options
-      // - options set internally by the library and not meant as user inputs
-      bout::utils::erase_if(fuzzy_matches, [](const Options::FuzzyMatch& match) -> bool {
-        const auto source = match.match.hasAttribute("source")
-                                ? match.match.attributes.at("source").as<std::string>()
-                                : "";
-        const bool internal_source = (source == "Solver") or (source == "Output");
-
-        return match.distance == 0 or (not match.match.valueUsed()) or internal_source;
-      });
-
-      if (fuzzy_matches.empty()) {
-        continue;
-      }
-      possible_misspellings += fmt::format("\nUnused option '{}', did you mean:\n", key);
-      for (const auto& match : fuzzy_matches) {
-        possible_misspellings += fmt::format("\t{:idk}\n", match.match);
-      }
-    }
-
-    // Only display the possible matches if we actually have some to show
-    const std::string additional_info =
-        possible_misspellings.empty()
-            ? ""
-            : fmt::format("Suggested alternatives:\n{}", possible_misspellings);
-
-    throw BoutException(_f(R"(
-There were unused input options:
------
-{:i}
------
-It's possible you've mistyped some options. BOUT++ input arguments are
-now case-sensitive, and some have changed name. You can try running
-
-    <BOUT++ directory>/bin/bout-v5-input-file-upgrader.py {}/{}
-
-to automatically fix the most common issues. If these options above
-are sometimes used depending on other options, you can call
-`Options::setConditionallyUsed()`, for example:
-
-    Options::root()["{}"].setConditionallyUsed();
-
-to mark a section or value as depending on other values, and so ignore
-it in this check. Alternatively, if you're sure the above inputs are
-not a mistake, you can set 'input:error_on_unused_options=false' to
-turn off this check for unused options. You can always set
-'input:validate=true' to check inputs without running the full
-simulation.
-
-{})"),
-                        unused, data_dir, option_file,
-                        unused.getChildren().begin()->first, additional_info);
-  }
-}
-} // namespace bout

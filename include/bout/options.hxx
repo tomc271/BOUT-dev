@@ -55,6 +55,7 @@ class Options;
 #include <fmt/format.h>
 
 #include <cmath>
+#include <concepts>
 #include <functional>
 #include <map>
 #include <ostream>
@@ -62,6 +63,28 @@ class Options;
 #include <sstream>
 #include <string>
 #include <utility>
+
+#include <type_traits>
+
+namespace bout::concepts {
+
+/// Matches Field2D, Field3D, FieldPerp
+template <typename T>
+concept BoutField = requires(T t) {
+  t.getLocation();
+  t.getDirectionY();
+  t.getDirectionZ();
+};
+
+/// Matches Array, Matrix, Tensor
+template <typename T>
+concept BoutContainer = requires(T t) {
+  t.shape();
+  typename T::value_type;
+};
+
+} // namespace bout::concepts
+
 
 /// Class to represent hierarchy of options
 /*!
@@ -351,10 +374,10 @@ public:
   ///
   ///  - doc              [string] Documentation, describing what the variable does
   ///
-  std::map<std::string, AttributeType> attributes;
+  std::map<std::string, AttributeType, std::less<>> attributes;
 
   /// Return true if this value has attribute \p key
-  bool hasAttribute(const std::string& key) const {
+  bool hasAttribute(std::string_view key) const {
     return attributes.find(key) != attributes.end();
   }
 
@@ -448,20 +471,7 @@ public:
     return value;
   }
 
-  /// Assign a value to the option.
-  /// This will throw an exception if already has a value
-  ///
-  /// Returns
-  /// -------
-  /// A reference to `this`, for method chaining
-  ///
-  /// Example
-  /// -------
-  ///
-  /// Options option;
-  /// option["test"].assign(42, "some source");
-  ///
-  /// Note: Specialised versions for types stored in ValueType
+  /// Primary Template for fallback types (serializes via stringstream)
   template <typename T>
   Options& assign(T val, std::string source = "") {
     std::stringstream as_str;
@@ -469,6 +479,14 @@ public:
     _set(as_str.str(), std::move(source), false);
     return *this;
   }
+
+  /// Concept overload: Fields
+  template <bout::concepts::BoutField T>
+  Options& assign(T val, std::string source = "");
+
+  /// Concept overload: Math Containers
+  template <bout::concepts::BoutContainer T>
+  Options& assign(T val, std::string source = "");
 
   /// Force to a value
   /// Overwrites any existing setting
@@ -514,9 +532,8 @@ public:
   ///     option["test"] = 2.0;
   ///     int value = option["test"];
   ///
-  template <typename T, typename = typename std::enable_if_t<
-                            bout::utils::isVariantMember<T, ValueType>::value>>
-  operator T() const {
+  template <typename T>
+  requires(bout::utils::isVariantMember<T, ValueType>::value) operator T() const {
     return as<T>();
   }
 
@@ -536,60 +553,12 @@ public:
   ///
   /// Attributes override properties of the \p similar_to argument.
   template <typename T>
-  T as(const T& UNUSED(similar_to) = {}) const {
-    if (is_section) {
-      throw BoutException("Option {:s} has no value", full_name);
-    }
+  T as(const T& similar_to = {}) const;
 
-    T val;
+  /// Concept overload: Math Containers
+  template <bout::concepts::BoutContainer T>
+  T as(const T& similar_to = {}) const;
 
-    // Try casting. This will throw std::bad_cast if it can't be done
-    try {
-      val = bout::utils::variantStaticCastOrThrow<ValueType, T>(value);
-    } catch (const std::bad_cast& e) {
-      // If the variant is a string then we may be able to parse it
-
-      if (bout::utils::holds_alternative<std::string>(value)) {
-        std::stringstream as_str(bout::utils::get<std::string>(value));
-        as_str >> val;
-
-        // Check if the parse failed
-        if (as_str.fail()) {
-          throw BoutException("Option {:s} could not be parsed ('{:s}')", full_name,
-                              bout::utils::variantToString(value));
-        }
-
-        // Check if there are characters remaining
-        std::string remainder;
-        std::getline(as_str, remainder);
-        for (const unsigned char chr : remainder) {
-          if (!std::isspace(chr)) {
-            // Meaningful character not parsed
-            throw BoutException("Option {:s} could not be parsed", full_name);
-          }
-        }
-      } else {
-        // Another type which can't be casted
-        throw BoutException("Option {:s} could not be converted to type {:s}", full_name,
-                            typeid(T).name());
-      }
-    }
-
-    // Mark this option as used
-    value_used = true; // Note this is mutable
-
-    output_info << "\tOption " << full_name << " = " << val;
-    if (attributes.count("source")) {
-      // Specify the source of the setting
-      output_info << " (" << bout::utils::variantToString(attributes.at("source")) << ")";
-    }
-    output_info << '\n';
-
-    return val;
-  }
-
-  /// Get the value of this option. If not found,
-  /// set to the default value
   template <typename T>
   T withDefault(T def) {
 
@@ -936,7 +905,7 @@ private:
   }
 };
 
-// Specialised assign methods for types stored in ValueType
+// Fast-path explicitly specialized assign methods for underlying primitive types
 template <>
 inline Options& Options::assign<>(bool val, std::string source) {
   _set(val, std::move(source), false);
@@ -954,68 +923,31 @@ inline Options& Options::assign<>(BoutReal val, std::string source) {
 }
 template <>
 inline Options& Options::assign<>(std::string val, std::string source) {
-  _set(std::move(val), std::move(source), false);
+  _set(val, std::move(source), false);
   return *this;
 }
-// Note: const char* version needed to avoid conversion to bool
-template <>
-inline Options& Options::assign<>(const char* val, std::string source) {
-  _set(std::string(val), std::move(source), false);
-  return *this;
-}
-// Note: Field assignments don't check for previous assignment (always force)
-template <>
-Options& Options::assign<>(Field2D val, std::string source);
-template <>
-Options& Options::assign<>(Field3D val, std::string source);
-template <>
-Options& Options::assign<>(FieldPerp val, std::string source);
-template <>
-Options& Options::assign<>(Array<BoutReal> val, std::string source);
-template <>
-Options& Options::assign<>(Array<int> val, std::string source);
-template <>
-Options& Options::assign<>(Matrix<BoutReal> val, std::string source);
-template <>
-Options& Options::assign<>(Matrix<int> val, std::string source);
-template <>
-Options& Options::assign<>(Tensor<BoutReal> val, std::string source);
-template <>
-Options& Options::assign<>(Tensor<int> val, std::string source);
 
 /// Specialised similar comparison methods
 template <>
 inline bool Options::similar<BoutReal>(BoutReal lhs, BoutReal rhs) const {
-  return fabs(lhs - rhs) < 1e-10;
+  return std::fabs(lhs - rhs) < 1e-10;
 }
 
-/// Specialised as routines
+/// Declare the explicit template specializations for primitive types and fields
 template <>
-auto Options::as(const std::string& similar_to) const -> std::string;
+std::string Options::as(const std::string& similar_to) const;
 template <>
-auto Options::as(const int& similar_to) const -> int;
+int Options::as(const int& similar_to) const;
 template <>
-auto Options::as(const BoutReal& similar_to) const -> BoutReal;
+BoutReal Options::as(const BoutReal& similar_to) const;
 template <>
-auto Options::as(const bool& similar_to) const -> bool;
+bool Options::as(const bool& similar_to) const;
 template <>
-auto Options::as(const Field2D& similar_to) const -> Field2D;
+Field2D Options::as(const Field2D& similar_to) const;
 template <>
-auto Options::as(const Field3D& similar_to) const -> Field3D;
+Field3D Options::as(const Field3D& similar_to) const;
 template <>
-auto Options::as(const FieldPerp& similar_to) const -> FieldPerp;
-template <>
-auto Options::as(const Array<BoutReal>& similar_to) const -> Array<BoutReal>;
-template <>
-auto Options::as(const Array<int>& similar_to) const -> Array<int>;
-template <>
-auto Options::as(const Matrix<BoutReal>& similar_to) const -> Matrix<BoutReal>;
-template <>
-auto Options::as(const Matrix<int>& similar_to) const -> Matrix<int>;
-template <>
-auto Options::as(const Tensor<BoutReal>& similar_to) const -> Tensor<BoutReal>;
-template <>
-auto Options::as(const Tensor<int>& similar_to) const -> Tensor<int>;
+FieldPerp Options::as(const FieldPerp& similar_to) const;
 
 /// Convert \p value to string
 std::string toString(const Options& value);
