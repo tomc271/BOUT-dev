@@ -38,7 +38,7 @@ std::string Options::getDefaultSource() { return DEFAULT_SOURCE; }
 
 /// Name of the attribute to indicate an Option should always count as
 /// having been used
-constexpr auto conditionally_used_attribute = "conditionally used";
+constexpr std::string_view conditionally_used_attribute = "conditionally used";
 
 Options& Options::root() {
   static Options root_instance;
