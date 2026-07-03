@@ -760,13 +760,13 @@ struct ConvertContainer<C<Scalar>> {
 
   Container operator()(int value) {
     Container result(similar_to);
-    std::fill(std::begin(result), std::end(result), static_cast<Scalar>(value));
+    std::ranges::fill(result, static_cast<Scalar>(value));
     return result;
   }
 
   Container operator()(BoutReal value) {
     Container result(similar_to);
-    std::fill(std::begin(result), std::end(result), static_cast<Scalar>(value));
+    std::ranges::fill(result, static_cast<Scalar>(value));
     return result;
   }
 
@@ -779,8 +779,8 @@ struct ConvertContainer<C<Scalar>> {
     Container result(similar_to);
     result.reshape(value.shape()); // Resize to shape of input
 
-    std::transform(std::begin(value), std::end(value), std::begin(result),
-                   [](const OtherScalar& x) { return static_cast<Scalar>(x); });
+    std::ranges::transform(value, std::begin(result),
+                           [](const auto& x) { return static_cast<Scalar>(x); });
     return result;
   }
 
@@ -877,7 +877,8 @@ Options Options::getUnused(const std::vector<std::string>& exclude_sources) cons
       return false;
     }
     const auto source = option.attributes.at("source").as<std::string>();
-    return std::ranges::find(exclude_sources, source) != std::ranges::end(exclude_sources);
+    return std::ranges::find(exclude_sources, source)
+           != std::ranges::end(exclude_sources);
   };
 
   const auto conditionally_used = [](const Options& option) -> bool {
