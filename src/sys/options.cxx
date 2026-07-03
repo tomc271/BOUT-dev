@@ -812,14 +812,6 @@ T as_amt(const Options& self, const T& similar_to) {
 
   printNameValueSourceLine(self, bout::utils::typeName<T>());
 
-  output_info.write("{} {} = {}", _("\tOption "), self.str(), bout::utils::typeName<T>());
-  if (self.hasAttribute("source")) {
-    // Specify the source of the setting
-    output_info.write(" ({})",
-                      bout::utils::variantToString(self.attributes.at("source")));
-  }
-  output_info.write("\n");
-
   return result;
 }
 } // namespace
