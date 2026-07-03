@@ -55,6 +55,7 @@ class Options;
 #include <fmt/format.h>
 
 #include <cmath>
+#include <concepts>
 #include <functional>
 #include <map>
 #include <ostream>
@@ -67,7 +68,7 @@ class Options;
 
 namespace bout::concepts {
 
-// Matches Field2D, Field3D, FieldPerp
+/// Matches Field2D, Field3D, FieldPerp
 template <typename T>
 concept BoutField = requires(T t) {
   t.getLocation();
@@ -75,7 +76,7 @@ concept BoutField = requires(T t) {
   t.getDirectionZ();
 };
 
-// Matches Array, Matrix, Tensor
+/// Matches Array, Matrix, Tensor
 template <typename T>
 concept BoutContainer = requires(T t) {
   t.shape();
@@ -470,20 +471,7 @@ public:
     return value;
   }
 
-  /// Assign a value to the option.
-  /// This will throw an exception if already has a value
-  ///
-  /// Returns
-  /// -------
-  /// A reference to `this`, for method chaining
-  ///
-  /// Example
-  /// -------
-  ///
-  /// Options option;
-  /// option["test"].assign(42, "some source");
-  ///
-  /// Note: Specialised versions for types stored in ValueType
+  /// Primary Template for fallback types (serializes via stringstream)
   template <typename T>
   Options& assign(T val, std::string source = "") {
     std::stringstream as_str;
@@ -491,6 +479,14 @@ public:
     _set(as_str.str(), std::move(source), false);
     return *this;
   }
+
+  /// Concept overload: Fields
+  template <bout::concepts::BoutField T>
+  Options& assign(T val, std::string source = "");
+
+  /// Concept overload: Math Containers
+  template <bout::concepts::BoutContainer T>
+  Options& assign(T val, std::string source = "");
 
   /// Force to a value
   /// Overwrites any existing setting
@@ -536,9 +532,8 @@ public:
   ///     option["test"] = 2.0;
   ///     int value = option["test"];
   ///
-  template <typename T, typename = typename std::enable_if_t<
-                            bout::utils::isVariantMember<T, ValueType>::value>>
-  operator T() const {
+  template <typename T>
+  requires(bout::utils::isVariantMember<T, ValueType>::value) operator T() const {
     return as<T>();
   }
 
@@ -610,8 +605,10 @@ public:
     return val;
   }
 
-  /// Get the value of this option. If not found,
-  /// set to the default value
+  /// Concept overload: Math Containers
+  template <bout::concepts::BoutContainer T>
+  T as(const T& similar_to = {}) const;
+
   template <typename T>
   T withDefault(T def) {
 
@@ -958,202 +955,26 @@ private:
   }
 };
 
-/// Specialised similar comparison methods
+// Fast-path explicitly specialized assign methods for underlying primitive types
 template <>
-inline bool Options::similar<BoutReal>(BoutReal lhs, BoutReal rhs) const {
-  return fabs(lhs - rhs) < 1e-10;
+inline Options& Options::assign<>(bool val, std::string source) {
+  _set(val, std::move(source), false);
+  return *this;
 }
-
-/// Specialised as routines
 template <>
-auto Options::as(const std::string& similar_to) const -> std::string;
-template <>
-auto Options::as(const int& similar_to) const -> int;
-template <>
-auto Options::as(const BoutReal& similar_to) const -> BoutReal;
-template <>
-auto Options::as(const bool& similar_to) const -> bool;
-template <>
-auto Options::as(const Field2D& similar_to) const -> Field2D;
-template <>
-auto Options::as(const Field3D& similar_to) const -> Field3D;
-template <>
-auto Options::as(const FieldPerp& similar_to) const -> FieldPerp;
-template <>
-auto Options::as(const Array<BoutReal>& similar_to) const -> Array<BoutReal>;
-template <>
-auto Options::as(const Array<int>& similar_to) const -> Array<int>;
-template <>
-auto Options::as(const Matrix<BoutReal>& similar_to) const -> Matrix<BoutReal>;
-template <>
-auto Options::as(const Matrix<int>& similar_to) const -> Matrix<int>;
-template <>
-auto Options::as(const Tensor<BoutReal>& similar_to) const -> Tensor<BoutReal>;
-template <>
-auto Options::as(const Tensor<int>& similar_to) const -> Tensor<int>;
-
-/// Convert \p value to string
-std::string toString(const Options& value);
-
-/// Save the parallel fields
-void saveParallel(Options& opt, const std::string& name, const Field3D& tosave);
-
-/// Output a stringified \p value to a stream
-///
-/// This is templated to avoid implict casting: anything is
-/// convertible to an `Options`, and we want _exactly_ `Options`
-template <class T, typename = bout::utils::EnableIfOptions<T>>
-inline std::ostream& operator<<(std::ostream& out, const T& value) {
-  return out << toString(value);
+inline Options& Options::assign<>(int val, std::string source) {
+  _set(val, std::move(source), false);
+  return *this;
 }
-
-namespace bout {
-/// Check if the global Options contains any unused keys and throw an
-/// exception if so. This check can be skipped by setting
-/// `input:error_on_unused_options=false` in the global Options.
-void checkForUnusedOptions();
-/// Check if the given \p options contains any unused keys and throw
-/// an exception if so.
-///
-/// The error message contains helpful suggestions on possible
-/// misspellings, and how to automatically fix most common errors with
-/// library options. The \p data_dir and \p option_file arguments are
-/// used to customise the error message for the actual input file used
-void checkForUnusedOptions(const Options& options, const std::string& data_dir,
-                           const std::string& option_file);
-} // namespace bout
-
-namespace bout {
-namespace details {
-/// Implementation of fmt::formatter<Options> in a non-template class
-/// so that we can put the function definitions in the .cxx file,
-/// avoiding lengthy recompilation if we change it
-struct OptionsFormatterBase {
-  constexpr auto parse(fmt::format_parse_context& ctx) {
-    const auto* it = ctx.begin();
-    const auto* const end = ctx.end();
-
-    while (it != end and *it != '}') {
-      switch (*it) {
-      case 'd':
-        docstrings = true;
-        ++it;
-        break;
-      case 'i':
-        inline_section_names = true;
-        ++it;
-        break;
-      case 'k':
-        key_only = true;
-        ++it;
-        break;
-      case 's':
-        source = true;
-        ++it;
-        break;
-      case 'u':
-        unused = true;
-        ++it;
-        break;
-      default:
-        throw fmt::format_error("invalid format for 'Options'");
-      }
-    }
-
-    return it;
-  }
-
-  auto format(const Options& options, fmt::format_context& ctx) const
-      -> fmt::format_context::iterator;
-
-private:
-  /// Include the 'doc' attribute, if present
-  bool docstrings{false};
-  /// If an option is unused add a comment and whether it is
-  /// conditionally unused
-  bool unused{false};
-  /// If true, print variables as 'section:variable', rather than a
-  /// section header '[section]' and plain 'variable'
-  bool inline_section_names{false};
-  /// Only include the key name, and not the value
-  bool key_only{false};
-  /// Include the 'source' attribute, if present
-  bool source{false};
-};
-} // namespace details
-} // namespace bout
-
-/// Format `Options` to string. Format string specification is:
-///
-/// - 'd': include 'doc' attribute if present
-/// - 'i': inline section names
-/// - 'k': only print the key, not the value
-/// - 's': include 'source' attribute if present
 template <>
-struct fmt::formatter<Options> : public bout::details::OptionsFormatterBase {};
-
-// NOLINTBEGIN(cppcoreguidelines-macro-usage)
-
-/// Define for reading options which passes the variable name
-#define OPTION(options, var, def) pointer(options)->get(#var, var, def)
-
-#define OPTION2(options, var1, var2, def)    \
-  {                                          \
-    pointer(options)->get(#var1, var1, def); \
-    pointer(options)->get(#var2, var2, def); \
-  }
-
-#define OPTION3(options, var1, var2, var3, def) \
-  {                                             \
-    pointer(options)->get(#var1, var1, def);    \
-    pointer(options)->get(#var2, var2, def);    \
-    pointer(options)->get(#var3, var3, def);    \
-  }
-
-#define OPTION4(options, var1, var2, var3, var4, def) \
-  {                                                   \
-    pointer(options)->get(#var1, var1, def);          \
-    pointer(options)->get(#var2, var2, def);          \
-    pointer(options)->get(#var3, var3, def);          \
-    pointer(options)->get(#var4, var4, def);          \
-  }
-
-#define OPTION5(options, var1, var2, var3, var4, var5, def) \
-  {                                                         \
-    pointer(options)->get(#var1, var1, def);                \
-    pointer(options)->get(#var2, var2, def);                \
-    pointer(options)->get(#var3, var3, def);                \
-    pointer(options)->get(#var4, var4, def);                \
-    pointer(options)->get(#var5, var5, def);                \
-  }
-
-#define OPTION6(options, var1, var2, var3, var4, var5, var6, def) \
-  {                                                               \
-    pointer(options)->get(#var1, var1, def);                      \
-    pointer(options)->get(#var2, var2, def);                      \
-    pointer(options)->get(#var3, var3, def);                      \
-    pointer(options)->get(#var4, var4, def);                      \
-    pointer(options)->get(#var5, var5, def);                      \
-    pointer(options)->get(#var6, var6, def);                      \
-  }
-
-#define VAROPTION(options, var, def)                              \
-  {                                                               \
-    if (pointer(options)->isSet(#var)) {                          \
-      pointer(options)->get(#var, var, def);                      \
-    } else {                                                      \
-      Options::getRoot()->getSection("all")->get(#var, var, def); \
-    }                                                             \
-  }
-
-/// Define for over-riding library defaults for options, should be called in global
-/// namespace so that the new default is set before main() is called.
-#define BOUT_OVERRIDE_DEFAULT_OPTION(name, value)                                  \
-  namespace {                                                                      \
-  const auto BOUT_CONCAT(user_default,                                             \
-                         __LINE__) = Options::root()[name].overrideDefault(value); \
-  }
-
-// NOLINTEND(cppcoreguidelines-macro-usage)
+inline Options& Options::assign<>(BoutReal val, std::string source) {
+  _set(val, std::move(source), false);
+  return *this;
+}
+template <>
+inline Options& Options::assign<>(std::string val, std::string source) {
+  _set(val, std::move(source), false);
+  return *this;
+}
 
 #endif // OPTIONS_H
