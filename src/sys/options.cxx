@@ -299,58 +299,24 @@ bool Options::isSection(const std::string& name) const {
   return child->second.isSection();
 }
 
-template <>
-Options& Options::assign<>(Field2D val, std::string source) {
+// For Field types
+template <bout::concepts::BoutField T>
+Options& Options::assign(T val, std::string source) {
   attributes["cell_location"] = toString(val.getLocation());
   attributes["direction_y"] = toString(val.getDirectionY());
   attributes["direction_z"] = toString(val.getDirectionZ());
+
+  if constexpr (std::is_same_v<T, FieldPerp>) {
+    attributes["yindex_global"] = val.getGlobalIndex();
+  }
+
   _set_no_check(std::move(val), std::move(source));
   return *this;
 }
-template <>
-Options& Options::assign<>(Field3D val, std::string source) {
-  attributes["cell_location"] = toString(val.getLocation());
-  attributes["direction_y"] = toString(val.getDirectionY());
-  attributes["direction_z"] = toString(val.getDirectionZ());
-  _set_no_check(std::move(val), std::move(source));
-  return *this;
-}
-template <>
-Options& Options::assign<>(FieldPerp val, std::string source) {
-  attributes["cell_location"] = toString(val.getLocation());
-  attributes["direction_y"] = toString(val.getDirectionY());
-  attributes["direction_z"] = toString(val.getDirectionZ());
-  attributes["yindex_global"] = val.getGlobalIndex();
-  _set_no_check(std::move(val), std::move(source));
-  return *this;
-}
-template <>
-Options& Options::assign<>(Array<BoutReal> val, std::string source) {
-  _set_no_check(std::move(val), std::move(source));
-  return *this;
-}
-template <>
-Options& Options::assign<>(Array<int> val, std::string source) {
-  _set_no_check(std::move(val), std::move(source));
-  return *this;
-}
-template <>
-Options& Options::assign<>(Matrix<BoutReal> val, std::string source) {
-  _set_no_check(std::move(val), std::move(source));
-  return *this;
-}
-template <>
-Options& Options::assign<>(Matrix<int> val, std::string source) {
-  _set_no_check(std::move(val), std::move(source));
-  return *this;
-}
-template <>
-Options& Options::assign<>(Tensor<BoutReal> val, std::string source) {
-  _set_no_check(std::move(val), std::move(source));
-  return *this;
-}
-template <>
-Options& Options::assign<>(Tensor<int> val, std::string source) {
+
+// For Array, Matrix, and Tensor variants
+template <bout::concepts::BoutContainer T>
+Options& Options::assign(T val, std::string source) {
   _set_no_check(std::move(val), std::move(source));
   return *this;
 }

@@ -63,6 +63,28 @@ class Options;
 #include <string>
 #include <utility>
 
+#include <type_traits>
+
+namespace bout::concepts {
+
+// Matches Field2D, Field3D, FieldPerp
+template <typename T>
+concept BoutField = requires(T t) {
+  t.getLocation();
+  t.getDirectionY();
+  t.getDirectionZ();
+};
+
+// Matches Array, Matrix, Tensor
+template <typename T>
+concept BoutContainer = requires(T t) {
+  t.shape();
+  typename T::value_type;
+};
+
+} // namespace bout::concepts
+
+
 /// Class to represent hierarchy of options
 /*!
  *
@@ -935,53 +957,6 @@ private:
     return lhs == rhs;
   }
 };
-
-// Specialised assign methods for types stored in ValueType
-template <>
-inline Options& Options::assign<>(bool val, std::string source) {
-  _set(val, std::move(source), false);
-  return *this;
-}
-template <>
-inline Options& Options::assign<>(int val, std::string source) {
-  _set(val, std::move(source), false);
-  return *this;
-}
-template <>
-inline Options& Options::assign<>(BoutReal val, std::string source) {
-  _set(val, std::move(source), false);
-  return *this;
-}
-template <>
-inline Options& Options::assign<>(std::string val, std::string source) {
-  _set(std::move(val), std::move(source), false);
-  return *this;
-}
-// Note: const char* version needed to avoid conversion to bool
-template <>
-inline Options& Options::assign<>(const char* val, std::string source) {
-  _set(std::string(val), std::move(source), false);
-  return *this;
-}
-// Note: Field assignments don't check for previous assignment (always force)
-template <>
-Options& Options::assign<>(Field2D val, std::string source);
-template <>
-Options& Options::assign<>(Field3D val, std::string source);
-template <>
-Options& Options::assign<>(FieldPerp val, std::string source);
-template <>
-Options& Options::assign<>(Array<BoutReal> val, std::string source);
-template <>
-Options& Options::assign<>(Array<int> val, std::string source);
-template <>
-Options& Options::assign<>(Matrix<BoutReal> val, std::string source);
-template <>
-Options& Options::assign<>(Matrix<int> val, std::string source);
-template <>
-Options& Options::assign<>(Tensor<BoutReal> val, std::string source);
-template <>
-Options& Options::assign<>(Tensor<int> val, std::string source);
 
 /// Specialised similar comparison methods
 template <>
