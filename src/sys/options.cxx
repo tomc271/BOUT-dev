@@ -787,7 +787,7 @@ Options Options::getUnused(const std::vector<std::string>& exclude_sources) cons
     if (not option.hasAttribute(conditionally_used_attribute)) {
       return false;
     }
-    return option.attributes.at(conditionally_used_attribute).as<bool>();
+    return option.attributes.at(std::string(conditionally_used_attribute)).as<bool>();
   };
 
   // Copy this object, and then we're going to chuck out everything
@@ -857,23 +857,13 @@ void Options::printUnused() const {
 }
 
 void Options::setConditionallyUsed() {
-  attributes[conditionally_used_attribute] = true;
+  attributes[std::string(conditionally_used_attribute)] = true;
   for (auto& child : children) {
     child.second.setConditionallyUsed();
   }
 }
 
 void Options::cleanCache() { FieldFactory::get()->cleanCache(); }
-
-std::map<std::string, const Options*> Options::subsections() const {
-  std::map<std::string, const Options*> sections;
-  for (const auto& child : children) {
-    if (child.second.isSection()) {
-      sections[child.first] = &child.second;
-    }
-  }
-  return sections;
-}
 
 std::map<std::string, const Options*> Options::subsections() const {
   std::map<std::string, const Options*> sections;
@@ -948,7 +938,7 @@ bout::details::OptionsFormatterBase::format(const Options& options,
     if (not option.hasAttribute(conditionally_used_attribute)) {
       return false;
     }
-    return option.attributes.at(conditionally_used_attribute).as<bool>();
+    return option.attributes.at(std::string(conditionally_used_attribute)).template as<bool>();
   };
 
   if (options.isValue()) {

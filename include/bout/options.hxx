@@ -976,31 +976,31 @@ inline bool Options::similar<BoutReal>(BoutReal lhs, BoutReal rhs) const {
 
 /// Specialised as routines
 template <>
-auto Options::as(const std::string& similar_to) const -> std::string;
+std::string Options::as(const std::string& similar_to) const;
 template <>
-auto Options::as(const int& similar_to) const -> int;
+int Options::as(const int& similar_to) const;
 template <>
-auto Options::as(const BoutReal& similar_to) const -> BoutReal;
+BoutReal Options::as(const BoutReal& similar_to) const;
 template <>
-auto Options::as(const bool& similar_to) const -> bool;
+bool Options::as(const bool& similar_to) const;
 template <>
-auto Options::as(const Field2D& similar_to) const -> Field2D;
+Field2D Options::as(const Field2D& similar_to) const;
 template <>
-auto Options::as(const Field3D& similar_to) const -> Field3D;
+Field3D Options::as(const Field3D& similar_to) const;
 template <>
-auto Options::as(const FieldPerp& similar_to) const -> FieldPerp;
+FieldPerp Options::as(const FieldPerp& similar_to) const;
 template <>
-auto Options::as(const Array<BoutReal>& similar_to) const -> Array<BoutReal>;
+Array<BoutReal> Options::as(const Array<BoutReal>& similar_to) const;
 template <>
-auto Options::as(const Array<int>& similar_to) const -> Array<int>;
+Array<int> Options::as(const Array<int>& similar_to) const;
 template <>
-auto Options::as(const Matrix<BoutReal>& similar_to) const -> Matrix<BoutReal>;
+Matrix<BoutReal> Options::as(const Matrix<BoutReal>& similar_to) const;
 template <>
-auto Options::as(const Matrix<int>& similar_to) const -> Matrix<int>;
+Matrix<int> Options::as(const Matrix<int>& similar_to) const;
 template <>
-auto Options::as(const Tensor<BoutReal>& similar_to) const -> Tensor<BoutReal>;
+Tensor<BoutReal> Options::as(const Tensor<BoutReal>& similar_to) const;
 template <>
-auto Options::as(const Tensor<int>& similar_to) const -> Tensor<int>;
+Tensor<int> Options::as(const Tensor<int>& similar_to) const;
 
 /// Convert \p value to string
 std::string toString(const Options& value);
