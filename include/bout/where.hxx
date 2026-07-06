@@ -37,13 +37,12 @@
 /// @param[in] test   The value which determines which input to use
 /// @param[in] gt0    Uses this value if test > 0.0
 /// @param[in] le0    Uses this value if test <= 0.0
-template <class T, class U, class V,
-          class ResultType = typename bout::utils::EnableIfField<T, U, V>>
-auto where(const T& test, const U& gt0, const V& le0) -> ResultType {
+template <IsField T, IsField U, IsField V>
+auto where(const T& test, const U& gt0, const V& le0) -> std::common_type_t<T, U, V> {
   ASSERT1_FIELDS_COMPATIBLE(test, gt0);
   ASSERT1_FIELDS_COMPATIBLE(test, le0);
 
-  ResultType result{emptyFrom(test)};
+  std::common_type_t<T, U, V> result{emptyFrom(test)};
 
   BOUT_FOR(i, result.getRegion("RGN_ALL")) {
     result[i] = (test[i] > 0.0) ? gt0[i] : le0[i];
@@ -51,11 +50,11 @@ auto where(const T& test, const U& gt0, const V& le0) -> ResultType {
   return result;
 }
 
-template <class T, class U, class ResultType = typename bout::utils::EnableIfField<T, U>>
-auto where(const T& test, const U& gt0, BoutReal le0) -> ResultType {
+template <IsField T, IsField U>
+auto where(const T& test, const U& gt0, BoutReal le0) -> std::common_type_t<T, U> {
   ASSERT1_FIELDS_COMPATIBLE(test, gt0);
 
-  ResultType result{emptyFrom(test)};
+  std::common_type_t<T, U> result{emptyFrom(test)};
 
   BOUT_FOR(i, result.getRegion("RGN_ALL")) { // clang-format: ignore
     result[i] = (test[i] > 0.0) ? gt0[i] : le0;
@@ -63,11 +62,11 @@ auto where(const T& test, const U& gt0, BoutReal le0) -> ResultType {
   return result;
 }
 
-template <class T, class V, class ResultType = typename bout::utils::EnableIfField<T, V>>
-auto where(const T& test, BoutReal gt0, const V& le0) -> ResultType {
+template <IsField T, IsField V>
+auto where(const T& test, BoutReal gt0, const V& le0) -> std::common_type_t<T, V> {
   ASSERT1_FIELDS_COMPATIBLE(test, le0);
 
-  ResultType result{emptyFrom(test)};
+  std::common_type_t<T, V> result{emptyFrom(test)};
 
   BOUT_FOR(i, result.getRegion("RGN_ALL")) { // clang-format: ignore
     result[i] = (test[i] > 0.0) ? gt0 : le0[i];
@@ -75,9 +74,9 @@ auto where(const T& test, BoutReal gt0, const V& le0) -> ResultType {
   return result;
 }
 
-template <class T, class ResultType = T>
-auto where(const T& test, BoutReal gt0, BoutReal le0) -> ResultType {
-  ResultType result{emptyFrom(test)};
+template <IsField T>
+auto where(const T& test, BoutReal gt0, BoutReal le0) -> T {
+  T result{emptyFrom(test)};
 
   BOUT_FOR(i, result.getRegion("RGN_ALL")) { // clang-format: ignore
     result[i] = (test[i] > 0.0) ? gt0 : le0;
