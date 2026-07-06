@@ -35,6 +35,34 @@
 
 class Options;
 
+template <>
+std::string Options::as<std::string>(const std::string& similar_to) const;
+
+template <>
+int Options::as<int>(const int& similar_to) const;
+
+template <>
+BoutReal Options::as<BoutReal>(const BoutReal& similar_to) const;
+
+template <>
+bool Options::as<bool>(const bool& similar_to) const;
+
+template <>
+Field3D Options::as<Field3D>(const Field3D& similar_to) const;
+
+template <>
+Field2D Options::as<Field2D>(const Field2D& similar_to) const;
+
+template <>
+FieldPerp Options::as<FieldPerp>(const FieldPerp& similar_to) const;
+
+template <> Array<BoutReal> Options::as(const Array<BoutReal>& similar_to) const;
+template <> Array<int> Options::as(const Array<int>& similar_to) const;
+template <> Matrix<BoutReal> Options::as(const Matrix<BoutReal>& similar_to) const;
+template <> Matrix<int> Options::as(const Matrix<int>& similar_to) const;
+template <> Tensor<BoutReal> Options::as(const Tensor<BoutReal>& similar_to) const;
+template <> Tensor<int> Options::as(const Tensor<int>& similar_to) const;
+
 #pragma once
 #ifndef OPTIONS_H
 #define OPTIONS_H
@@ -896,8 +924,8 @@ public:
 
   /// API for delayed loading of data from the grid file
   /// Currently only for 3D data
-  using lazyLoadFunction = std::unique_ptr<std::function<Tensor<BoutReal>(
-      int xstart, int xend, int ystart, int yend, int zstart, int zend)>>;
+  using lazyLoadFunction = std::unique_ptr<std::function<Tensor<BoutReal>(int xstart, int xend, int ystart, int yend, int zstart, int zend)>>;
+
   void setLazyLoad(lazyLoadFunction func) { lazyLoad = std::move(func); }
   /// Load and get a chunk of the data
   Tensor<BoutReal> doLazyLoad(int xstart, int xend, int ystart, int yend, int zstart,
