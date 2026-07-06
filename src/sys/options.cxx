@@ -299,28 +299,6 @@ bool Options::isSection(const std::string& name) const {
   return child->second.isSection();
 }
 
-// For Field types
-template <bout::concepts::BoutField T>
-Options& Options::assign(T val, std::string source) {
-  attributes["cell_location"] = toString(val.getLocation());
-  attributes["direction_y"] = toString(val.getDirectionY());
-  attributes["direction_z"] = toString(val.getDirectionZ());
-
-  if constexpr (std::is_same_v<T, FieldPerp>) {
-    attributes["yindex_global"] = val.getGlobalIndex();
-  }
-
-  _set_no_check(std::move(val), std::move(source));
-  return *this;
-}
-
-// For Array, Matrix, and Tensor variants
-template <bout::concepts::BoutContainer T>
-Options& Options::assign(T val, std::string source) {
-  _set_no_check(std::move(val), std::move(source));
-  return *this;
-}
-
 void saveParallel(Options& opt, const std::string& name, const Field3D& tosave) {
   opt[name] = tosave;
   const size_t numberParallelSlices =

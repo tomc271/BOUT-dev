@@ -486,16 +486,26 @@ public:
   /// Note: Specialised versions for types stored in ValueType
   /// Concept overload: Types natively supported by the internal variant
   template <typename T>
-    requires std::is_constructible_v<ValueType, T>
-  Options& assign(T val, std::string source = "") {
+  requires std::is_constructible_v<ValueType, T> Options&
+  assign(T val, std::string source = "") {
+    if constexpr (bout::concepts::BoutField<T>) {
+      attributes["cell_location"] = toString(val.getLocation());
+      attributes["direction_y"] = toString(val.getDirectionY());
+      attributes["direction_z"] = toString(val.getDirectionZ());
+
+      if constexpr (std::is_same_v<T, FieldPerp>) {
+        attributes["yindex_global"] = val.getGlobalIndex();
+      }
+    }
+
     _set(std::move(val), std::move(source), false);
     return *this;
   }
 
   /// Primary Template for fallback types (serializes via stringstream)
   template <typename T>
-    requires (!std::is_constructible_v<ValueType, T>)
-  Options& assign(T val, std::string source = "") {
+  requires(!std::is_constructible_v<ValueType, T>) Options& assign(
+      T val, std::string source = "") {
     std::stringstream as_str;
     as_str << val;
     _set(as_str.str(), std::move(source), false);
