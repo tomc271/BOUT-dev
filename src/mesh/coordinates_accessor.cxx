@@ -44,7 +44,7 @@ CoordinatesAccessor::CoordinatesAccessor(const Coordinates* coords) {
 
     auto copy_stripe = [&](auto mem_ptr, Offset offset) {
       if ((coords->*mem_ptr).isAllocated()) {
-        data[stripe_size * ind.ind + static_cast<int>(offset)] = (coords->*mem_ptr)[ind];
+        data[(stripe_size * ind.ind) + static_cast<int>(offset)] = (coords->*mem_ptr)[ind];
       }
     };
 
@@ -76,13 +76,13 @@ CoordinatesAccessor::CoordinatesAccessor(const Coordinates* coords) {
 
     // Bxy handling requires nested member evaluation, so we keep it explicit
     if (coords->Bxy.isAllocated()) {
-      data[stripe_size * ind.ind + static_cast<int>(Offset::B)] = coords->Bxy[ind];
+      data[(stripe_size * ind.ind) + static_cast<int>(Offset::B)] = coords->Bxy[ind];
       if (coords->Bxy.yup().isAllocated()) {
-        data[stripe_size * ind.ind + static_cast<int>(Offset::Byup)] =
+        data[(stripe_size * ind.ind) + static_cast<int>(Offset::Byup)] =
             coords->Bxy.yup()[ind];
       }
       if (coords->Bxy.ydown().isAllocated()) {
-        data[stripe_size * ind.ind + static_cast<int>(Offset::Bydown)] =
+        data[(stripe_size * ind.ind) + static_cast<int>(Offset::Bydown)] =
             coords->Bxy.ydown()[ind];
       }
     }

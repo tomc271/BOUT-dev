@@ -95,7 +95,7 @@ struct CoordinatesAccessor {
 #else
     const int ind = index / mesh_nz; // Convert to a 2D index
 #endif
-    return data[stripe_size * ind + static_cast<int>(offset)];
+    return data[(stripe_size * ind) + static_cast<int>(offset)];
   }
 
   // A type-safe templated lookup method using enum classes
