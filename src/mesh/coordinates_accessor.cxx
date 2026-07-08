@@ -1,6 +1,5 @@
 #include "bout/coordinates_accessor.hxx"
 #include "bout/build_defines.hxx"
-#include "bout/macro_for_each.hxx"
 #include "bout/mesh.hxx"
 
 #include <map>
@@ -39,38 +38,54 @@ CoordinatesAccessor::CoordinatesAccessor(const Coordinates* coords) {
   // Create the array and get the underlying data
   data = coords_store.emplace(coords, array_size).first->second.begin();
 
-  // Copy data from Coordinates variable into data array
-  // Uses the symbol to look up the corresponding Offset
-#define COPY_STRIPE1(symbol)        \
-  if (coords->symbol.isAllocated()) \
-    data[stripe_size * ind.ind + static_cast<int>(Offset::symbol)] = coords->symbol[ind];
-
-  // Implement copy for each argument
-#define COPY_STRIPE(...)                      \
-  {                                           \
-    MACRO_FOR_EACH(COPY_STRIPE1, __VA_ARGS__) \
-  }
-
   // Iterate over all points in the field
   // Note this could be 2D or 3D, depending on FieldMetric type
   for (const auto& ind : coords->dx.getRegion("RGN_ALL")) {
-    COPY_STRIPE(dx, dy, dz);
-    COPY_STRIPE(d1_dx, d1_dy, d1_dz);
-    COPY_STRIPE(J);
 
+    auto copy_stripe = [&](auto mem_ptr, Offset offset) {
+      if ((coords->*mem_ptr).isAllocated()) {
+        data[stripe_size * ind.ind + static_cast<int>(offset)] = (coords->*mem_ptr)[ind];
+      }
+    };
+
+    copy_stripe(&Coordinates::dx, Offset::dx);
+    copy_stripe(&Coordinates::dy, Offset::dy);
+    copy_stripe(&Coordinates::dz, Offset::dz);
+
+    copy_stripe(&Coordinates::d1_dx, Offset::d1_dx);
+    copy_stripe(&Coordinates::d1_dy, Offset::d1_dy);
+    copy_stripe(&Coordinates::d1_dz, Offset::d1_dz);
+
+    copy_stripe(&Coordinates::J, Offset::J);
+    copy_stripe(&Coordinates::G1, Offset::G1);
+    copy_stripe(&Coordinates::G3, Offset::G3);
+
+    copy_stripe(&Coordinates::g11, Offset::g11);
+    copy_stripe(&Coordinates::g12, Offset::g12);
+    copy_stripe(&Coordinates::g13, Offset::g13);
+    copy_stripe(&Coordinates::g22, Offset::g22);
+    copy_stripe(&Coordinates::g23, Offset::g23);
+    copy_stripe(&Coordinates::g33, Offset::g33);
+
+    copy_stripe(&Coordinates::g_11, Offset::g_11);
+    copy_stripe(&Coordinates::g_12, Offset::g_12);
+    copy_stripe(&Coordinates::g_13, Offset::g_13);
+    copy_stripe(&Coordinates::g_22, Offset::g_22);
+    copy_stripe(&Coordinates::g_23, Offset::g_23);
+    copy_stripe(&Coordinates::g_33, Offset::g_33);
+
+    // Bxy handling requires nested member evaluation, so we keep it explicit
     if (coords->Bxy.isAllocated()) {
       data[stripe_size * ind.ind + static_cast<int>(Offset::B)] = coords->Bxy[ind];
-      if (coords->Bxy.yup().isAllocated())
+      if (coords->Bxy.yup().isAllocated()) {
         data[stripe_size * ind.ind + static_cast<int>(Offset::Byup)] =
             coords->Bxy.yup()[ind];
-      if (coords->Bxy.ydown().isAllocated())
+      }
+      if (coords->Bxy.ydown().isAllocated()) {
         data[stripe_size * ind.ind + static_cast<int>(Offset::Bydown)] =
             coords->Bxy.ydown()[ind];
+      }
     }
-
-    COPY_STRIPE(G1, G3);
-    COPY_STRIPE(g11, g12, g13, g22, g23, g33);
-    COPY_STRIPE(g_11, g_12, g_13, g_22, g_23, g_33);
   }
 }
 

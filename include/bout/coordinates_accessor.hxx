@@ -5,7 +5,6 @@
 #include "array.hxx"
 #include "build_config.hxx"
 #include "coordinates.hxx"
-#include "macro_for_each.hxx"
 
 /// Provide (hopefully) fast access to Coordinates data
 /// e.g. grid spacing, metric tensors etc.
@@ -90,40 +89,93 @@ struct CoordinatesAccessor {
 
   /// Lookup value in data array, based on the cell index
   /// and the variable offset
-  BOUT_HOST_DEVICE inline BoutReal lookup(int index, int offset) const {
+  BOUT_HOST_DEVICE inline BoutReal lookup(int index, Offset offset) const {
 #if BOUT_USE_METRIC_3D
     const int ind = index; // Use 3D index
 #else
     const int ind = index / mesh_nz; // Convert to a 2D index
 #endif
-    return data[stripe_size * ind + offset];
+    return data[stripe_size * ind + static_cast<int>(offset)];
   }
 
-  /// Create functions to access data e.g. dx(index)
-  /// by casting the Offset to an int and passing to lookup function
-  ///
-  /// e.g. COORD_FN1(dx) defines a function
-  ///     BoutReal dx(int index) const {...}
-#define COORD_FN1(symbol)                                    \
-  BOUT_HOST_DEVICE inline BoutReal symbol(int index) const { \
-    return lookup(index, static_cast<int>(Offset::symbol));  \
+  // A type-safe templated lookup method using enum classes
+  template <Offset O>
+  BOUT_HOST_DEVICE inline BoutReal get_metric(int index) const {
+    return lookup(index, O);
   }
 
-  /// Generates lookup functions for each symbol
-  /// Macro should accept up to 10 arguments
-  ///
-  /// e.g. COORD_FN(dx, dy) produces two functions
-  ///     BoutReal dx(int index) const {...}
-  ///     BoutReal dy(int index) const {...}
-#define COORD_FN(...) MACRO_FOR_EACH(COORD_FN1, __VA_ARGS__)
-
-  COORD_FN(dx, dy, dz);
-  COORD_FN(d1_dx, d1_dy, d1_dz);
-  COORD_FN(J);
-  COORD_FN(B, Byup, Bydown);
-  COORD_FN(G1, G3);
-  COORD_FN(g11, g12, g13, g22, g23, g33);
-  COORD_FN(g_11, g_12, g_13, g_22, g_23, g_33);
+  BOUT_HOST_DEVICE inline BoutReal dx(int idx) const {
+    return get_metric<Offset::dx>(idx);
+  }
+  BOUT_HOST_DEVICE inline BoutReal dy(int idx) const {
+    return get_metric<Offset::dy>(idx);
+  }
+  BOUT_HOST_DEVICE inline BoutReal dz(int idx) const {
+    return get_metric<Offset::dz>(idx);
+  }
+  BOUT_HOST_DEVICE inline BoutReal d1_dx(int idx) const {
+    return get_metric<Offset::d1_dx>(idx);
+  }
+  BOUT_HOST_DEVICE inline BoutReal d1_dy(int idx) const {
+    return get_metric<Offset::d1_dy>(idx);
+  }
+  BOUT_HOST_DEVICE inline BoutReal d1_dz(int idx) const {
+    return get_metric<Offset::d1_dz>(idx);
+  }
+  BOUT_HOST_DEVICE inline BoutReal J(int idx) const {
+    return get_metric<Offset::J>(idx);
+  }
+  BOUT_HOST_DEVICE inline BoutReal B(int idx) const {
+    return get_metric<Offset::B>(idx);
+  }
+  BOUT_HOST_DEVICE inline BoutReal Byup(int idx) const {
+    return get_metric<Offset::Byup>(idx);
+  }
+  BOUT_HOST_DEVICE inline BoutReal Bydown(int idx) const {
+    return get_metric<Offset::Bydown>(idx);
+  }
+  BOUT_HOST_DEVICE inline BoutReal G1(int idx) const {
+    return get_metric<Offset::G1>(idx);
+  }
+  BOUT_HOST_DEVICE inline BoutReal G3(int idx) const {
+    return get_metric<Offset::G3>(idx);
+  }
+  BOUT_HOST_DEVICE inline BoutReal g11(int idx) const {
+    return get_metric<Offset::g11>(idx);
+  }
+  BOUT_HOST_DEVICE inline BoutReal g12(int idx) const {
+    return get_metric<Offset::g12>(idx);
+  }
+  BOUT_HOST_DEVICE inline BoutReal g13(int idx) const {
+    return get_metric<Offset::g13>(idx);
+  }
+  BOUT_HOST_DEVICE inline BoutReal g22(int idx) const {
+    return get_metric<Offset::g22>(idx);
+  }
+  BOUT_HOST_DEVICE inline BoutReal g23(int idx) const {
+    return get_metric<Offset::g23>(idx);
+  }
+  BOUT_HOST_DEVICE inline BoutReal g33(int idx) const {
+    return get_metric<Offset::g33>(idx);
+  }
+  BOUT_HOST_DEVICE inline BoutReal g_11(int idx) const {
+    return get_metric<Offset::g_11>(idx);
+  }
+  BOUT_HOST_DEVICE inline BoutReal g_12(int idx) const {
+    return get_metric<Offset::g_12>(idx);
+  }
+  BOUT_HOST_DEVICE inline BoutReal g_13(int idx) const {
+    return get_metric<Offset::g_13>(idx);
+  }
+  BOUT_HOST_DEVICE inline BoutReal g_22(int idx) const {
+    return get_metric<Offset::g_22>(idx);
+  }
+  BOUT_HOST_DEVICE inline BoutReal g_23(int idx) const {
+    return get_metric<Offset::g_23>(idx);
+  }
+  BOUT_HOST_DEVICE inline BoutReal g_33(int idx) const {
+    return get_metric<Offset::g_33>(idx);
+  }
 };
 
 #endif // COORDINATES_ACCESSOR_H__
