@@ -20,7 +20,7 @@ CoordinatesAccessor::CoordinatesAccessor(const Coordinates* coords) {
   const auto* mesh = coords->dx.getMesh();
   mesh_nz = mesh->LocalNz;
 
-  auto search = coords_store.find(coords);
+  const auto search = coords_store.find(coords);
   if (search != coords_store.end()) {
     // Found, so get the pointer to the data
     data = search->second.begin();
