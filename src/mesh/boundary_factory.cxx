@@ -12,6 +12,8 @@
 #include <list>
 #include <map>
 #include <string>
+#include <string_view>
+
 using std::list;
 using std::string;
 
@@ -56,15 +58,13 @@ BoundaryFactory::BoundaryFactory() {
 
 BoundaryFactory::~BoundaryFactory() {
   // Free any boundaries
-  for (const auto& it : opmap) {
-    delete it.second;
+  for (const auto& [key, op] : opmap) {
+    delete op;
   }
-  for (const auto& it : modmap) {
-    delete it.second;
-  }
-  for (const auto& it : par_opmap) {
-    delete it.second;
-  }
+  for (const auto& [key, mod] : modmap)
+    delete mod;
+  for (const auto& [key, par_op] : par_opmap)
+    delete par_op;
 }
 
 BoundaryFactory* BoundaryFactory::getInstance() {
@@ -85,43 +85,38 @@ void BoundaryFactory::cleanup() {
   instance = nullptr;
 }
 
-BoundaryOpBase* BoundaryFactory::create(const string& name, BoundaryRegionBase* region) {
-
+BoundaryOpBase* BoundaryFactory::create(std::string_view name_sv,
+                                        BoundaryRegionBase* region) {
+  string name(name_sv); // Convert string_view to string for local mutations
   // Search for a string of the form: modifier(operation)
   auto pos = name.find('(');
+
   if (pos == string::npos) {
     // No more (opening) brackets. Should be a boundary operation
     // Need to strip whitespace
 
-    if ((name == "null") || (name == "none")) {
+    if (name == "null" || name == "none") {
       return nullptr;
     }
 
     if (region->isParallel) {
       // Parallel boundary
-      BoundaryOpPar* pop = findBoundaryOpPar(trim(name));
-      if (pop == nullptr) {
-        throw BoutException("Could not find parallel boundary condition '{:s}'", name);
+      if (auto* pop = findBoundaryOpPar(trim(name)); pop != nullptr) {
+        return pop->clone(dynamic_cast<bout::boundary::BoundaryRegionFCI*>(region), {},
+                          {});
       }
-
-      // Clone the boundary operation, passing the region to operate over,
-      // an empty args list and empty keyword map
-      list<string> args;
-      return pop->clone(dynamic_cast<bout::boundary::BoundaryRegionFCI*>(region), args,
-                        {});
-    } else {
-      // Perpendicular boundary
-      BoundaryOp* op = findBoundaryOp(trim(name));
-      if (op == nullptr) {
-        throw BoutException("Could not find boundary condition '{:s}'", name);
-      }
-
-      // Clone the boundary operation, passing the region to operate over,
-      // an empty args list and empty keyword map
-      list<string> args;
-      return op->clone(region->getLegacyPointer(), args, {});
+      throw BoutException("Could not find parallel boundary condition '{:s}'", name);
     }
+
+    // Clone the boundary operation, passing the region to operate over,
+    // an empty args list and empty keyword map
+    // Perpendicular boundary
+    if (auto* op = findBoundaryOp(trim(name)); op != nullptr) {
+      return op->clone(region->getLegacyPointer(), {}, {});
+    }
+    throw BoutException("Could not find boundary condition '{:s}'", name);
   }
+
   // Contains a bracket. Find the last bracket and remove
   auto pos2 = name.rfind(')');
   if (pos2 == string::npos) {
@@ -157,8 +152,7 @@ BoundaryOpBase* BoundaryFactory::create(const string& name, BoundaryRegionBase* 
         string s = arg.substr(start, i - start);
 
         // Check if s contains '=', and if so treat as a keyword
-        auto poseq = s.find('=');
-        if (poseq != string::npos) {
+        if (auto poseq = s.find('='); poseq != string::npos) {
           keywords[trim(s.substr(0, poseq))] = trim(s.substr(poseq + 1));
         } else {
           // No '=', so a positional argument
@@ -170,9 +164,9 @@ BoundaryOpBase* BoundaryFactory::create(const string& name, BoundaryRegionBase* 
     }
     };
   }
-  std::string s = arg.substr(start);
-  auto poseq = s.find('=');
-  if (poseq != string::npos) {
+
+  string s = arg.substr(start);
+  if (auto poseq = s.find('='); poseq != string::npos) {
     keywords[trim(s.substr(0, poseq))] = trim(s.substr(poseq + 1));
   } else {
     // No '=', so a positional argument
@@ -180,8 +174,7 @@ BoundaryOpBase* BoundaryFactory::create(const string& name, BoundaryRegionBase* 
   }
 
   // Test if func is a modifier
-  BoundaryModifier* mod = findBoundaryMod(func);
-  if (mod != nullptr) {
+  if (auto* mod = findBoundaryMod(func); mod != nullptr) {
     // The first argument should be an operation
     auto* op = dynamic_cast<BoundaryOp*>(create(arglist.front(), region));
     if (op == nullptr) {
@@ -195,8 +188,7 @@ BoundaryOpBase* BoundaryFactory::create(const string& name, BoundaryRegionBase* 
     return mod->cloneMod(op, arglist);
   }
 
-  BoundaryOpPar* pop = findBoundaryOpPar(trim(func));
-  if (pop != nullptr) {
+  if (auto* pop = findBoundaryOpPar(trim(func)); pop != nullptr) {
     // An operation with arguments
     if (region->isParallel) {
       return pop->clone(dynamic_cast<bout::boundary::BoundaryRegionFCI*>(region), arglist,
@@ -213,8 +205,7 @@ BoundaryOpBase* BoundaryFactory::create(const string& name, BoundaryRegionBase* 
   }
   if (!region->isParallel) {
     // Legacy perpendicular boundary
-    BoundaryOp* op = findBoundaryOp(trim(func));
-    if (op != nullptr) {
+    if (auto* op = findBoundaryOp(trim(func)); op != nullptr) {
       // An operation with arguments
       return op->clone(region->getLegacyPointer(), arglist, keywords);
     }
@@ -227,102 +218,66 @@ BoundaryOpBase* BoundaryFactory::create(const string& name, BoundaryRegionBase* 
   return nullptr;
 }
 
-BoundaryOpBase* BoundaryFactory::create(const char* name, BoundaryRegionBase* region) {
-  return create(string(name), region);
-}
-
-BoundaryOpBase* BoundaryFactory::createFromOptions(const string& varname,
+BoundaryOpBase* BoundaryFactory::createFromOptions(std::string_view varname_sv,
                                                    BoundaryRegionBase* region) {
-  if (region == nullptr) {
+  if (region == nullptr)
     return nullptr;
-  }
+  string varname(varname_sv);
 
   output_info << "\t" << region->label << " region: ";
 
-  string prefix("bndry_");
+  std::array<string, 5> sides = {
+      region->label,
+      "all",                                 // [1] fallback
+      "all",                                 // [2] fallback
+      "all",                                 // [3] fallback
+      region->isParallel ? "par_all" : "all" // [4]
+  };
 
-  std::array<string, 5> sides;
-  sides[0] = region->label;
   ASSERT2(region->location != BNDRY_INVALID)
   switch (region->location) {
-  case BNDRY_XIN: {
+  case BNDRY_XIN:
     sides[1] = "xin";
     break;
-  }
-  case BNDRY_XOUT: {
+  case BNDRY_XOUT:
     sides[1] = "xout";
     break;
-  }
-  case BNDRY_YDOWN: {
+  case BNDRY_YDOWN:
     sides[1] = "ydown";
     break;
-  }
-  case BNDRY_YUP: {
+  case BNDRY_YUP:
     sides[1] = "yup";
     break;
-  }
-  case BNDRY_PAR_FWD_XIN: {
+  case BNDRY_PAR_FWD_XIN:
     sides[1] = "par_yup_xin";
-    break;
-  }
-  case BNDRY_PAR_FWD_XOUT: {
-    sides[1] = "par_yup_xout";
-    break;
-  }
-  case BNDRY_PAR_BKWD_XIN: {
-    sides[1] = "par_ydown_xin";
-    break;
-  }
-  case BNDRY_PAR_BKWD_XOUT: {
-    sides[1] = "par_ydown_xout";
-    break;
-  }
-  default: {
-    sides[1] = "all";
-    break;
-  }
-  }
-
-  switch (region->location) {
-  case BNDRY_PAR_FWD_XIN:
-  case BNDRY_PAR_BKWD_XIN: {
     sides[2] = "par_xin";
-    break;
-  }
-  case BNDRY_PAR_BKWD_XOUT:
-  case BNDRY_PAR_FWD_XOUT: {
-    sides[2] = "par_xout";
-    break;
-  }
-  default: {
-    sides[2] = "all";
-    break;
-  }
-  }
-  switch (region->location) {
-  case BNDRY_PAR_FWD_XIN:
-  case BNDRY_PAR_FWD_XOUT: {
     sides[3] = "par_yup";
     break;
-  }
+  case BNDRY_PAR_FWD_XOUT:
+    sides[1] = "par_yup_xout";
+    sides[2] = "par_xout";
+    sides[3] = "par_yup";
+    break;
   case BNDRY_PAR_BKWD_XIN:
-  case BNDRY_PAR_BKWD_XOUT: {
+    sides[1] = "par_ydown_xin";
+    sides[2] = "par_xin";
     sides[3] = "par_ydown";
     break;
-  }
-  default: {
-    sides[3] = "all";
+  case BNDRY_PAR_BKWD_XOUT:
+    sides[1] = "par_ydown_xout";
+    sides[2] = "par_xout";
+    sides[3] = "par_ydown";
+    break;
+  default:
     break;
   }
-  }
-
-  sides[4] = region->isParallel ? "par_all" : "all";
 
   // Get options
   Options* options = Options::getRoot();
 
   // Get variable options
   Options* varOpts = options->getSection(varname);
+  string prefix("bndry_");
   string set;
 
   /// First try looking for (var, ...)
@@ -357,69 +312,53 @@ BoundaryOpBase* BoundaryFactory::createFromOptions(const string& varname,
   // values. If a user want to override, specify "none" or "null"
 }
 
-BoundaryOpBase* BoundaryFactory::createFromOptions(const char* varname,
-                                                   BoundaryRegionBase* region) {
-  return createFromOptions(string(varname), region);
-}
-
-void BoundaryFactory::add(BoundaryOp* bop, const string& name) {
-  if ((findBoundaryMod(name) != nullptr) || (findBoundaryOp(name) != nullptr)) {
-    // error - already exists
+void BoundaryFactory::add(BoundaryOp* bop, std::string_view name) {
+  string lower_name = lowercase(string(name));
+  // C++20: .contains() allows us to check existence effortlessly
+  if (modmap.contains(lower_name) || opmap.contains(lower_name)) {
     output_error << "ERROR: Trying to add an already existing boundary: " << name << endl;
     return;
   }
-  opmap[lowercase(name)] = bop;
+  opmap[lower_name] = bop;
 }
 
-void BoundaryFactory::add(BoundaryOp* bop, const char* name) { add(bop, string(name)); }
-
-void BoundaryFactory::add(BoundaryOpPar* bop, const string& name) {
-  if (findBoundaryOpPar(name) != nullptr) {
-    // error - already exists
+void BoundaryFactory::add(BoundaryOpPar* bop, std::string_view name) {
+  string lower_name = lowercase(string(name));
+  if (par_opmap.contains(lower_name)) {
     output_error << "ERROR: Trying to add an already existing boundary: " << name << endl;
     return;
   }
-  par_opmap[lowercase(name)] = bop;
+  par_opmap[lower_name] = bop;
 }
 
-void BoundaryFactory::add(BoundaryOpPar* bop, const char* name) {
-  add(bop, string(name));
-}
-
-void BoundaryFactory::addMod(BoundaryModifier* bmod, const string& name) {
-  if ((findBoundaryMod(name) != nullptr) || (findBoundaryOp(name) != nullptr)) {
-    // error - already exists
+void BoundaryFactory::addMod(BoundaryModifier* bmod, std::string_view name) {
+  string lower_name = lowercase(string(name));
+  if (modmap.contains(lower_name) || opmap.contains(lower_name)) {
     output_error << "ERROR: Trying to add an already existing boundary modifier: " << name
                  << endl;
     return;
   }
-  modmap[lowercase(name)] = bmod;
+  modmap[lower_name] = bmod;
 }
 
-void BoundaryFactory::addMod(BoundaryModifier* bmod, const char* name) {
-  addMod(bmod, string(name));
-}
-
-BoundaryOp* BoundaryFactory::findBoundaryOp(const string& s) {
-  auto it = opmap.find(lowercase(s));
-  if (it == opmap.end()) {
-    return nullptr;
+BoundaryOp* BoundaryFactory::findBoundaryOp(std::string_view s) {
+  // C++17 Init-statement
+  if (auto it = opmap.find(lowercase(string(s))); it != opmap.end()) {
+    return it->second;
   }
-  return it->second;
+  return nullptr;
 }
 
-BoundaryModifier* BoundaryFactory::findBoundaryMod(const string& s) {
-  auto it = modmap.find(lowercase(s));
-  if (it == modmap.end()) {
-    return nullptr;
+BoundaryModifier* BoundaryFactory::findBoundaryMod(std::string_view s) {
+  if (auto it = modmap.find(lowercase(string(s))); it != modmap.end()) {
+    return it->second;
   }
-  return it->second;
+  return nullptr;
 }
 
-BoundaryOpPar* BoundaryFactory::findBoundaryOpPar(const string& s) {
-  auto it = par_opmap.find(lowercase(s));
-  if (it == par_opmap.end()) {
-    return nullptr;
+BoundaryOpPar* BoundaryFactory::findBoundaryOpPar(std::string_view s) {
+  if (auto it = par_opmap.find(lowercase(string(s))); it != par_opmap.end()) {
+    return it->second;
   }
-  return it->second;
+  return nullptr;
 }
