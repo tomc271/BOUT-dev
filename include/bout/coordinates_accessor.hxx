@@ -46,7 +46,7 @@ struct CoordinatesAccessor {
   static std::size_t clear(const Coordinates* coords = nullptr);
 
   /// Offsets of each coordinates variable into the striped array
-  enum class Offset {
+  enum class Offset : std::uint8_t {
     dx,
     dy,
     dz, // Grid spacing
@@ -79,8 +79,8 @@ struct CoordinatesAccessor {
   ///       e.g. 32-byte boundaries -> multiples of 32 / 8 = 4 desirable
   static constexpr int stripe_size = static_cast<int>(Offset::end);
 
-  static_assert(stripe_size >= static_cast<int>(Offset::end),
-                "stripe_size must fit all Coordinates values");
+  static_assert(static_cast<int>(Offset::end) <= 256,
+                "Offset enum values exceed the maximum capacity of std::uint8_t");
 
   /// Underlying data pointer.
   /// This array includes all Coordinates fields interleaved
