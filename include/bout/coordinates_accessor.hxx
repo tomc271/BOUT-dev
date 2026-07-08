@@ -30,7 +30,7 @@
 ///    -> If Coordinates data is changed, the cache should be cleared
 ///    by calling CoordinatesAccessor::clear()
 struct CoordinatesAccessor {
-  CoordinatesAccessor() {}
+  CoordinatesAccessor() = default;
 
   /// Constructor from Coordinates
   /// Copies data from coords, doesn't modify it
@@ -84,8 +84,8 @@ struct CoordinatesAccessor {
 
   /// Underlying data pointer.
   /// This array includes all Coordinates fields interleaved
-  BoutReal* data;
-  int mesh_nz; ///< For converting from 3D to 2D index
+  BoutReal* data{nullptr};
+  int mesh_nz{0}; ///< For converting from 3D to 2D index
 
   /// Lookup value in data array, based on the cell index
   /// and the variable offset
