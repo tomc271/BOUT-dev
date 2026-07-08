@@ -89,7 +89,7 @@ struct CoordinatesAccessor {
 
   /// Lookup value in data array, based on the cell index
   /// and the variable offset
-  BOUT_HOST_DEVICE BoutReal lookup(int index, Offset offset) const {
+  [[nodiscard]] BOUT_HOST_DEVICE BoutReal lookup(int index, Offset offset) const {
 #if BOUT_USE_METRIC_3D
     const int ind = index; // Use 3D index
 #else
@@ -100,80 +100,80 @@ struct CoordinatesAccessor {
 
   // A type-safe templated lookup method using enum classes
   template <Offset O>
-  BOUT_HOST_DEVICE BoutReal get_metric(int index) const {
+  [[nodiscard]] BOUT_HOST_DEVICE BoutReal get_metric(int index) const {
     return lookup(index, O);
   }
 
-  BOUT_HOST_DEVICE BoutReal dx(int idx) const {
+  [[nodiscard]] BOUT_HOST_DEVICE BoutReal dx(int idx) const {
     return get_metric<Offset::dx>(idx);
   }
-  BOUT_HOST_DEVICE BoutReal dy(int idx) const {
+  [[nodiscard]] BOUT_HOST_DEVICE BoutReal dy(int idx) const {
     return get_metric<Offset::dy>(idx);
   }
-  BOUT_HOST_DEVICE BoutReal dz(int idx) const {
+  [[nodiscard]] BOUT_HOST_DEVICE BoutReal dz(int idx) const {
     return get_metric<Offset::dz>(idx);
   }
-  BOUT_HOST_DEVICE BoutReal d1_dx(int idx) const {
+  [[nodiscard]] BOUT_HOST_DEVICE BoutReal d1_dx(int idx) const {
     return get_metric<Offset::d1_dx>(idx);
   }
-  BOUT_HOST_DEVICE BoutReal d1_dy(int idx) const {
+  [[nodiscard]] BOUT_HOST_DEVICE BoutReal d1_dy(int idx) const {
     return get_metric<Offset::d1_dy>(idx);
   }
-  BOUT_HOST_DEVICE BoutReal d1_dz(int idx) const {
+  [[nodiscard]] BOUT_HOST_DEVICE BoutReal d1_dz(int idx) const {
     return get_metric<Offset::d1_dz>(idx);
   }
-  BOUT_HOST_DEVICE BoutReal J(int idx) const {
+  [[nodiscard]] BOUT_HOST_DEVICE BoutReal J(int idx) const {
     return get_metric<Offset::J>(idx);
   }
-  BOUT_HOST_DEVICE BoutReal B(int idx) const {
+  [[nodiscard]] BOUT_HOST_DEVICE BoutReal B(int idx) const {
     return get_metric<Offset::B>(idx);
   }
-  BOUT_HOST_DEVICE BoutReal Byup(int idx) const {
+  [[nodiscard]] BOUT_HOST_DEVICE BoutReal Byup(int idx) const {
     return get_metric<Offset::Byup>(idx);
   }
-  BOUT_HOST_DEVICE BoutReal Bydown(int idx) const {
+  [[nodiscard]] BOUT_HOST_DEVICE BoutReal Bydown(int idx) const {
     return get_metric<Offset::Bydown>(idx);
   }
-  BOUT_HOST_DEVICE BoutReal G1(int idx) const {
+  [[nodiscard]] BOUT_HOST_DEVICE BoutReal G1(int idx) const {
     return get_metric<Offset::G1>(idx);
   }
-  BOUT_HOST_DEVICE BoutReal G3(int idx) const {
+  [[nodiscard]] BOUT_HOST_DEVICE BoutReal G3(int idx) const {
     return get_metric<Offset::G3>(idx);
   }
-  BOUT_HOST_DEVICE BoutReal g11(int idx) const {
+  [[nodiscard]] BOUT_HOST_DEVICE BoutReal g11(int idx) const {
     return get_metric<Offset::g11>(idx);
   }
-  BOUT_HOST_DEVICE BoutReal g12(int idx) const {
+  [[nodiscard]] BOUT_HOST_DEVICE BoutReal g12(int idx) const {
     return get_metric<Offset::g12>(idx);
   }
-  BOUT_HOST_DEVICE BoutReal g13(int idx) const {
+  [[nodiscard]] BOUT_HOST_DEVICE BoutReal g13(int idx) const {
     return get_metric<Offset::g13>(idx);
   }
-  BOUT_HOST_DEVICE BoutReal g22(int idx) const {
+  [[nodiscard]] BOUT_HOST_DEVICE BoutReal g22(int idx) const {
     return get_metric<Offset::g22>(idx);
   }
-  BOUT_HOST_DEVICE BoutReal g23(int idx) const {
+  [[nodiscard]] BOUT_HOST_DEVICE BoutReal g23(int idx) const {
     return get_metric<Offset::g23>(idx);
   }
-  BOUT_HOST_DEVICE BoutReal g33(int idx) const {
+  [[nodiscard]] BOUT_HOST_DEVICE BoutReal g33(int idx) const {
     return get_metric<Offset::g33>(idx);
   }
-  BOUT_HOST_DEVICE BoutReal g_11(int idx) const {
+  [[nodiscard]] BOUT_HOST_DEVICE BoutReal g_11(int idx) const {
     return get_metric<Offset::g_11>(idx);
   }
-  BOUT_HOST_DEVICE BoutReal g_12(int idx) const {
+  [[nodiscard]] BOUT_HOST_DEVICE BoutReal g_12(int idx) const {
     return get_metric<Offset::g_12>(idx);
   }
-  BOUT_HOST_DEVICE BoutReal g_13(int idx) const {
+  [[nodiscard]] BOUT_HOST_DEVICE BoutReal g_13(int idx) const {
     return get_metric<Offset::g_13>(idx);
   }
-  BOUT_HOST_DEVICE BoutReal g_22(int idx) const {
+  [[nodiscard]] BOUT_HOST_DEVICE BoutReal g_22(int idx) const {
     return get_metric<Offset::g_22>(idx);
   }
-  BOUT_HOST_DEVICE BoutReal g_23(int idx) const {
+  [[nodiscard]] BOUT_HOST_DEVICE BoutReal g_23(int idx) const {
     return get_metric<Offset::g_23>(idx);
   }
-  BOUT_HOST_DEVICE BoutReal g_33(int idx) const {
+  [[nodiscard]] BOUT_HOST_DEVICE BoutReal g_33(int idx) const {
     return get_metric<Offset::g_33>(idx);
   }
 };
