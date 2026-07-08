@@ -84,10 +84,8 @@ public:
 
 private:
   std::string name; ///< Name of the expression being pointed to
-  int depth_counter{
-      0}; ///< Counts the iteration depth, to provide a maximum number of iterations
-  int depth_limit{
-      0}; ///< Maximum call depth. If 0 then no recursion allowed (generate fails first time).
+  int depth_counter{0}; ///< Counts the iteration depth, to provide a maximum number of iterations
+  int depth_limit{0}; ///< Maximum call depth. If 0 then no recursion allowed (generate fails first time).
 
   FieldGeneratorPtr target;
 };
