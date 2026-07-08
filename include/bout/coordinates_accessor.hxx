@@ -1,6 +1,4 @@
 #pragma once
-#ifndef COORDINATES_ACCESSOR_H__
-#define COORDINATES_ACCESSOR_H__
 
 #include "array.hxx"
 #include "build_config.hxx"
@@ -177,5 +175,3 @@ struct CoordinatesAccessor {
     return get_metric<Offset::g_33>(idx);
   }
 };
-
-#endif // COORDINATES_ACCESSOR_H__
