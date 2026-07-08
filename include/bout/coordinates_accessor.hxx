@@ -89,7 +89,7 @@ struct CoordinatesAccessor {
 
   /// Lookup value in data array, based on the cell index
   /// and the variable offset
-  [[nodiscard]] BOUT_HOST_DEVICE BoutReal lookup(int index, Offset offset) const {
+  [[nodiscard]] BOUT_HOST_DEVICE BoutReal lookup(const int index, Offset offset) const {
 #if BOUT_USE_METRIC_3D
     const int ind = index; // Use 3D index
 #else
