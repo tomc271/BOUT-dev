@@ -413,39 +413,24 @@ const Options* FieldFactory::findOption(const Options* opt, const std::string& n
 
 FieldGeneratorPtr FieldFactory::resolve(const std::string& name) const {
   if (options != nullptr) {
-    // Check if in cache
-    std::string key;
-    if (name.find(':') != std::string::npos) {
-      // Already has section
-      key = name;
-    } else {
-      key = options->str();
-      if (key.length() > 0) {
-        key += ":";
-      }
-      key += name;
-    }
+    std::string key = (name.find(':') != std::string::npos)
+                          ? name // Already has section
+                          : (options->str() + (options->str().empty() ? "" : ":") + name);
 
-    auto cached_value = cache.find(key);
-    if (cached_value != cache.end()) {
+    if (auto it = cache.find(key); it != cache.end()) {
       // Found in cache
-      return cached_value->second;
+      return it->second;
     }
 
     // Look up in options
 
-    // Check if already looking up this symbol
-    for (const auto& lookup_value : lookup) {
-      if (key == lookup_value) {
-        // Name matches, so already looking up
-        output_error << "ExpressionParser lookup stack:\n";
-        for (const auto& stack_value : lookup) {
-          output_error << stack_value << " -> ";
-        }
-        output_error << name << endl;
-        throw BoutException("ExpressionParser: Infinite recursion in parsing '{:s}'",
-                            name);
+    if (std::find(lookup.begin(), lookup.end(), key) != lookup.end()) {
+      output_error << "ExpressionParser lookup stack:\n";
+      for (const auto& stack_value : lookup) {
+        output_error << stack_value << " -> ";
       }
+      output_error << name << endl;
+      throw BoutException("ExpressionParser: Infinite recursion in parsing '{:s}'", name);
     }
 
     // Find the option, including traversing sections.
