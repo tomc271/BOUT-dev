@@ -63,10 +63,10 @@ class FieldIndirect : public FieldGenerator {
 public:
   /// depth_limit sets the maximum iteration depth. Set to < 0 for no limit
   FieldIndirect(std::string name, int depth_limit = 0)
-      : name(name), depth_limit(depth_limit) {}
+      : name(std::move(name)), depth_limit(depth_limit) {}
 
   /// Set the target, to be called when generator is called
-  void setTarget(FieldGeneratorPtr fieldgen) { target = fieldgen; }
+  void setTarget(FieldGeneratorPtr fieldgen) { target = std::move(fieldgen); }
 
   double generate(const Context& ctx) override {
     if (depth_counter == depth_limit) {
