@@ -17,7 +17,7 @@ CoordinatesAccessor::CoordinatesAccessor(const Coordinates* coords) {
   ASSERT0(coords != nullptr);
 
   // Size of the mesh in Z. Used to convert 3D -> 2D index
-  Mesh* mesh = coords->dx.getMesh();
+  const auto* mesh = coords->dx.getMesh();
   mesh_nz = mesh->LocalNz;
 
   auto search = coords_store.find(coords);
@@ -92,7 +92,7 @@ CoordinatesAccessor::CoordinatesAccessor(const Coordinates* coords) {
 std::size_t CoordinatesAccessor::clear(const Coordinates* coords) {
   if (coords == nullptr) {
     // clear all
-    std::size_t num_removed = coords_store.size();
+    const std::size_t num_removed = coords_store.size();
     coords_store.clear();
     return num_removed;
   }
