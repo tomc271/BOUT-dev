@@ -1,7 +1,6 @@
 #ifndef BOUT_FIELDGROUP_H
 #define BOUT_FIELDGROUP_H
 
-#include <bout/traits.hxx>
 #include <bout/vector2d.hxx>
 #include <bout/vector3d.hxx>
 
@@ -62,7 +61,7 @@ public:
   /// to FieldGroup, leading to an infinite loop.
   template <typename... Ts>
   explicit FieldGroup(Ts&... ts) {
-    add(ts...);
+    (add(ts), ...);
   }
 
   /// Copy contents of another FieldGroup \p other into this group.
@@ -121,37 +120,18 @@ public:
 
   /// Add multiple fields to this group
   template <typename... Ts>
-  void add(Field& t, Ts&... ts) {
-    add(t);     // Add the first using functions above
-    add(ts...); // Add the rest
-  }
-
-  template <typename... Ts>
-  void add(Field3D& t, Ts&... ts) {
-    add(t);     // Add the first using functions above
-    add(ts...); // Add the rest
-  }
-
-  template <typename... Ts>
-  void add(Vector3D& t, Ts&... ts) {
-    add(t);     // Add the first using functions above
-    add(ts...); // Add the rest
-  }
-
-  template <typename... Ts>
-  void add(Vector2D& t, Ts&... ts) {
-    add(t);     // Add the first using functions above
-    add(ts...); // Add the rest
+  requires(sizeof...(Ts) > 1) void add(Ts&... ts) {
+    (add(ts), ...);
   }
 
   /// Return number of fields
-  int size() const { return static_cast<int>(fvec.size()); }
+  [[nodiscard]] int size() const { return static_cast<int>(fvec.size()); }
 
   /// Return number of Field3Ds
-  int size_field3d() const { return static_cast<int>(f3vec.size()); }
+  [[nodiscard]] int size_field3d() const { return static_cast<int>(f3vec.size()); }
 
   /// Test whether this group is empty
-  bool empty() const { return fvec.empty(); }
+  [[nodiscard]] bool empty() const { return fvec.empty(); }
 
   /// Remove all fields from this group
   void clear() {
@@ -167,10 +147,10 @@ public:
   auto begin() const { return fvec.cbegin(); }
   auto end() const { return fvec.cend(); }
 
-  const std::vector<Field*>& get() const { return fvec; }
+  [[nodiscard]] const std::vector<Field*>& get() const { return fvec; }
 
   /// Iteration over 3D fields
-  const std::vector<Field3D*>& field3d() const { return f3vec; }
+  [[nodiscard]] const std::vector<Field3D*>& field3d() const { return f3vec; }
 
   /// Ensure that each field appears only once
   void makeUnique();
