@@ -37,9 +37,10 @@
 /// @param[in] test   The value which determines which input to use
 /// @param[in] gt0    Uses this value if test > 0.0
 /// @param[in] le0    Uses this value if test <= 0.0
-template <IsField T, IsField U, IsField V,
-          class ResultType = typename IsField<T, U, V>>
-auto where(const T& test, const U& gt0, const V& le0)  -> ResultType {
+template <typename T, typename U, typename V,
+          typename ResultType = std::common_type_t<T, U, V>>
+requires IsField<T>&& IsField<U>&& IsField<V> auto where(const T& test, const U& gt0,
+                                                         const V& le0) -> ResultType {
   ASSERT1_FIELDS_COMPATIBLE(test, gt0);
   ASSERT1_FIELDS_COMPATIBLE(test, le0);
 
@@ -51,8 +52,9 @@ auto where(const T& test, const U& gt0, const V& le0)  -> ResultType {
   return result;
 }
 
-template <class T, class U, class ResultType = typename IsField<T, U>>
-auto where(const T& test, const U& gt0, BoutReal le0) -> ResultType {
+template <typename T, typename U, typename ResultType = std::common_type_t<T, U>>
+requires IsField<T>&& IsField<U> auto where(const T& test, const U& gt0, BoutReal le0)
+    -> ResultType {
   ASSERT1_FIELDS_COMPATIBLE(test, gt0);
 
   ResultType result{emptyFrom(test)};
@@ -63,14 +65,12 @@ auto where(const T& test, const U& gt0, BoutReal le0) -> ResultType {
   return result;
 }
 
-template <IsField T, IsField V, class ResultType = std::common_type_t<T, V>>
-auto where(const T& test, BoutReal gt0, const V& le0) -> ResultType {
-  ASSERT1_FIELDS_COMPATIBLE(test, le0);
-
+template <typename T, typename ResultType = T>
+requires IsField<T> auto where(const T& test, BoutReal gt0, BoutReal le0) -> ResultType {
   ResultType result{emptyFrom(test)};
 
   BOUT_FOR(i, result.getRegion("RGN_ALL")) { // clang-format: ignore
-    result[i] = (test[i] > 0.0) ? gt0 : le0[i];
+    result[i] = (test[i] > 0.0) ? gt0 : le0;
   }
   return result;
 }
