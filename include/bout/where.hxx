@@ -31,16 +31,19 @@
 #include "bout/field.hxx"
 #include "bout/field2d.hxx"
 #include "bout/field3d.hxx"
+#include <type_traits>
 
 /// For each point, choose between two inputs based on a third input
 ///
 /// @param[in] test   The value which determines which input to use
 /// @param[in] gt0    Uses this value if test > 0.0
 /// @param[in] le0    Uses this value if test <= 0.0
+
+// Overload 1: Three fields
 template <typename T, typename U, typename V,
           typename ResultType = std::common_type_t<T, U, V>>
-requires IsField<T>&& IsField<U>&& IsField<V> auto where(const T& test, const U& gt0,
-                                                         const V& le0) -> ResultType {
+requires IsField<T>&& IsField<U>&& IsField<V>
+auto where(const T& test, const U& gt0, const V& le0) -> ResultType {
   ASSERT1_FIELDS_COMPATIBLE(test, gt0);
   ASSERT1_FIELDS_COMPATIBLE(test, le0);
 
@@ -52,9 +55,10 @@ requires IsField<T>&& IsField<U>&& IsField<V> auto where(const T& test, const U&
   return result;
 }
 
+// Overload 2: Two fields, one BoutReal (le0)
 template <typename T, typename U, typename ResultType = std::common_type_t<T, U>>
-requires IsField<T>&& IsField<U> auto where(const T& test, const U& gt0, BoutReal le0)
-    -> ResultType {
+requires IsField<T>&& IsField<U>
+auto where(const T& test, const U& gt0, BoutReal le0) -> ResultType {
   ASSERT1_FIELDS_COMPATIBLE(test, gt0);
 
   ResultType result{emptyFrom(test)};
@@ -65,17 +69,23 @@ requires IsField<T>&& IsField<U> auto where(const T& test, const U& gt0, BoutRea
   return result;
 }
 
-template <typename T, typename ResultType = T>
-requires IsField<T> auto where(const T& test, BoutReal gt0, BoutReal le0) -> ResultType {
+// Overload 3: Two fields, one BoutReal (gt0)
+template <typename T, typename V, typename ResultType = std::common_type_t<T, V>>
+requires IsField<T>&& IsField<V>
+auto where(const T& test, BoutReal gt0, const V& le0) -> ResultType {
+  ASSERT1_FIELDS_COMPATIBLE(test, le0);
+
   ResultType result{emptyFrom(test)};
 
   BOUT_FOR(i, result.getRegion("RGN_ALL")) { // clang-format: ignore
-    result[i] = (test[i] > 0.0) ? gt0 : le0;
+    result[i] = (test[i] > 0.0) ? gt0 : le0[i];
   }
   return result;
 }
 
-template <IsField T, class ResultType = T>
+// Overload 4: One field, two BoutReals
+template <typename T, typename ResultType = T>
+requires IsField<T>
 auto where(const T& test, BoutReal gt0, BoutReal le0) -> ResultType {
   ResultType result{emptyFrom(test)};
 
