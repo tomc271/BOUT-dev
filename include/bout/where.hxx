@@ -37,9 +37,9 @@
 /// @param[in] test   The value which determines which input to use
 /// @param[in] gt0    Uses this value if test > 0.0
 /// @param[in] le0    Uses this value if test <= 0.0
-template <class T, class U, class V,
-          class ResultType = typename bout::utils::EnableIfField<T, U, V>>
-auto where(const T& test, const U& gt0, const V& le0) -> ResultType {
+template <IsField T, IsField U, IsField V,
+          class ResultType = typename IsField<T, U, V>>
+auto where(const T& test, const U& gt0, const V& le0)  -> ResultType {
   ASSERT1_FIELDS_COMPATIBLE(test, gt0);
   ASSERT1_FIELDS_COMPATIBLE(test, le0);
 
@@ -51,7 +51,7 @@ auto where(const T& test, const U& gt0, const V& le0) -> ResultType {
   return result;
 }
 
-template <class T, class U, class ResultType = typename bout::utils::EnableIfField<T, U>>
+template <class T, class U, class ResultType = typename IsField<T, U>>
 auto where(const T& test, const U& gt0, BoutReal le0) -> ResultType {
   ASSERT1_FIELDS_COMPATIBLE(test, gt0);
 
@@ -63,7 +63,7 @@ auto where(const T& test, const U& gt0, BoutReal le0) -> ResultType {
   return result;
 }
 
-template <class T, class V, class ResultType = typename bout::utils::EnableIfField<T, V>>
+template <IsField T, IsField V, class ResultType = std::common_type_t<T, V>>
 auto where(const T& test, BoutReal gt0, const V& le0) -> ResultType {
   ASSERT1_FIELDS_COMPATIBLE(test, le0);
 
@@ -75,7 +75,7 @@ auto where(const T& test, BoutReal gt0, const V& le0) -> ResultType {
   return result;
 }
 
-template <class T, class ResultType = T>
+template <IsField T, class ResultType = T>
 auto where(const T& test, BoutReal gt0, BoutReal le0) -> ResultType {
   ResultType result{emptyFrom(test)};
 
