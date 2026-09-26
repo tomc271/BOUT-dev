@@ -39,7 +39,6 @@
 
 #include "bout/boutexception.hxx"
 #include "bout/unused.hxx"
-#include <bout/mesh.hxx>
 #include <bout/region.hxx>
 
 /// A representation of offsets for indices, which can be added and
